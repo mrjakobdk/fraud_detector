@@ -1,8 +1,5 @@
 class Classifier:
-    def __init__(self):
-        pass
-
-    def build_model(self, sequence_embedding):
+    def __init__(self, sentence_root):
         pass
 
     def train(self):
@@ -10,3 +7,4 @@ class Classifier:
 
     def predict(self):
         pass
+
