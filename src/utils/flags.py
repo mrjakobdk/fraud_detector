@@ -5,6 +5,7 @@ import tensorflow as tf
 tf.app.flags.DEFINE_string("data_dir", '../data/', "Directory for data")
 tf.app.flags.DEFINE_string("logs_dir", '../logs/', "Directory for logs")
 tf.app.flags.DEFINE_string("glove_dir", '../data/glove/', "Directory for pre-trained GloVe word embeddings")
+tf.app.flags.DEFINE_string("model_filename", '../models/rnn.ckpt', "Directory for logs")
 
 # --------------------------- Training Parameters ---------------------------
 

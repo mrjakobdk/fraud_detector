@@ -6,6 +6,7 @@ import numpy as np
 import sys
 import os
 import webbrowser
+import time
 
 
 class tRNN:
@@ -176,13 +177,32 @@ class tRNN:
         tf.summary.scalar('accuracy', self.acc)
         self.merged_summary_op = tf.summary.merge_all()
 
-    def get_acc(self):
+    def get_acc_old(self):
         # Accuracy
         o_max = tf.reshape(tf.argmax(
             self.o_array.stack(), axis=1), [-1])
 
         label_max = tf.argmax(
             self.label_array, axis=1)
+
+        acc = tf.equal(
+            o_max,
+            label_max)
+        acc = tf.reduce_mean(tf.cast(acc, tf.float32))
+        tf.summary.scalar("accuracy", acc)
+        return acc
+
+    def get_acc(self):
+        # Accuracy
+
+        root_index = self.o_array.size() - 1
+
+        o_max = tf.reshape(
+            tf.argmax(
+                self.o_array.read(root_index)),[-1])
+
+        label_max = tf.argmax(
+            tf.gather(self.label_array, root_index))
 
         acc = tf.equal(
             o_max,
@@ -214,7 +234,7 @@ class tRNN:
         loss_history = []
         acc_history = []
 
-        #todo make a flag for this
+        # todo make a flag for this
         config = tf.ConfigProto(
             device_count={'GPU': 0}
         )
@@ -235,6 +255,7 @@ class tRNN:
                 loss_avg = 0
                 acc_total = 0
                 acc_avg = 0
+                best_acc = 0
                 for step, tree in enumerate(np.random.permutation(self.data.train_trees)):  # todo build train get_trees
                     feed_dict = self.build_feed_dict(tree)  # todo maybe change to batches
                     loss, acc, _, summary = sess.run([self.loss, self.acc, self.train_op, self.merged_summary_op],
@@ -245,26 +266,31 @@ class tRNN:
                     loss_avg = loss_total / (step + 1)
                     acc_avg = acc_total / (step + 1)
 
-                    summary_writer.add_summary(summary, epoch*len(self.data.train_trees) + step)
+                    summary_writer.add_summary(summary, epoch * len(self.data.train_trees) + step)
                     if step % FLAGS.print_step_interval == 0:
+                        test_acc, test_loss, test_time = self.compute_acc_loss(self.data.test_trees, sess)
+
                         helper._print("Epoch:", epoch + 1, "Step:", step, "Loss:", loss_avg, "Acc:",
                                       acc_avg)  # todo avg does not say much maybe eval on validation
-                        helper._print("Test acc:", self.compute_acc(self.data.test_trees, sess))
+                        helper._print("Test -  acc:", test_acc, "loss:", test_loss, "time:", test_time)
+
+                        if test_acc > best_acc:  # TODO should be replaced with validation set
+                            saver.save(sess, FLAGS.model_filename)  # TODO create flag
 
                 acc_history.append(acc_avg)
                 loss_history.append(loss_avg)  # todo do we need history? or is tensorboard enough
 
-                if acc_avg < np.max(acc_history):  # TODO should be replaced with validation set
-                    saver.save(sess, FLAGS.model_filename)  # TODO create flag
-
-    def compute_acc(self, data, sess):
+    def compute_acc_loss(self, data, sess):
+        start = time.time()
+        loss_total = 0
         acc_total = 0
         for step, tree in enumerate(data):
             feed_dict = self.build_feed_dict(tree)
-            acc = sess.run([self.acc], feed_dict=feed_dict)
-            acc_total += acc[0]
-        return acc_total / len(data)
-
+            acc, loss = sess.run([self.acc, self.loss], feed_dict=feed_dict)
+            acc_total += acc
+            loss_total += loss
+        end = time.time()
+        return acc_total / len(data), loss_total / len(data), end - start
 
     def build_feed_dict(self, root):
         node_list = []
@@ -287,11 +313,15 @@ class tRNN:
 
     def run_tensorboard(self):
         if FLAGS.run_tensorboard:
-            os.system('tensorboard --logdir=/home/dzach/Documents/Aarhus\ Universitet/Speciale/code/fraud_detector/logs/rnn &')
+            os.system(
+                'tensorboard --logdir=/home/dzach/Documents/Aarhus\ Universitet/Speciale/code/fraud_detector/logs/rnn &')
             webbrowser.open('http://0.0.0.0:6006/')
+
 
 import atexit
 import shutil
+
+
 @atexit.register
 def clean_tensorboard():
     if FLAGS.run_tensorboard:
