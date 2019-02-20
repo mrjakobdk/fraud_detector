@@ -32,7 +32,7 @@ def parse_node(tokens):
     is_leaf = True
     value = None
     label = [0] * FLAGS.label_size
-    label[int(tokens[1])] = 1
+    label[int(int(tokens[1])/4)] = 1
     left_child = None
     right_child = None
 
@@ -84,3 +84,10 @@ def parse_trees(data_set="train"):  # todo maybe change input param
         trees = [parse_tree(l) for l in fid.readlines()]
 
     return trees
+
+def ratio_of_labels(trees):
+    label_count = 0
+    for tree in trees:
+        if tree.label == [1, 0]:
+            label_count += 1
+    return label_count/len(trees)

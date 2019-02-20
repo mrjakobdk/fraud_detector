@@ -10,6 +10,8 @@ import time
 
 
 class tRNN:
+    feed_dict_test_list = []
+
     def __init__(self, data):
         """
         :param data: utils.data
@@ -38,7 +40,7 @@ class tRNN:
         U_max = np.sqrt(6. / (FLAGS.sentence_embedding_size + FLAGS.sentence_embedding_size))
         V_max = np.sqrt(6. / (FLAGS.sentence_embedding_size + FLAGS.label_size))
         b_max = np.sqrt(6. / FLAGS.sentence_embedding_size)
-        b_p_max = np.sqrt(6. / FLAGS.label_size)
+        b_p_max = 0  # todo np.sqrt(6. / FLAGS.label_size)
         W_initializer = tf.initializers.random_uniform(minval=-W_max, maxval=W_max)
         U_initializer = tf.initializers.random_uniform(minval=-U_max, maxval=U_max)  # todo why this?
         V_initializer = tf.initializers.random_uniform(minval=-V_max, maxval=V_max)
@@ -62,13 +64,15 @@ class tRNN:
         self.U_r = U_r
 
         # bias
-        b = tf.get_variable(name='b', shape=[FLAGS.sentence_embedding_size, 1], initializer=b_initializer)
+        b_W = tf.get_variable(name='b_W', shape=[FLAGS.sentence_embedding_size, 1], initializer=b_initializer)
+        b_U = tf.get_variable(name='b_U', shape=[FLAGS.sentence_embedding_size, 1], initializer=b_initializer)
 
         # classifier weights
         V = tf.get_variable(name='V', shape=[FLAGS.label_size, FLAGS.sentence_embedding_size],
                             initializer=V_initializer)
         b_p = tf.get_variable(name='b_p', shape=[FLAGS.label_size, 1], initializer=b_p_initializer)
         self.V = V
+        self.b_p = b_p
 
         helper._print("========= Constructing tRNN structure =========")
 
@@ -111,18 +115,18 @@ class tRNN:
             # with tf.control_dependencies([print_op_l, print_op_r]):
             left = tf.cond(
                 left_is_leaf,
-                lambda: tf.matmul(W_l, rep_l),
-                lambda: tf.matmul(U_l, rep_l)
+                lambda: tf.matmul(W_l, rep_l) + b_W,
+                lambda: tf.matmul(U_l, rep_l) + b_U
             )
 
             right = tf.cond(
                 right_is_leaf,
-                lambda: tf.matmul(W_r, rep_r),
-                lambda: tf.matmul(U_r, rep_r)
+                lambda: tf.matmul(W_r, rep_r) + b_W,
+                lambda: tf.matmul(U_r, rep_r) + b_U
             )
 
             # relu( (sent_size , 1) + (sent_size , 1) + (sent_size , 1) )  = (sent_size , 1)
-            return tf.nn.softplus(left + right + b)
+            return tf.nn.leaky_relu(left + right)
 
         def tree_construction_body(rep_array, o_array, i):
             # gather variables
@@ -193,13 +197,13 @@ class tRNN:
         return acc
 
     def get_acc(self):
-        # Accuracy
 
+        # Accuracy
         root_index = self.o_array.size() - 1
 
         o_max = tf.reshape(
             tf.argmax(
-                self.o_array.read(root_index)),[-1])
+                self.o_array.read(root_index)), [-1])
 
         label_max = tf.argmax(
             tf.gather(self.label_array, root_index))
@@ -212,6 +216,14 @@ class tRNN:
         return acc
 
     def get_loss(self):
+        root_index = self.o_array.size() - 1
+        loss = tf.reduce_mean(
+            tf.nn.softmax_cross_entropy_with_logits_v2(
+                logits=tf.reshape(self.o_array.read(root_index), [-1, FLAGS.label_size]),
+                labels=tf.gather(self.label_array, root_index)))
+        return loss
+
+    def get_loss_old(self):
         # todo change to the correct loss
         # Loss
         # pro_1 = tf.matmul(self.weight,
@@ -221,9 +233,14 @@ class tRNN:
         # loss = - tf.reduce_sum(pro_1 + pro_2)
         # tf.summary.scalar("loss", loss)
         # Todo: check reshape.
-        loss = tf.reduce_sum(
-            tf.nn.softmax_cross_entropy_with_logits_v2(logits=tf.reshape(self.o_array.stack(), [-1, 5]),
+
+        weights = tf.constant([0.6646, 1 / 0.6646])
+        loss = tf.reduce_mean(
+            tf.nn.softmax_cross_entropy_with_logits_v2(logits=tf.reshape(self.o_array.stack(), [-1, FLAGS.label_size]),
                                                        labels=self.label_array))
+        # tf.nn.weighted_cross_entropy_with_logits(logits=tf.reshape(self.o_array.stack(), [-1, FLAGS.label_size]),
+        #                                          targets=self.label_array,
+        #                                          pos_weight=weights))#todo not the corret one should be softmax, this is sigmoid
         # loss += tf.nn.l2_loss(self.W_l) + tf.nn.l2_loss(self.W_r) + tf.nn.l2_loss(self.U_l) + tf.nn.l2_loss(
         #     self.U_r) + tf.nn.l2_loss(self.V) #TODO what went wrong
 
@@ -231,8 +248,7 @@ class tRNN:
 
     def train(self):
         helper._print("========= Training tRNN =========")
-        loss_history = []
-        acc_history = []
+        helper._print("Test ration:", tree_util.ratio_of_labels(self.data.test_trees))
 
         # todo make a flag for this
         config = tf.ConfigProto(
@@ -240,57 +256,102 @@ class tRNN:
         )
 
         with tf.Session(config=config) as sess:
+
+            # Summary writer for both the training and the set acc and loss - used for tensorboard
+            train_writer = tf.summary.FileWriter(FLAGS.logs_dir + 'rnn/train', sess.graph)
+            test_writer = tf.summary.FileWriter(FLAGS.logs_dir + 'rnn/test')
+
+            loss_total = 0
+            acc_total = 0
+
             # Run the init
             sess.run(self.init)
             saver = tf.train.Saver()
 
-            # Logs to tensorboard
-            summary_writer = tf.summary.FileWriter(FLAGS.logs_dir + "/rnn")
-
             self.run_tensorboard()
-
+            start_time = time.time()
             for epoch in range(FLAGS.epochs):
                 helper._print("========= Epoch ", epoch + 1, ' =========')
-                loss_total = 0
-                loss_avg = 0
-                acc_total = 0
-                acc_avg = 0
                 best_acc = 0
+                helper._print("b_p:", sess.run(self.b_p))
                 for step, tree in enumerate(np.random.permutation(self.data.train_trees)):  # todo build train get_trees
-                    feed_dict = self.build_feed_dict(tree)  # todo maybe change to batches
-                    loss, acc, _, summary = sess.run([self.loss, self.acc, self.train_op, self.merged_summary_op],
-                                                     feed_dict=feed_dict)
 
-                    loss_total += loss
-                    acc_total += acc
-                    loss_avg = loss_total / (step + 1)
-                    acc_avg = acc_total / (step + 1)
-
-                    summary_writer.add_summary(summary, epoch * len(self.data.train_trees) + step)
                     if step % FLAGS.print_step_interval == 0:
-                        test_acc, test_loss, test_time = self.compute_acc_loss(self.data.test_trees, sess)
+                        test_acc, test_loss, test_time = self.compute_acc_loss(self.data.test_trees, sess, test_writer,
+                                                                               epoch * len(
+                                                                                   self.data.train_trees) + step)
 
-                        helper._print("Epoch:", epoch + 1, "Step:", step, "Loss:", loss_avg, "Acc:",
-                                      acc_avg)  # todo avg does not say much maybe eval on validation
+                        avg_acc = acc_total / FLAGS.print_step_interval
+                        avg_loss = loss_total / FLAGS.print_step_interval
+                        summary = tf.Summary()
+                        summary.value.add(tag='accuracy', simple_value=avg_acc)
+                        summary.value.add(tag='loss', simple_value=avg_loss)
+                        train_writer.add_summary(summary, epoch * len(self.data.train_trees) + step)
+                        loss_total = 0
+                        acc_total = 0
+
+                        helper._print("Epoch:", epoch + 1, "Step:",
+                                      step)  # todo avg does not say much maybe eval on validation
                         helper._print("Test -  acc:", test_acc, "loss:", test_loss, "time:", test_time)
+                        helper._print("Train -  acc:", avg_acc, "loss:", avg_loss)
 
                         if test_acc > best_acc:  # TODO should be replaced with validation set
                             saver.save(sess, FLAGS.model_filename)  # TODO create flag
 
-                acc_history.append(acc_avg)
-                loss_history.append(loss_avg)  # todo do we need history? or is tensorboard enough
+                    feed_dict = self.build_feed_dict(tree)  # todo maybe change to batches
+                    _, acc, loss = sess.run([self.train_op, self.acc, self.loss],
+                                          feed_dict=feed_dict)
 
-    def compute_acc_loss(self, data, sess):
+                    acc_total += acc
+                    loss_total += loss
+
+                    #train_writer.add_summary(summary, epoch * len(self.data.train_trees) + step)
+
+
+
+                helper._print("Avg Epoch Time:", (time.time() - start_time) / (epoch + 1) / 60, "m")
+
+
+    def compute_acc_loss_old(self, data, sess, summary_writer, steps):
         start = time.time()
         loss_total = 0
         acc_total = 0
         for step, tree in enumerate(data):
             feed_dict = self.build_feed_dict(tree)
-            acc, loss = sess.run([self.acc, self.loss], feed_dict=feed_dict)
+            acc, loss, summary = sess.run([self.acc, self.loss, self.merged_summary_op],
+                                          feed_dict=feed_dict)  # todo fix summary
             acc_total += acc
             loss_total += loss
+            summary_writer.add_summary(summary, steps)
         end = time.time()
+
         return acc_total / len(data), loss_total / len(data), end - start
+
+    def compute_acc_loss(self, data, sess, summary_writer, steps):#todo should only be for test
+        start = time.time()
+        loss_total = 0
+        acc_total = 0
+
+        if len(self.feed_dict_test_list)==0:
+            for tree in data:
+                self.feed_dict_test_list.append(self.build_feed_dict(tree))
+        for step, feed_dict in enumerate(self.feed_dict_test_list):
+            acc, loss = sess.run([self.acc, self.loss],
+                                          feed_dict=feed_dict)  # todo fix summary
+            acc_total += acc
+            loss_total += loss
+
+        avg_acc = acc_total / len(self.feed_dict_test_list)
+        avg_loss = loss_total / len(self.feed_dict_test_list)
+
+        summary = tf.Summary()
+        summary.value.add(tag='accuracy', simple_value=avg_acc)
+        summary.value.add(tag='loss', simple_value=avg_loss)
+        summary_writer.add_summary(summary, steps)
+
+        end = time.time()
+
+        return avg_acc, avg_loss, end - start
 
     def build_feed_dict(self, root):
         node_list = []
@@ -324,7 +385,9 @@ import shutil
 
 @atexit.register
 def clean_tensorboard():
-    if FLAGS.run_tensorboard:
-        shutil.rmtree(FLAGS.logs_dir + 'rnn')
-        os.mkdir(FLAGS.logs_dir + 'rnn')
-        os.system('fuser -k 6006/tcp')
+    # if FLAGS.run_tensorboard:
+    shutil.rmtree(FLAGS.logs_dir + 'rnn')
+    os.mkdir(FLAGS.logs_dir + 'rnn')
+    os.mkdir(FLAGS.logs_dir + 'rnn/test')
+    os.mkdir(FLAGS.logs_dir + 'rnn/train')
+    os.system('fuser -k 6006/tcp')

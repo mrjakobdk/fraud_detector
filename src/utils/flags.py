@@ -11,7 +11,7 @@ tf.app.flags.DEFINE_string("model_filename", '../models/rnn.ckpt', "Directory fo
 
 tf.app.flags.DEFINE_integer("word_embedding_size", 300, "Size of the word embedding")
 tf.app.flags.DEFINE_integer("sentence_embedding_size", 300, "Size of the sentence embedding")
-tf.app.flags.DEFINE_integer("label_size", 5, "Number of labels")
+tf.app.flags.DEFINE_integer("label_size", 2, "Number of labels")
 
 tf.app.flags.DEFINE_integer("epochs", 200, "Number of epochs during training")
 tf.app.flags.DEFINE_float("learning_rate", 0.001, "Learning rate for training")
