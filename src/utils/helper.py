@@ -1,6 +1,8 @@
 from utils.flags import FLAGS
 from tqdm import tqdm
 import urllib
+import kaggle
+from kaggle.api.kaggle_api_extended import KaggleApi
 
 
 class DownloadProgressBar(tqdm):
@@ -15,6 +17,11 @@ def download(url, output_path):
                              miniters=1, desc=url.split('/')[-1]) as t:
         urllib.request.urlretrieve(url, filename=output_path, reporthook=t.update_to)
 
+def download_from_kaggle(data_name, dest):
+    api = KaggleApi()
+    api.authenticate()
+    return api.dataset_download_files(data_name, dest)
+
 
 def _print(*args):
     if FLAGS.verbose:
@@ -28,6 +35,13 @@ def _print_header(text, total=80):
     padding_right = "=" * (padding_size + (1 if (n - total) % 2 == 1 else 0))
     print(padding_left, text, padding_right)
 
+def _print_subheader(text, total=80):
+    n = len(text)
+    padding_size = int((total - n) / 2) - 1
+    padding_left = "-" * padding_size
+    padding_right = "-" * (padding_size + (1 if (n - total) % 2 == 1 else 0))
+    print(padding_left, text, padding_right)
+
 
 def reverse_dict(l):
     n = len(l)
@@ -35,7 +49,6 @@ def reverse_dict(l):
     for i in range(n):
         rev_l[l[i]] = i
     return rev_l
-
 
 def batches(data_list, batch_size):
     batch_list = []

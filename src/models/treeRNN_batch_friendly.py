@@ -17,7 +17,7 @@ class tRNN:
         """
         :param data: utils.data
         """
-        helper._print_header("Constructing treeRNN constants, placeholders and variables")
+        helper._print_header("Constructing treeRNN friendly constants, placeholders and variables")
 
         # Setup data
         self.data = data  # TODO: Make data
@@ -25,7 +25,10 @@ class tRNN:
 
         # constants
         # leaf constant output
-        o_none = tf.constant(-1.0, shape=[FLAGS.label_size, 1])
+        self.rep_zero = tf.constant(0, shape=[FLAGS.sentence_embedding_size, 1])
+        self.word_zero = tf.constant(0, shape=[FLAGS.word_embedding_size, 1])
+        self.label_zero = tf.constant(0, shape=[FLAGS.label_size, 1])
+
         # loss weight constant w>1 more weight on sensitive loss
         self.weight = tf.constant(FLAGS.sensitive_weight)
 
@@ -55,12 +58,9 @@ class tRNN:
             bias_initializer = tf.initializers.zeros()
 
         # encoding variables
-        W_l = tf.get_variable(name='W_l', shape=[FLAGS.sentence_embedding_size, FLAGS.word_embedding_size],
-                              initializer=weight_initializer)
-        W_r = tf.get_variable(name='W_r', shape=[FLAGS.sentence_embedding_size, FLAGS.word_embedding_size],
-                              initializer=weight_initializer)
-        self.W_l = W_l
-        self.W_r = W_r
+        W = tf.get_variable(name='W', shape=[FLAGS.sentence_embedding_size, FLAGS.word_embedding_size],
+                            initializer=weight_initializer)
+        self.W = W
 
         # phrase weights
         U_l = tf.get_variable(name='U_l', shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
@@ -90,6 +90,7 @@ class tRNN:
             dynamic_size=True,
             clear_after_read=False,
             infer_shape=False)
+        rep_array = rep_array.write(0, self.rep_zero)
 
         o_array = tf.TensorArray(
             tf.float32,
@@ -97,37 +98,40 @@ class tRNN:
             dynamic_size=True,
             clear_after_read=False,
             infer_shape=False)
+        o_array = o_array.write(0, self.label_zero)
+
+        word_array = tf.TensorArray(
+            tf.float32,
+            size=0,
+            dynamic_size=True,
+            clear_after_read=False,
+            infer_shape=False)
+        word_array = word_array.write(0, self.word_zero)
 
         helper._print_header("Building tRNN tree structure")
 
         # build the tRNN structure
-        def embed_word(word_index):
-            return tf.nn.embedding_lookup(self.embeddings, word_index)
+        def embed_word(word_index, is_leaf):
+            return tf.cond(
+                is_leaf,
+                lambda: tf.nn.embedding_lookup(self.embeddings, word_index),
+                lambda: self.word_zero
+            )
 
-        def build_node(left_child, right_child, rep_array):
-            left_is_leaf = tf.gather(self.is_leaf_array, left_child)
-            right_is_leaf = tf.gather(self.is_leaf_array, right_child)
+        def build_node(left_child, right_child, rep_array, word_array):
 
             # reshape from vector to matrix with height 300 and width 1
             rep_l = tf.reshape(rep_array.read(left_child), [300, 1])
             rep_r = tf.reshape(rep_array.read(right_child), [300, 1])
+            rep_word = tf.reshape(word_array.read(right_child), [300, 1])
 
-            left = tf.cond(
-                left_is_leaf,
-                lambda: tf.matmul(W_l, rep_l) + b_W,
-                lambda: tf.matmul(U_l, rep_l) + b_U
-            )
+            left = tf.matmul(self.U_l, rep_l)
+            right = tf.matmul(self.U_r, rep_r)
+            word = tf.matmul(self.W, rep_word)
 
-            right = tf.cond(
-                right_is_leaf,
-                lambda: tf.matmul(W_r, rep_r) + b_W,
-                lambda: tf.matmul(U_r, rep_r) + b_U
-            )
+            return tf.nn.leaky_relu(word + left + right + self.b)
 
-            # relu( (sent_size , 1) + (sent_size , 1) + (sent_size , 1) )  = (sent_size , 1)
-            return tf.nn.leaky_relu(left + right)
-
-        def tree_construction_body(rep_array, o_array, i):
+        def tree_construction_body(rep_array, word_array, o_array, i):
             # gather variables
             is_leaf = tf.gather(self.is_leaf_array, i)
             word_index = tf.gather(self.word_index_array, i)
@@ -135,34 +139,26 @@ class tRNN:
             right_child = tf.gather(self.right_child_array, i)
 
             # embed_word = (word_size, 1)
+            word_emb = embed_word(word_index, is_leaf)
+            word_array = word_array.write(i, word_emb)
+
             # build_node = (sent_size , 1)
-            rep = tf.cond(
-                is_leaf,
-                lambda: embed_word(word_index),
-                lambda: build_node(left_child, right_child, rep_array)
-            )
+            rep = build_node(left_child, right_child, rep_array)
             rep_array = rep_array.write(i, rep)
 
-            # o_none = (label_size, 1)
-            # softmax( (label_size, sent_size) * (sent_size, 1) + (label_size, 1)) = (label_size, 1)
-            o = tf.cond(
-                is_leaf,
-                lambda: o_none,
-                lambda: tf.matmul(V, rep) + b_p  # TODO maybe with out activation function
-            )
+            o = tf.matmul(V, rep) + b_p
             o_array = o_array.write(i, o)
 
             i = tf.add(i, 1)
-            return rep_array, o_array, i
+            return rep_array, word_array, o_array, i
 
-        termination_cond = lambda rep_a, o_a, i: tf.less(i, tf.squeeze(tf.shape(self.is_leaf_array)))
+        termination_cond = lambda rep_a, word_a, i: tf.less(i, tf.squeeze(tf.shape(self.is_leaf_array)) + 1)
 
-        tf.print('hello', (self.is_leaf_array), output_stream=sys.stderr)
 
         self.rep_array, self.o_array, _ = tf.while_loop(
             cond=termination_cond,
             body=tree_construction_body,
-            loop_vars=(rep_array, o_array, 0),
+            loop_vars=(rep_array, o_array, word_array, 1),
             parallel_iterations=1
         )
 
@@ -328,7 +324,7 @@ class tRNN:
 
             start_time = time.time()
 
-            for epoch in range(1, FLAGS.epochs + 1 ):
+            for epoch in range(1, FLAGS.epochs + 1):
                 helper._print_header("Epoch " + str(epoch))
                 helper._print("Learning rate:", sess.run(self.learning_rate))
 

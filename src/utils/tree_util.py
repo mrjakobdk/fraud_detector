@@ -1,5 +1,6 @@
 from utils.flags import FLAGS
 import numpy as np
+import utils.helper as helper
 
 class Node():
     def __init__(self, is_leaf, value, label, left_child, right_child):
@@ -79,10 +80,10 @@ def parse_trees(data_set="train"):  # todo maybe change input param
     :return: a list of trees
     """
     file = FLAGS.data_dir + 'trees/%s.txt' % data_set
-    print("Loading %s trees.." % data_set)
+    helper._print_subheader("Loading %s trees.." % data_set)
     with open(file, 'r') as fid:
         trees = [parse_tree(l) for l in fid.readlines()]
-
+    helper._print(len(trees), "loaded!")
     return trees
 
 def ratio_of_labels(trees):
@@ -91,3 +92,9 @@ def ratio_of_labels(trees):
         if tree.label == [1, 0]:
             label_count += 1
     return label_count/len(trees)
+
+def size_of_tree(node):
+    if node.is_leaf:
+        return 1
+    else:
+        return size_of_tree(node.left_child) + size_of_tree(node.right_child) + 1

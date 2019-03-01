@@ -4,6 +4,7 @@ import tensorflow as tf
 
 tf.app.flags.DEFINE_string("data_dir", '../data/', "Directory for data")
 tf.app.flags.DEFINE_string("logs_dir", '../logs/', "Directory for logs")
+tf.app.flags.DEFINE_string("enron_dir", '../data/enron/', "Directory for logs")
 tf.app.flags.DEFINE_string("histories_dir", '../histories/', "Directory for histories")
 tf.app.flags.DEFINE_string("model_name", 'rnn/', "Name for model")
 tf.app.flags.DEFINE_string("glove_dir", '../data/glove/', "Directory for pre-trained GloVe word embeddings")
@@ -20,7 +21,7 @@ tf.app.flags.DEFINE_integer("epochs", 200, "Number of epochs during training")
 tf.app.flags.DEFINE_float("learning_rate", 0.01, "Learning rate for training")
 tf.app.flags.DEFINE_float("learning_rate_end", 0.00001, "End learning rate after the total number of epoches")
 tf.app.flags.DEFINE_boolean("lr_decay", False, "Use learning rate decay")
-tf.app.flags.DEFINE_integer("batch_size", 5, "Batch size for training")
+tf.app.flags.DEFINE_integer("batch_size", 4, "Batch size for training")
 tf.app.flags.DEFINE_float("sensitive_weight", 1., "Weight on the sensitivity")
 
 tf.app.flags.DEFINE_string("optimizer", 'adagrad', "Network optimizer")
@@ -30,19 +31,28 @@ tf.app.flags.DEFINE_string("bias_initializer", 'zero', "Initializer for bias wei
 
 tf.app.flags.DEFINE_boolean("load_model", False, "Load a old model")
 
+# ---------------------------- deepRNN ----------------------------
+
+tf.app.flags.DEFINE_integer("deepRNN_depth", 3, "Trees in the deepRNN")
+
 # --------------------------- Data ---------------------------
 
 tf.app.flags.DEFINE_string("enron_emails_csv_path", '../data/enron/emails.csv', "Path for enron/emails.csv data")
 tf.app.flags.DEFINE_string("enron_emails_txt_path", '../data/enron/emails.txt', "Path for enron/emails.txt data only containing the emails")
+tf.app.flags.DEFINE_string("enron_emails_zip_path", '../data/enron/enron-email-dataset.zip', "Path for enron/enron-email-dataset.zip")
 
 # --------------------------- Word embeddings ---------------------------
 
 tf.app.flags.DEFINE_string("word_embed_mode", '', "Flag to switch between word embeddings modes")
 tf.app.flags.DEFINE_string("glove_pretrained_mode", 'glove_pretrained', "Flag to use GloVe vectors from pretrained model")
 tf.app.flags.DEFINE_string("glove_finetuned_mode", 'glove_finetuned', "Flag to use GloVe vectors from finetuned Mittens model")
-tf.app.flags.DEFINE_string("glove_domain_mode", 'glove_domain', "Flag to use GloVe vectors trained on the data corpus")
+tf.app.flags.DEFINE_string("glove_trained_mode", 'glove_trained', "Flag to use GloVe vectors trained on the data corpus")
 tf.app.flags.DEFINE_string("word2vec_pretrained_mode", 'word2vec_pretrained', "Flag to use word2vec vectors from pretrained model")
-tf.app.flags.DEFINE_string("word2vec_domain_mode", 'word2vec_pretrained', "Flag to use word2vec vectors trained on the data corpus")
+tf.app.flags.DEFINE_string("word2vec_finetuned_mode", 'word2vec_finetuned', "Flag to use word2vec vectors from pretrained model, but finetuned on the Enron dataset")
+tf.app.flags.DEFINE_integer("word2vec_finetuned_mode_epochs", 50, "How many epoch do we want to train the word2vec embeddings")
+
+tf.app.flags.DEFINE_string("word2vec_trained_mode", 'word2vec_trained', "Flag to use word2vec vectors trained on the data corpus")
+tf.app.flags.DEFINE_integer("word2vec_trained_mode_epochs", 200, "How many epoch do we want to train the word2vec embeddings")
 
 tf.app.flags.DEFINE_boolean("word_embed_subset", True, "Flag whether to use a subset of the word embeddings")
 tf.app.flags.DEFINE_integer("word_embed_subset_size", 100000, "Flag for the size of the subset of the word embeddings to use")
@@ -56,6 +66,7 @@ tf.app.flags.DEFINE_string("word2vec_embedding_file", 'GoogleNews-vectors-negati
 tf.app.flags.DEFINE_boolean('verbose', True, "Global flag for 'verbose'")
 tf.app.flags.DEFINE_integer('print_step_interval', 1000, "Interval to print in training")
 tf.app.flags.DEFINE_boolean('run_tensorboard', True, "Flag")
+tf.app.flags.DEFINE_boolean('use_gpu', False, "Use the gpu friendly version")
 
 # --------------------------- Init FLAGS variable ---------------------------
 
