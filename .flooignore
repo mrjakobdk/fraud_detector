@@ -1,0 +1,9 @@
+extern
+node_modules
+tmp
+vendor
+.idea
+histories/*
+logs
+data
+models

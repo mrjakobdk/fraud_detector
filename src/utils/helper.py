@@ -1,7 +1,6 @@
 from utils.flags import FLAGS
 from tqdm import tqdm
 import urllib
-import kaggle
 from kaggle.api.kaggle_api_extended import KaggleApi
 
 
@@ -64,3 +63,16 @@ def batches(data_list, batch_size):
 
 def flatten(l):
     return [item for sublist in l for item in sublist]
+
+def add_one(l):
+    return [i+1 for i in l]
+
+def lists_pad(lists, padding):
+    max_length = 0
+    for l in lists:
+        max_length = max(len(l), max_length)
+
+    for i in range(len(lists)):
+        lists[i] = lists[i] + [padding]*(max_length - len(lists[i]))
+
+    return lists

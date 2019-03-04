@@ -80,7 +80,7 @@ def parse_trees(data_set="train"):  # todo maybe change input param
     :return: a list of trees
     """
     file = FLAGS.data_dir + 'trees/%s.txt' % data_set
-    helper._print_subheader("Loading %s trees.." % data_set)
+    helper._print("Loading %s trees.." % data_set)
     with open(file, 'r') as fid:
         trees = [parse_tree(l) for l in fid.readlines()]
     helper._print(len(trees), "loaded!")

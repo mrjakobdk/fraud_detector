@@ -1,9 +1,14 @@
+from collections import Counter
+
+import nltk
+import numpy as np
 import os
 import sys
-import zipfile
+import csv
+import re
 from utils.flags import FLAGS
 import utils.helper as helper
-import numpy as np
+import zipfile
 from gensim.models.callbacks import CallbackAny2Vec
 from gensim.models import Word2Vec, KeyedVectors
 from gensim.utils import simple_preprocess
@@ -155,7 +160,6 @@ class WordEmbeddingsUtil:
             model.save(FLAGS.word2vec_dir + 'finetuned_word2vec.model')
         return self.word2vec_index_keyed_vector(finetuned_model.wv)
 
-
     def word2vec_trained_embeddings(self):
         helper._print_header('Getting word2vec trained on Enron corpus...')
         if not os.path.isdir(FLAGS.word2vec_dir):
@@ -187,21 +191,69 @@ class WordEmbeddingsUtil:
 
     def get_enron_documents(self):
         helper._print_subheader('Reading ' + FLAGS.enron_emails_txt_path + '...')
-        if os.path.isfile(FLAGS.enron_emails_txt_path):
-            with open(FLAGS.enron_emails_txt_path, 'r', encoding='utf-8') as txt_file:
-                for index, line in enumerate(txt_file):
-                    if index % 100000 == 0 and index != 0:
-                        helper._print(f'{index} files read')
-                    preproccesed_line = simple_preprocess(line)
+        if not os.path.isfile(FLAGS.enron_emails_txt_path):
+            self.load_enron_txt_data()
+        with open(FLAGS.enron_emails_txt_path, 'r', encoding='utf-8') as txt_file:
+            for index, line in enumerate(txt_file):
+                if index % 100000 == 0 and index != 0:
+                    helper._print(f'{index} emails read')
+                sentences = nltk.sent_tokenize(line)
+                for sent in sentences:
+                    preproccesed_line = simple_preprocess(sent)
                     if preproccesed_line != []:
                         yield preproccesed_line
-            helper._print(f'{index} files read')
-            helper._print_subheader('Done reading Enron email data!')
-        else:
-            print(f'No {FLAGS.enron_emails_txt_path} file for the enron data!')
-            sys.exit()
+        helper._print(f'{index} emails read')
+        helper._print_subheader('Done reading Enron email data!')
 
+    def load_enron_txt_data(self):
+        helper._print_header("Loading Enron emails")
+        try:
+            if os.name == 'nt':
+                # Using sys.maxsize throws an Overflow error on Windows 64-bit platforms since internal
+                # representation of 'int'/'long' on Win64 is only 32-bit wide. Ideally limit on Win64
+                # should not exceed ((2**31)-1) as long as internal representation uses 'int' and/or 'long'
+                csv.field_size_limit((2 ** 31) - 1)
+            else:
+                csv.field_size_limit(sys.maxsize)
+        except OverflowError as e:
+            # skip setting the limit for now
+            pass
+        if not os.path.isfile(FLAGS.enron_emails_csv_path):
+            data = 'wcukierski/enron-email-dataset'
+            helper._print_subheader(f'Downloading enron emails from Kaggle')
+            helper.download_from_kaggle(data, FLAGS.enron_dir)
+            helper._print_subheader('Download finished! Unzipping...')
+            with zipfile.ZipFile(FLAGS.enron_emails_zip_path, 'r') as zip:
+                zip.extractall(path=FLAGS.enron_dir)
+        if not os.path.isfile(FLAGS.enron_emails_txt_path):
+            helper._print_subheader('Processing emails into .txt file!')
+            with open(FLAGS.enron_emails_csv_path, 'r', encoding='utf-8') as emails_csv:
+                with open(FLAGS.enron_emails_txt_path, 'w', encoding='utf-8') as text_file:
+                    email_reader = csv.reader(emails_csv, delimiter=",")
+                    for index, row in enumerate(email_reader):
+                        if index == 0:
+                            continue
+                        body = re.split(r'X-FileName[^\n]*', row[1])[1]
+                        body = body.split('---------------------- Forwarded by')[0]
+                        body = body.split('-----Original Message-----')[0]
+                        body = body.replace('\n', '') + '\n'
+                        text_file.write(body)
 
+                        if index % 100000 == 0 and index != 0:
+                            helper._print(f'{index} emails processed')
+
+        helper._print_subheader('Enron email data loaded!')
+        return open(FLAGS.enron_emails_txt_path, 'r', encoding='utf-8')
+
+    def build_vocab(self, corpus):
+        """
+        Returns a dictionary `w -> (i, f)`, mapping word strings to pairs of
+        word ID and word corpus frequency.
+        """
+        helper._print_header('Building vocabulary from corpus')
+        vocab = Counter()
+        for doc in corpus:
+            vocab.update(doc)
 
     def get_idx(self, word):
         if word in self.word2idx.keys():
@@ -231,8 +283,10 @@ class Word2VecLogger(CallbackAny2Vec):
     def on_epoch_begin(self, model):
         helper._print(f"Epoch {self.epoch} / {model.iter}")
         self.epoch += 1
+
     def on_train_begin(self, model):
         helper._print_subheader(f'Training started! Going through {model.iter} epochs...')
+
     def on_train_end(self, model):
         helper._print_subheader('Training ended!')
 

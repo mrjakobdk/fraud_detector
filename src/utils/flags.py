@@ -48,6 +48,7 @@ tf.app.flags.DEFINE_string("glove_pretrained_mode", 'glove_pretrained', "Flag to
 tf.app.flags.DEFINE_string("glove_finetuned_mode", 'glove_finetuned', "Flag to use GloVe vectors from finetuned Mittens model")
 tf.app.flags.DEFINE_string("glove_trained_mode", 'glove_trained', "Flag to use GloVe vectors trained on the data corpus")
 tf.app.flags.DEFINE_string("word2vec_pretrained_mode", 'word2vec_pretrained', "Flag to use word2vec vectors from pretrained model")
+
 tf.app.flags.DEFINE_string("word2vec_finetuned_mode", 'word2vec_finetuned', "Flag to use word2vec vectors from pretrained model, but finetuned on the Enron dataset")
 tf.app.flags.DEFINE_integer("word2vec_finetuned_mode_epochs", 50, "How many epoch do we want to train the word2vec embeddings")
 
@@ -65,7 +66,7 @@ tf.app.flags.DEFINE_string("word2vec_embedding_file", 'GoogleNews-vectors-negati
 
 tf.app.flags.DEFINE_boolean('verbose', True, "Global flag for 'verbose'")
 tf.app.flags.DEFINE_integer('print_step_interval', 1000, "Interval to print in training")
-tf.app.flags.DEFINE_boolean('run_tensorboard', True, "Flag")
+tf.app.flags.DEFINE_boolean('run_tensorboard', False, "Flag")
 tf.app.flags.DEFINE_boolean('use_gpu', False, "Use the gpu friendly version")
 
 # --------------------------- Init FLAGS variable ---------------------------
