@@ -1,6 +1,6 @@
 import utils.data_util as data_util
 import models.treeRNN as tRNN
-# import models.treeRNN_batch_friendly as tRNN_gpu
+# import trained_models.treeRNN_batch_friendly as tRNN_gpu
 from utils.flags import FLAGS
 
 def main():

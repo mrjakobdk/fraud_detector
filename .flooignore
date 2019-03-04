@@ -6,4 +6,4 @@ vendor
 histories/*
 logs
 data
-models
+trained_models

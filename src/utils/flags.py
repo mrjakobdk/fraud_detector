@@ -9,7 +9,7 @@ tf.app.flags.DEFINE_string("histories_dir", '../histories/', "Directory for hist
 tf.app.flags.DEFINE_string("model_name", 'rnn/', "Name for model")
 tf.app.flags.DEFINE_string("glove_dir", '../data/glove/', "Directory for pre-trained GloVe word embeddings")
 tf.app.flags.DEFINE_string("word2vec_dir", '../data/word2vec/', "Directory for pre-trained word2vec word embeddings")
-tf.app.flags.DEFINE_string("models_dir", '../models/', "Directory for models")
+tf.app.flags.DEFINE_string("models_dir", '../trained_models/', "Directory for trained_models")
 
 # --------------------------- Training Parameters ---------------------------
 
