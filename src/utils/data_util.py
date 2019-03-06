@@ -6,8 +6,8 @@ class DataUtil:
         self.data = Data()
 
     def get_data(self):
-        data = Data()
-        return data
+        #todo david???? data = Data()
+        return self.data
 
     def parse_sentence(self, sentence):
         return self.nlp_client.annotate(sentence)

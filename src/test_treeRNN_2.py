@@ -204,7 +204,7 @@ rep_array, word_array, o_array, _ = tf.while_loop(
     parallel_iterations=1
 )
 
-#todo fix loss
+# todo fix loss
 loss = tf.reduce_mean(
     tf.nn.softmax_cross_entropy_with_logits_v2(logits=tf.reshape(o_array.stack(), [-1, FLAGS.label_size]),
                                                labels=label_array))

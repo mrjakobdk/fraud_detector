@@ -35,12 +35,16 @@ rep_array = rep_array.write(2, rep_2)
 batch_indices = [[i, i] for i in range(batch_size)]
 
 batch_indices = [[[j, i, j] for j in range(batch_size)] for i in range(sentence_embedding_size)]
-
-
 def gather_rep(step, children_indices, rep_array):
     children = tf.squeeze(tf.gather(children_indices, step, axis=1))
     return tf.gather_nd(rep_array.gather(children), batch_indices)
 
+batch_indices = [[j, j] for j in range(batch_size)]
+def gather_rep(step, children_indices, rep_array):
+    children = tf.squeeze(tf.gather(children_indices, step, axis=1))
+    rep_entries = rep_array.gather(children)
+    t_rep_entries = tf.transpose(rep_entries, perm=[0, 2, 1])
+    return tf.transpose(tf.gather_nd(t_rep_entries, batch_indices))
 
 sess = tf.Session()
 sess.run(tf.global_variables_initializer())
@@ -59,8 +63,32 @@ batch_indices = [[[0, 0, 0], [1, 0, 1], [2, 0, 2]],
 reps = tf.gather_nd(rep_array.gather(childrens), batch_indices)
 print(sess.run(reps))
 
+rep_entries = rep_array.gather(childrens)
+print(sess.run(rep_entries))
+print(sess.run(tf.shape(rep_entries)))
+t_rep_entries = tf.transpose(rep_entries, perm=[0,2,1])
+print(sess.run(t_rep_entries))
+
+
+slice_rep_entries = tf.slice(rep_entries)
+print(sess.run(slice_rep_entries))
+
+batch_indices = list(range(3))
+reps = tf.transpose(tf.gather_nd(t_rep_entries, [[0,0],[1,1],[2,2]]))
+print(sess.run(reps))
+
+
 reps = gather_rep(0, children, rep_array)
 rep_array = rep_array.write(3, reps)
 print(sess.run(tf.shape(rep_array.read(3))))
 print(sess.run(rep_array.read(1)))
 print(sess.run(rep_0))
+
+
+t = tf.constant([[[1, 1, 1],
+                  [2, 2, 2]],
+                 [[3, 3, 3],
+                  [4, 4, 4]],
+                 [[5, 5, 5],
+                  [6, 6, 6]]])
+print(sess.run(tf.slice(t, [0, 1, 2],[1,1,1])))
