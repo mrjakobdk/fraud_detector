@@ -185,7 +185,7 @@ class tRNN:
             helper._print("Learning rate end:", FLAGS.learning_rate_end)
             helper._print("After number of epochs", FLAGS.epochs)
         else:
-            self.learning_rate = FLAGS.learning_rate
+            self.learning_rate = tf.constant(FLAGS.learning_rate)
 
         if FLAGS.optimizer == "adam":
             self.train_op = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss, global_step=self.global_step)
@@ -326,13 +326,12 @@ class tRNN:
                 sess.run(self.init)
                 self.handle_val_test(history, sess, test_writer, 0, validation_writer)
 
-            start_time = time.time()
-
             for epoch in range(1, FLAGS.epochs + 1 ):
                 helper._print_header("Epoch " + str(epoch))
                 helper._print("Learning rate:", sess.run(self.learning_rate))
+                start_time = time.time()
 
-                batch_size = (FLAGS.batch_size if epoch > 10 else 1)
+                batch_size = FLAGS.batch_size #(FLAGS.batch_size if epoch > 10 else 1)
                 acc_total = 0
                 loss_total = 0
 
@@ -348,6 +347,9 @@ class tRNN:
 
                 avg_acc = acc_total / rounds
                 avg_loss = loss_total / rounds
+
+                end_time = time.time()
+                diff_time = end_time - start_time
 
                 total_step = starting_steps + epoch
                 self.write_to_summary(avg_acc, avg_loss, total_step, train_writer)
@@ -371,7 +373,7 @@ class tRNN:
 
                     helper._print("Model saved!")
 
-                helper._print("Avg Epoch Time:", (time.time() - start_time) / (epoch) / 60, "m")
+                helper._print("Epoch time:", str(int(diff_time / 60)) + "m " + str(int(diff_time % 60)) + "s")
 
     def train_old(self):
         helper._print_header("Training tRNN")

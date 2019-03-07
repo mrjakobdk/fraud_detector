@@ -11,7 +11,6 @@ import time
 
 
 class tRNN:
-    feed_dict_list = {"val": [], "test": [], "train": []}
 
     def __init__(self, data):
         """

@@ -6,6 +6,8 @@ from functools import wraps
 import urllib
 from kaggle.api.kaggle_api_extended import KaggleApi
 import msgpack
+import numpy as np
+import sys
 
 
 class DownloadProgressBar(tqdm):
@@ -53,7 +55,9 @@ def reverse_dict(l):
         rev_l[l[i]] = i
     return rev_l
 
-def batches(data_list, batch_size):
+
+def batches(data_list, batch_size, use_tail=False):
+    data_list = np.random.permutation(data_list)
     batch_list = []
     batch = []
     for step, data in enumerate(data_list):
@@ -61,15 +65,18 @@ def batches(data_list, batch_size):
         if (step + 1) % batch_size == 0:
             batch_list.append(batch)
             batch = []
-    if (step + 1) % batch_size != 0:
+    if use_tail and ((step + 1) % batch_size != 0):
         batch_list.append(batch)
     return batch_list
+
 
 def flatten(l):
     return [item for sublist in l for item in sublist]
 
+
 def add_one(l):
-    return [i+1 for i in l]
+    return [i + 1 for i in l]
+
 
 def lists_pad(lists, padding):
     max_length = 0
@@ -77,7 +84,7 @@ def lists_pad(lists, padding):
         max_length = max(len(l), max_length)
 
     for i in range(len(lists)):
-        lists[i] = lists[i] + [padding]*(max_length - len(lists[i]))
+        lists[i] = lists[i] + [padding] * (max_length - len(lists[i]))
 
     return lists
 
