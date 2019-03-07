@@ -83,6 +83,7 @@ class WordEmbeddingsUtil:
                         break
             UNKNOWN_TOKEN = len(weights)
             word2idx['UNK'] = UNKNOWN_TOKEN
+            np.random.seed(240993)
             weights.append(np.random.randn(self.dimensions))
 
             helper._print_subheader('Indexes done!')
@@ -117,6 +118,7 @@ class WordEmbeddingsUtil:
 
         UNKNOWN_TOKEN = len(weights)
         word2idx['UNK'] = UNKNOWN_TOKEN
+        np.random.seed(240993)
         weights.append(np.random.randn(self.dimensions))
         helper._print_subheader('Index files ready!')
         return np.array(weights, dtype=np.float32), word2idx, idx2word
