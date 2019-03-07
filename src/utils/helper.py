@@ -1,7 +1,11 @@
+import os
+import numpy as np
 from utils.flags import FLAGS
 from tqdm import tqdm
+from functools import wraps
 import urllib
 from kaggle.api.kaggle_api_extended import KaggleApi
+import msgpack
 
 
 class DownloadProgressBar(tqdm):
@@ -76,3 +80,43 @@ def lists_pad(lists, padding):
         lists[i] = lists[i] + [padding]*(max_length - len(lists[i]))
 
     return lists
+
+
+def listify(fn):
+    """
+    Use this decorator on a generator function to make it return a list
+    instead.
+    """
+
+    @wraps(fn)
+    def listified(*args, **kwargs):
+        return list(fn(*args, **kwargs))
+
+    return listified
+
+def get_or_build(path, build_fn, *args, **kwargs):
+    """
+    Load from serialized form or build an object, saving the built
+    object.
+    Remaining arguments are provided to `build_fn`.
+    """
+
+    save = False
+    obj = None
+
+    if path is not None and os.path.isfile(path):
+        _print_subheader('Loading: ' + path)
+        with open(path, 'rb') as obj_f:
+            obj = msgpack.load(obj_f, use_list=False, encoding='utf-8')
+    else:
+
+        save = True
+
+    if obj is None:
+        obj = build_fn(*args, **kwargs)
+
+        if save and path is not None:
+            with open(path, 'wb') as obj_f:
+                msgpack.dump(obj, obj_f)
+
+    return obj
