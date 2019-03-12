@@ -70,6 +70,7 @@ tf.app.flags.DEFINE_boolean('verbose', True, "Global flag for 'verbose'")
 tf.app.flags.DEFINE_integer('print_step_interval', 1000, "Interval to print in training")
 tf.app.flags.DEFINE_boolean('run_tensorboard', False, "Flag")
 tf.app.flags.DEFINE_boolean('use_gpu', False, "Use the gpu friendly version")
+
 tf.app.flags.DEFINE_boolean('run_speed_test',False,"Running speed tests")
 
 # --------------------------- Init FLAGS variable ---------------------------
