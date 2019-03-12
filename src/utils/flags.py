@@ -40,6 +40,8 @@ tf.app.flags.DEFINE_integer("deepRNN_depth", 3, "Trees in the deepRNN")
 tf.app.flags.DEFINE_string("enron_emails_csv_path", '../data/enron/emails.csv', "Path for enron/emails.csv data")
 tf.app.flags.DEFINE_string("enron_emails_txt_path", '../data/enron/emails.txt', "Path for enron/emails.txt data only containing the emails")
 tf.app.flags.DEFINE_string("enron_emails_zip_path", '../data/enron/enron-email-dataset.zip', "Path for enron/enron-email-dataset.zip")
+tf.app.flags.DEFINE_string("enron_emails_vocab_path", '../data/enron/vocab', "Path for enron vocabulary")
+tf.app.flags.DEFINE_string("enron_emails_cooccur_path", '../data/enron/cooccur', "Path for enron weighted cooccurrence matrix")
 
 # --------------------------- Word embeddings ---------------------------
 

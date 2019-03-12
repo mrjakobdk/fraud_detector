@@ -6,7 +6,6 @@ class DataUtil:
         self.data = Data()
 
     def get_data(self):
-        #todo david???? data = Data()
         return self.data
 
     def parse_sentence(self, sentence):

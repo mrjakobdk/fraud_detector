@@ -1,7 +1,11 @@
+import os
+import numpy as np
 from utils.flags import FLAGS
 from tqdm import tqdm
+from functools import wraps
 import urllib
 from kaggle.api.kaggle_api_extended import KaggleApi
+import msgpack
 import numpy as np
 import sys
 
@@ -17,7 +21,6 @@ def download(url, output_path):
     with DownloadProgressBar(unit='B', unit_scale=True,
                              miniters=1, desc=url.split('/')[-1]) as t:
         urllib.request.urlretrieve(url, filename=output_path, reporthook=t.update_to)
-
 
 def download_from_kaggle(data_name, dest):
     api = KaggleApi()
@@ -36,7 +39,6 @@ def _print_header(text, total=80):
     padding_left = "=" * padding_size
     padding_right = "=" * (padding_size + (1 if (n - total) % 2 == 1 else 0))
     print(padding_left, text, padding_right)
-
 
 def _print_subheader(text, total=80):
     n = len(text)
@@ -87,7 +89,6 @@ def lists_pad(lists, padding):
 
     return lists
 
-
 def sort_by(X, Y):
     return [x for _, x in sorted(zip(Y, X), key=lambda pair: pair[0])]
 
@@ -117,3 +118,42 @@ def greedy_bin_packing(items, values, max):
 
 def all_combinations(*args):
     return np.array(np.meshgrid(*args)).T.reshape(-1, len(args))
+
+def listify(fn):
+    """
+    Use this decorator on a generator function to make it return a list
+    instead.
+    """
+
+    @wraps(fn)
+    def listified(*args, **kwargs):
+        return list(fn(*args, **kwargs))
+
+    return listified
+
+def get_or_build(path, build_fn, *args, **kwargs):
+    """
+    Load from serialized form or build an object, saving the built
+    object.
+    Remaining arguments are provided to `build_fn`.
+    """
+
+    save = False
+    obj = None
+
+    if path is not None and os.path.isfile(path):
+        _print_subheader('Loading: ' + path)
+        with open(path, 'rb') as obj_f:
+            obj = msgpack.load(obj_f, use_list=False, encoding='utf-8')
+    else:
+
+        save = True
+
+    if obj is None:
+        obj = build_fn(*args, **kwargs)
+
+        if save and path is not None:
+            with open(path, 'wb') as obj_f:
+                msgpack.dump(obj, obj_f)
+
+    return obj

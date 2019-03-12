@@ -1,13 +1,15 @@
+import msgpack
 from collections import Counter
-
 import nltk
 import numpy as np
 import os
 import sys
 import csv
 import re
+from scipy import sparse
 from utils.flags import FLAGS
 import utils.helper as helper
+from utils.helper import listify
 import zipfile
 from gensim.models.callbacks import CallbackAny2Vec
 from gensim.models import Word2Vec, KeyedVectors
@@ -19,7 +21,11 @@ class WordEmbeddingsUtil:
         """
         :param embedding:
         :param dimensions:
-         """
+
+        Returns a weights numpy array with dim (words, dimensions),
+        a word2index mapper from word to index in the weight array,
+        a idx2word mapper from index to word.
+        """
 
         self.dimensions = FLAGS.word_embed_dimensions
         self.mode = mode
@@ -27,6 +33,10 @@ class WordEmbeddingsUtil:
         if mode == FLAGS.glove_pretrained_mode:
             self.embedding_file = FLAGS.glove_embedding_file
             self.embeddings, self.word2idx, self.idx2word = self.glove_pretrained_embeddings()
+        elif mode == FLAGS.glove_finetuned_mode:
+            self.embedding_file = FLAGS.glove_embedding_file
+            self.embeddings, self.word2idx, self.idx2word = self.glove_finetuned_embeddings()
+        #     TODO: Parameters to word2vec. Probably not more thatn 20 epochs due to overfitting. Test window size (avg length is 20.8 words pr. sentence).
         elif mode == FLAGS.word2vec_pretrained_mode:
             self.embedding_file = FLAGS.word2vec_embedding_file
             self.embeddings, self.word2idx, self.idx2word = self.word2vec_pretrained_embeddings()
@@ -73,6 +83,7 @@ class WordEmbeddingsUtil:
                         break
             UNKNOWN_TOKEN = len(weights)
             word2idx['UNK'] = UNKNOWN_TOKEN
+            np.random.seed(240993)
             weights.append(np.random.randn(self.dimensions))
 
             helper._print_subheader('Indexes done!')
@@ -80,6 +91,14 @@ class WordEmbeddingsUtil:
 
     def glove_finetuned_embeddings(self):
         helper._print_header('Getting pretrained GloVe embeddings and the fine-tuning them on the Enron corpus.')
+        sentences = self.get_enron_sentences()
+        print('average:', np.average([len(doc) for doc in sentences]))
+        vocab = helper.get_or_build(FLAGS.enron_emails_vocab_path, self.build_vocab, sentences)
+        cooccur_tuples = helper.get_or_build(FLAGS.enron_emails_cooccur_path, self.build_cooccur, vocab, sentences, 10, 3)
+        cooccur = self.make_numpy_cooccur(cooccur=cooccur_tuples)
+        print(cooccur)
+        print(vocab['busy'])
+        return 'test', 'test', 'test'
 
     def word2vec_index_keyed_vector(self, keyed_vector):
         helper._print_subheader('Creating index files!')
@@ -99,6 +118,7 @@ class WordEmbeddingsUtil:
 
         UNKNOWN_TOKEN = len(weights)
         word2idx['UNK'] = UNKNOWN_TOKEN
+        np.random.seed(240993)
         weights.append(np.random.randn(self.dimensions))
         helper._print_subheader('Index files ready!')
         return np.array(weights, dtype=np.float32), word2idx, idx2word
@@ -143,19 +163,19 @@ class WordEmbeddingsUtil:
             helper._print_subheader('Unpacking ' + binary_file_path)
             model = KeyedVectors.load_word2vec_format(binary_file_path, binary=True)
             helper._print_subheader('Done unpacking!')
-            documents = [doc for doc in self.get_enron_documents()]
+            sentences = self.get_enron_sentences()
             finetuned_model = Word2Vec(
                 size=300,
                 min_count=3
             )
             helper._print_subheader('Building fine-tuned model vocab...')
-            finetuned_model.build_vocab(documents)
+            finetuned_model.build_vocab(sentences)
             helper._print_subheader('Updating with pretrained model vocab...')
             finetuned_model.build_vocab([list(model.vocab.keys())], update=True)
             helper._print_subheader('Intersection with pretrained vectors...')
             finetuned_model.intersect_word2vec_format(binary_file_path, binary=True, lockf=1.0)
             model_logger = Word2VecLogger()
-            finetuned_model.train(documents, total_examples=len(documents), epochs=FLAGS.word2vec_finetuned_mode_epochs, callbacks=[model_logger])
+            finetuned_model.train(sentences, total_examples=len(sentences), epochs=FLAGS.word2vec_finetuned_mode_epochs, callbacks=[model_logger])
             helper._print_subheader('Saving model...')
             model.save(FLAGS.word2vec_dir + 'finetuned_word2vec.model')
         return self.word2vec_index_keyed_vector(finetuned_model.wv)
@@ -164,7 +184,7 @@ class WordEmbeddingsUtil:
         helper._print_header('Getting word2vec trained on Enron corpus...')
         if not os.path.isdir(FLAGS.word2vec_dir):
             os.makedirs(FLAGS.word2vec_dir)
-        documents = [doc for doc in self.get_enron_documents()]
+        documents = self.get_enron_sentences()
         model_logger = Word2VecLogger()
         if os.path.isfile(FLAGS.word2vec_dir + 'word2vec.model'):
             helper._print_subheader('Loading previously trained model...')
@@ -189,30 +209,31 @@ class WordEmbeddingsUtil:
 
         return self.word2vec_index_keyed_vector(model.wv)
 
-    def get_enron_documents(self):
+    @listify
+    def get_enron_sentences(self):
         helper._print_subheader('Reading ' + FLAGS.enron_emails_txt_path + '...')
         if not os.path.isfile(FLAGS.enron_emails_txt_path):
             self.load_enron_txt_data()
         with open(FLAGS.enron_emails_txt_path, 'r', encoding='utf-8') as txt_file:
             for index, line in enumerate(txt_file):
-                if index % 100000 == 0 and index != 0:
-                    helper._print(f'{index} emails read')
-                sentences = nltk.sent_tokenize(line)
-                for sent in sentences:
-                    preproccesed_line = simple_preprocess(sent)
-                    if preproccesed_line != []:
-                        yield preproccesed_line
-        helper._print(f'{index} emails read')
+                if index % 1000000 == 0 and index != 0:
+                    helper._print(f'{index} sentences read')
+                preproccesed_line = simple_preprocess(line)
+                if preproccesed_line != []:
+                    yield preproccesed_line
+        helper._print(f'{index} sentences read')
         helper._print_subheader('Done reading Enron email data!')
 
     def load_enron_txt_data(self):
         helper._print_header("Loading Enron emails")
         try:
             if os.name == 'nt':
-                # Using sys.maxsize throws an Overflow error on Windows 64-bit platforms since internal
-                # representation of 'int'/'long' on Win64 is only 32-bit wide. Ideally limit on Win64
-                # should not exceed ((2**31)-1) as long as internal representation uses 'int' and/or 'long'
+                """
+                Using sys.maxsize throws an Overflow error on Windows 64-bit platforms since internal
+                representation of 'int'/'long' on Win64 is only 32-bit wide. Ideally limit on Win64
+                should not exceed ((2**31)-1) as long as internal representation uses 'int' and/or 'long'
                 csv.field_size_limit((2 ** 31) - 1)
+                """
             else:
                 csv.field_size_limit(sys.maxsize)
         except OverflowError as e:
@@ -233,27 +254,103 @@ class WordEmbeddingsUtil:
                     for index, row in enumerate(email_reader):
                         if index == 0:
                             continue
-                        body = re.split(r'X-FileName[^\n]*', row[1])[1]
-                        body = body.split('---------------------- Forwarded by')[0]
-                        body = body.split('-----Original Message-----')[0]
-                        body = body.replace('\n', '') + '\n'
-                        text_file.write(body)
-
+                        sentences = nltk.sent_tokenize(self.format_email_body(row))
+                        for sent in sentences:
+                            if len(sent.split(' ')) > 2:
+                                text_file.write(sent + '\n')
                         if index % 100000 == 0 and index != 0:
                             helper._print(f'{index} emails processed')
 
         helper._print_subheader('Enron email data loaded!')
-        return open(FLAGS.enron_emails_txt_path, 'r', encoding='utf-8')
+
+    def format_email_body(self, body):
+        body = re.split(r'X-FileName[^\n]*', body[1])[1]
+        body = body.split('---------------------- Forwarded by')[0]
+        body = body.split('-----Original Message-----')[0]
+        body = body.split('----- Original Message -----')[0]
+        body = body.replace('\n', ' ') + '\n'
+        return body.strip()
+
 
     def build_vocab(self, corpus):
         """
+        Credit to https://github.com/hans/glove.py/blob/master/glove.py
         Returns a dictionary `w -> (i, f)`, mapping word strings to pairs of
         word ID and word corpus frequency.
         """
-        helper._print_header('Building vocabulary from corpus')
+        helper._print_subheader('Building vocabulary from corpus')
         vocab = Counter()
         for doc in corpus:
             vocab.update(doc)
+        helper._print_subheader('Done building vocabulary')
+        return {word: (i, freq) for i, (word, freq) in enumerate(vocab.items())}
+
+    @listify
+    def build_cooccur(self, vocab, corpus, window=10, min_count=None):
+        """
+        Credit to https://github.com/hans/glove.py/blob/master/glove.py
+        Build a word co-occurrence list for the given corpus.
+        This function is a tuple generator, where each element (representing
+        a cooccurrence pair) is of the form
+            (i_main, i_context, cooccurrence)
+        where `i_main` is the ID of the main word in the cooccurrence and
+        `i_context` is the ID of the context word, and `cooccurrence` is the
+        `X_{ij}` cooccurrence value as described in Pennington et al.
+        (2014).
+        If `min_count` is not `None`, cooccurrence pairs where either word
+        occurs in the corpus fewer than `min_count` times are ignored.
+        """
+        helper._print_subheader("Building cooccurrence matrix")
+
+        vocab_size = len(vocab)
+        idx2word = dict((i, word) for word, (i, _) in vocab.items())
+
+        # Collect cooccurrences internally as a sparse matrix for passable
+        # indexing speed; we'll convert into a list later
+        cooccurrences = sparse.lil_matrix((vocab_size, vocab_size),
+                                          dtype=np.float64)
+        for i, sent in enumerate(corpus):
+            if i % 100000 == 0:
+                helper._print(f"{i}/{len(corpus)} sentences processed")
+            token_ids = [vocab[word][0] for word in sent]
+
+            for center_i, center_id in enumerate(token_ids):
+                # Collect all word IDs in left window of center word
+                context_ids = token_ids[max(0, center_i - window): center_i]
+                contexts_len = len(context_ids)
+
+                for left_i, left_id in enumerate(context_ids):
+                    # Distance from center word
+                    distance = contexts_len - left_i
+
+                    # Weight by inverse of distance between words
+                    increment = 1.0 / float(distance)
+
+                    # Build co-occurrence matrix symmetrically (pretend we
+                    # are calculating right contexts as well)
+                    cooccurrences[center_id, left_id] += increment
+                    cooccurrences[left_id, center_id] += increment
+
+        with open(FLAGS.glove_dir + 'cooccur_matrix', 'wb') as obj_f:
+            msgpack.dump(cooccurrences, obj_f)
+
+        # Now yield our tuple sequence (dig into the LiL-matrix internals to
+        # quickly iterate through all nonzero cells)
+        for i, (row, data) in enumerate(zip(cooccurrences.rows, cooccurrences.data)):
+            if min_count is not None and vocab[idx2word[i]][1] < min_count:
+                continue
+
+            for data_idx, j in enumerate(row):
+                if min_count is not None and vocab[idx2word[j]][1] < min_count:
+                    continue
+
+                yield i, j, data[data_idx]
+
+    def make_numpy_cooccur(self, cooccur):
+        helper._print_subheader('Building numpy cooccurrence matrix...')
+        print(np.sqrt(len(cooccur)))
+        helper._print_subheader('Done with numpy cooccurrence matrix...')
+        return 'test'
 
     def get_idx(self, word):
         if word in self.word2idx.keys():
@@ -289,6 +386,5 @@ class Word2VecLogger(CallbackAny2Vec):
 
     def on_train_end(self, model):
         helper._print_subheader('Training ended!')
-
 
 
