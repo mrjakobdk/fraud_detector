@@ -4,8 +4,6 @@ import utils.tree_util as tree_util
 import utils.helper as helper
 from models.treeModel import treeModel
 import numpy as np
-import sys
-
 
 class treeRNN_GPU(treeModel):
 
@@ -13,9 +11,9 @@ class treeRNN_GPU(treeModel):
         # embedding
         self.embeddings = tf.constant(self.data.word_embed_util.embeddings)
         ## dummi values
-        self.rep_zero = tf.constant(0., shape=[FLAGS.sentence_embedding_size])
+        self.rep_zero = tf.constant(0., shape=[FLAGS.sentence_embedding_size, FLAGS.batch_size])
         self.word_zero = tf.constant(0., shape=[FLAGS.word_embedding_size, 1])
-        self.label_zero = tf.constant(0., shape=[FLAGS.label_size])
+        self.label_zero = tf.constant(0., shape=[FLAGS.label_size, FLAGS.batch_size])
 
     def build_placeholders(self):
         # tree structure placeholders
@@ -25,39 +23,29 @@ class treeRNN_GPU(treeModel):
         self.left_child_array = tf.placeholder(tf.int32, (None, None), name='left_child_array')
         self.right_child_array = tf.placeholder(tf.int32, (None, None), name='right_child_array')
         self.label_array = tf.placeholder(tf.int32, (None, None, FLAGS.label_size), name='label_array')
-        self.real_batch_size = tf.gather(tf.shape(self.is_leaf_array), 0)
-        # tf.placeholder(tf.int32, (None), name='real_batch_size')
 
     def build_variables(self):
         # initializers
         xavier_initializer = tf.contrib.layers.xavier_initializer()
-        bias_initializer = tf.initializers.zeros()
-
-        def custom_initializer(shape_list, dtype, partition_info):
-            return tf.initializers.identity(gain=0.5)(shape_list, dtype,
-                                                      partition_info) + tf.initializers.random_uniform(minval=-0.05,
-                                                                                                       maxval=0.05)(
-                shape_list, dtype, partition_info)
-
-        weight_initializer = custom_initializer
 
         # word variables
-        self.W = tf.get_variable(name='W', shape=[FLAGS.sentence_embedding_size, FLAGS.word_embedding_size],
-                                 initializer=xavier_initializer)
+        self.W = tf.get_variable(name='W',  # shape=[sentence_embedding_size, word_embedding_size],
+                                 initializer=tf.constant(1., shape=[FLAGS.sentence_embedding_size,
+                                                                    FLAGS.word_embedding_size]))
 
         # phrase weights
         self.U_L = tf.get_variable(name='U_L', shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
-                                   initializer=weight_initializer)
+                                   initializer=xavier_initializer)
         self.U_R = tf.get_variable(name='U_R', shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
-                                   initializer=weight_initializer)
+                                   initializer=xavier_initializer)
 
         # bias
-        self.b = tf.get_variable(name='b', shape=[FLAGS.sentence_embedding_size, 1], initializer=bias_initializer)
+        self.b = tf.get_variable(name='b', initializer=tf.constant(100., shape=[FLAGS.sentence_embedding_size, 1]))
 
         # classifier weights
         self.V = tf.get_variable(name='V', shape=[FLAGS.label_size, FLAGS.sentence_embedding_size],
                                  initializer=xavier_initializer)
-        self.b_p = tf.get_variable(name='b_p', shape=[FLAGS.label_size, 1], initializer=bias_initializer)
+        self.b_p = tf.get_variable(name='b_p', shape=[FLAGS.label_size, 1], initializer=xavier_initializer)
 
     def build_model(self):
         rep_array = tf.TensorArray(
@@ -66,8 +54,7 @@ class treeRNN_GPU(treeModel):
             dynamic_size=True,
             clear_after_read=False,
             infer_shape=False)
-        rep_array = rep_array.write(0, tf.reshape(tf.tile(self.rep_zero, tf.stack([self.real_batch_size])),
-                                                  [FLAGS.sentence_embedding_size, -1]))
+        rep_array = rep_array.write(0, self.rep_zero)
 
         word_array = tf.TensorArray(
             tf.float32,
@@ -83,8 +70,7 @@ class treeRNN_GPU(treeModel):
             dynamic_size=True,
             clear_after_read=False,
             infer_shape=False)
-        o_array = o_array.write(0, tf.reshape(tf.tile(self.label_zero, tf.stack([self.real_batch_size])),
-                                              [FLAGS.label_size, -1]))
+        o_array = o_array.write(0, self.label_zero)
 
         def embed_word(word_index):
             return tf.transpose(tf.nn.embedding_lookup(self.embeddings, word_index))
@@ -96,14 +82,14 @@ class treeRNN_GPU(treeModel):
         #     children = tf.squeeze(tf.gather(children_indices, step, axis=1))
         #     return tf.gather_nd(rep_array.gather(children), batch_indices)
 
-        # batch_indices = [[j, j] for j in range(FLAGS.batch_size)]
-        batch_indices = tf.stack([tf.range(self.real_batch_size), tf.range(self.real_batch_size)], axis=1)
+        batch_indices = [[j, j] for j in range(FLAGS.batch_size)]
 
         def gather_rep(step, children_indices, rep_array):
-            # todo this fails with batch size 1 - think it is because child indices becomes a single value and not a list of values - does not work for tf.gather
             children = tf.squeeze(tf.gather(children_indices, step, axis=1))
             rep_entries = rep_array.gather(children)
             t_rep_entries = tf.transpose(rep_entries, perm=[0, 2, 1])
+            batch_size = tf.size(children)
+            batch_indices = tf.stack([tf.range(batch_size), tf.range(batch_size)], axis=1)
             return tf.transpose(tf.gather_nd(t_rep_entries, batch_indices))
 
         def build_node(i, rep_array, word_array):
@@ -141,37 +127,23 @@ class treeRNN_GPU(treeModel):
         )
 
     def build_loss(self):
-
-        logits = tf.gather_nd(tf.transpose(self.o_array.stack(), perm=[2, 0, 1]), self.root_array)  # roots_padded)
-        labels = tf.gather_nd(self.label_array, self.root_array)
-
-        softmax_cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=labels)
-        self.loss = tf.reduce_mean(softmax_cross_entropy)
-
-        reg_weight = 0.001
-        self.loss += reg_weight*tf.nn.l2_loss(self.W)
-        self.loss += reg_weight*tf.nn.l2_loss(self.U_L)
-        self.loss += reg_weight*tf.nn.l2_loss(self.U_R)
-        self.loss += reg_weight*tf.nn.l2_loss(self.V)
-
-        # todo is this reshaped in the correct way?
         # todo fix loss - might drag the bias to zero??? tests and fix it
-        # self.loss = tf.reduce_mean(
-        #     tf.nn.softmax_cross_entropy_with_logits_v2(logits=tf.reshape(self.o_array.stack(), [-1, FLAGS.label_size]),
-        #                                                # stacking o_array this way might be wrong
-        #                                                labels=self.label_array))
+        self.loss = tf.reduce_mean(
+            tf.nn.softmax_cross_entropy_with_logits_v2(logits=tf.reshape(self.o_array.stack(), [-1, FLAGS.label_size]),
+                                                       # stacking o_array this way might be wrong
+                                                       labels=self.label_array))
 
     def build_accuracy(self):
-        # roots_pad = tf.constant([i for i in range(FLAGS.batch_size)])
-        # roots_padded = tf.stack([roots_pad, self.root_array], axis=1)
+        #roots_pad = tf.constant([i for i in range(FLAGS.batch_size)])
+        #roots_padded = tf.stack([roots_pad, self.root_array], axis=1)
 
-        logits = tf.gather_nd(tf.transpose(self.o_array.stack(), perm=[2, 0, 1]), self.root_array)  # roots_padded)
-        labels = tf.gather_nd(self.label_array, self.root_array)  # roots_padded)
+        logists = tf.gather_nd(tf.transpose(self.o_array.stack(), perm=[2, 0, 1]), self.root_array)#roots_padded)
+        labels = tf.gather_nd(self.label_array, self.root_array)#roots_padded)
 
-        logits_max = tf.argmax(logits, axis=1)
+        logists_max = tf.argmax(logists, axis=1)
         labels_max = tf.argmax(labels, axis=1)
 
-        acc = tf.equal(logits_max, labels_max)
+        acc = tf.equal(logists_max, labels_max)
         self.acc = tf.reduce_mean(tf.cast(acc, tf.float32))
 
     def build_train_op(self):
@@ -248,13 +220,12 @@ class treeRNN_GPU(treeModel):
             for root in roots:
                 tree_util.depth_first_traverse(root, node_list, lambda node, node_list: node_list.append(node))
                 root_index += tree_util.size_of_tree(root)
-                root_indices.append([i, root_index])
+                root_indices.append([i,root_index])
             node_list_list.append(node_list)
             node_to_index = helper.reverse_dict(node_list)
             node_to_index_list.append(node_to_index)
 
         feed_dict = {
-            # self.real_batch_size: len(node_list_list),
             self.root_array: root_indices,
             self.is_leaf_array: helper.lists_pad([
                 [False] + [node.is_leaf for node in node_list]

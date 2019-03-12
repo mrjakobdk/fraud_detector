@@ -54,6 +54,8 @@ class summarizer():
         os.mkdir(directory + self.TRAIN)
         os.mkdir(directory + self.VAL)
         os.mkdir(directory + self.TEST)
+        if not os.path.exists(FLAGS.histories_dir):
+            os.mkdir(FLAGS.histories_dir)
         if not os.path.exists(FLAGS.histories_dir + self.model_name):
             os.mkdir(FLAGS.histories_dir + self.model_name)
 
@@ -67,6 +69,9 @@ class summarizer():
     def write_and_reset(self, data_set, epoch, _print=False):
         avg_loss = self.loss[data_set] / self.rounds[data_set]
         avg_acc = self.acc[data_set] / self.rounds[data_set]
+        self.rounds[data_set] = 0
+        self.acc[data_set] = 0
+        self.loss[data_set] = 0
         self.history[data_set].append((epoch,
                                        avg_acc,
                                        avg_loss))
@@ -89,11 +94,14 @@ class summarizer():
         self.writer[data_set].add_summary(summary, epoch)
 
     def compute(self, data_set, data, model, sess, epoch, _print=False):
-        for step, batch in enumerate(helper.batches(data, FLAGS.batch_size)):
-            feed_dict = model.build_feed_dict(batch)
-            acc, loss = sess.run([model.acc, model.loss], feed_dict=feed_dict)
+        # for step, batch in enumerate(helper.batches(data, FLAGS.batch_size)):
+        #     feed_dict = model.build_feed_dict(batch)
+        #     acc, loss = sess.run([model.acc, model.loss], feed_dict=feed_dict)
+        #     self.add(data_set, acc, loss)
 
-            self.add(data_set, acc, loss)
+        feed_dict = model.build_feed_dict(data)
+        acc, loss = sess.run([model.acc, model.loss], feed_dict=feed_dict)
+        self.add(data_set, acc, loss)
         self.write_and_reset(data_set, epoch, _print=_print)
 
     def save_all(self):
@@ -104,3 +112,8 @@ class summarizer():
 
     def new_best(self, data_set):
         return self._new_best[data_set]
+
+    def close(self):
+        self.writer[self.TRAIN].close()
+        self.writer[self.VAL].close()
+        self.writer[self.TEST].close()

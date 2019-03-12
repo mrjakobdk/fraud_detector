@@ -54,8 +54,9 @@ def reverse_dict(l):
     return rev_l
 
 
-def batches(data_list, batch_size, use_tail=False):
-    data_list = np.random.permutation(data_list)
+def batches(data_list, batch_size, use_tail=True, perm=True):
+    if perm:
+        data_list = np.random.permutation(data_list)
     batch_list = []
     batch = []
     for step, data in enumerate(data_list):
@@ -86,3 +87,33 @@ def lists_pad(lists, padding):
 
     return lists
 
+
+def sort_by(X, Y):
+    return [x for _, x in sorted(zip(Y, X), key=lambda pair: pair[0])]
+
+
+def greedy_best_fit(l):
+    pass
+
+
+def greedy_bin_packing(items, values, max):
+    bins = [[]]
+    bins_size = [0]
+
+    for item, value in zip(items, values):
+        found = False
+        for i in range(len(bins_size)):
+            if bins_size[i] + value <= max:
+                bins_size[i] += value
+                bins[i].append(item)
+                found = True
+                break
+        if not found:
+            bins.append([item])
+            bins_size.append(value)
+
+    return bins
+
+
+def all_combinations(*args):
+    return np.array(np.meshgrid(*args)).T.reshape(-1, len(args))

@@ -75,7 +75,7 @@ def parse_tree(line):
     return root
 
 
-def parse_trees(data_set="train"):  # todo maybe change input param
+def parse_trees(data_set="train", remove=False):  # todo maybe change input param
     """
     https://github.com/erickrf/treernn/blob/master/tree.py
     :param data_set: what dataset to use
@@ -87,8 +87,13 @@ def parse_trees(data_set="train"):  # todo maybe change input param
         trees = [parse_tree(l) for l in fid.readlines()]
     helper._print(len(trees), "loaded!")
     sentence_length = [count_leaf(tree) for tree in trees]
+    sentence_length = np.array(sentence_length)
     helper._print("Avg length:", np.average(sentence_length))
-    helper._print("Shorten then 90 word:", int(np.sum(np.array(sentence_length) <= 90) / len(sentence_length) * 100), "%")
+    trees = np.array(trees)
+    if remove:
+        helper._print("Shorten then 90 word:", int(np.sum(np.array(sentence_length) <= 90) / len(sentence_length) * 100), "%")
+        helper._print("Ratio of removed labels:", ratio_of_labels(trees[np.array(sentence_length) > 90]))
+        trees = helper.sort_by(trees[np.array(sentence_length) <= 90], sentence_length[np.array(sentence_length) <= 90])
     return trees
 
 

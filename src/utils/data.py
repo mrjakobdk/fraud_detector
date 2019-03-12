@@ -3,10 +3,11 @@ from utils import helper
 from utils.flags import FLAGS
 from utils.word_embeddings_util import WordEmbeddingsUtil
 
+
 class Data:
     def __init__(self):
         helper._print_header("Loading tree data")
-        self.train_trees = tree_util.parse_trees()
+        self.train_trees = tree_util.parse_trees(remove=False)
         self.test_trees = tree_util.parse_trees("test")
         self.val_trees = tree_util.parse_trees("val")
 

@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-sentence_embedding_size = 3
+sentence_embedding_size = 4
 word_embedding_size = 2
 
 xavier_initializer = tf.contrib.layers.xavier_initializer()
@@ -76,6 +76,16 @@ left_children = gather_rep(0, left_child)
 
 sess = tf.Session()
 sess.run(tf.global_variables_initializer())
+
+real_batch_size = tf.constant(2)
+real_batch_size = tf.gather(tf.shape(left_child), 0)
+rep_zero = tf.constant(0., shape=[sentence_embedding_size])
+a = tf.reshape(tf.tile(rep_zero, tf.stack([real_batch_size])),[-1,3])
+
+print(sess.run(a))
+
+print(sess.run(tf.stack([tf.range(5),tf.range(5)],axis=1)))
+
 print(sess.run(roots_padded))
 print(sess.run(tf.gather(labels, [[0, 0][1, 1]])))
 print(sess.run(tf.gather_nd(labels, roots_padded)))
