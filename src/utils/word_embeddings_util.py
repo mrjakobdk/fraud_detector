@@ -93,7 +93,8 @@ class WordEmbeddingsUtil:
         helper._print_header('Getting fine-tuned GloVe embeddings')
         sentences = self.get_enron_sentences()
         vocab = helper.get_or_build(FLAGS.enron_emails_vocab_path, self.build_vocab, sentences)
-        cooccur = helper.get_or_build(FLAGS.enron_emails_cooccur_path, self.build_cooccur, vocab, sentences)
+        print(vocab)
+        cooccur = helper.get_or_build(FLAGS.enron_emails_cooccur_path, self.build_cooccur, vocab, sentences, type='numpy')
         print(cooccur)
         return 'test', 'test', 'test'
 
@@ -272,6 +273,7 @@ class WordEmbeddingsUtil:
     def build_vocab(self, corpus, min_count=FLAGS.glove_min_count):
         """
         Credit to https://github.com/hans/glove.py/blob/master/glove.py
+
         Returns a dictionary `w -> (i, f)`, mapping word strings to pairs of
         word ID and word corpus frequency.
         """
@@ -280,7 +282,7 @@ class WordEmbeddingsUtil:
         for doc in corpus:
             vocab.update(doc)
         helper._print_subheader('Done building vocabulary')
-        return {word: (i, freq) for i, (word, freq) in enumerate(vocab.items()) if freq > min_count}
+        return {word: (i, freq) for i, (word, freq) in enumerate(vocab.items()) if freq >= min_count}
 
     @listify
     def build_cooccur(self, vocab, corpus, window=10):
@@ -298,7 +300,7 @@ class WordEmbeddingsUtil:
                 helper._print(f"{i}/{len(corpus)} sentences processed")
                 if i == 250000:
                     break
-            token_ids = [vocab[word][0] for word in sent]
+            token_ids = [vocab[word][0] for word in sent if word in vocab.keys()]
 
             for center_i, center_id in enumerate(token_ids):
                 # Collect all word IDs in left window of center word

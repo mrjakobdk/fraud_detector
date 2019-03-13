@@ -53,7 +53,7 @@ flags.DEFINE_string("glove_pretrained_mode", 'glove_pretrained', "Flag to use Gl
 flags.DEFINE_string("glove_finetuned_mode", 'glove_finetuned', "Flag to use GloVe vectors from finetuned Mittens model")
 flags.DEFINE_string("glove_trained_mode", 'glove_trained', "Flag to use GloVe vectors trained on the data corpus")
 
-flags.DEFINE_integer("glove_min_count", 3, "How many times does a word need to be present in the corpus")
+flags.DEFINE_integer("glove_min_count", 2, "How many times does a word need to be present in the corpus")
 
 
 flags.DEFINE_string("word2vec_pretrained_mode", 'word2vec_pretrained', "Flag to use word2vec vectors from pretrained model")
