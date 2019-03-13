@@ -157,7 +157,6 @@ def get_or_build(path, build_fn, *args, type=None, **kwargs):
 
         if save and path is not None:
             if type == 'numpy':
-                print(np.max(obj))
                 obj = np.save(path, obj)
             else:
                 with open(path, 'wb') as obj_f:

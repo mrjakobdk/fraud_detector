@@ -58,9 +58,10 @@ class WordEmbeddingsUtil:
         vocab = helper.get_or_build(FLAGS.enron_emails_vocab_path, self.build_vocab, sentences)
         # idx2word = {i: word for word, i in word2idx.items()}
         cooccur = helper.get_or_build(FLAGS.enron_emails_cooccur_path, self.build_cooccur, vocab, sentences, type='numpy')
+        print(cooccur)
         pretrained_embeddings = self.glove2dict(self.word_embed_file_path)
         helper._print_subheader('Starting Mittens model...')
-        mittens_model = Mittens(n=self.dimensions, max_iter=1000, display_progress=1, log_dir=FLAGS.glove_dir)
+        mittens_model = Mittens(n=self.dimensions, max_iter=1000, display_progress=1, log_dir=FLAGS.glove_dir + 'mittens/')
         finetuned_embeddings = mittens_model.fit(
             cooccur,
             vocab=vocab,
@@ -321,15 +322,13 @@ class WordEmbeddingsUtil:
 
         vocab_size = len(vocab)
         idx2word = {i: word for word, i in vocab.items()}
-        print(vocab)
-        print(idx2word)
 
         cooccurrences = np.zeros((vocab_size, vocab_size), dtype=np.float64)
         helper._print('Enumerating through the corpus...')
         for i, sent in enumerate(corpus):
             if i % 10000 == 0 and i != 0:
                 helper._print(f"{i}/{len(corpus)} sentences processed")
-                if i == 250000:
+                if i == 500000:
                     break
             token_ids = [vocab[word] for word in sent if word in vocab.keys()]
 
