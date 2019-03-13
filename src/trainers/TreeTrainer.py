@@ -90,8 +90,8 @@ def train(model, load=False, config=None, batch_size=FLAGS.batch_size, epochs=FL
         helper._print("Validation:", summary.history[summary.VAL][best_step][1])
         helper._print("Training:", summary.history[summary.TRAIN][best_step][1])
         helper._print_subheader("Loss")
-        helper._print("Test:", summary.history[summary.TEST][best_step][1])
-        helper._print("Validation:", summary.history[summary.VAL][best_step][1])
-        helper._print("Training:", summary.history[summary.TRAIN][best_step][1])
+        helper._print("Test:", summary.history[summary.TEST][best_step][2])
+        helper._print("Validation:", summary.history[summary.VAL][best_step][2])
+        helper._print("Training:", summary.history[summary.TRAIN][best_step][2])
 
         summary.close()
