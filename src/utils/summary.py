@@ -104,11 +104,13 @@ class summarizer():
         self.add(data_set, acc, loss)
         self.write_and_reset(data_set, epoch, _print=_print)
 
-    def save_all(self):
+    def save_all(self, epoch_times, run_times):
         np.savez(FLAGS.histories_dir + self.model_name + 'history.npz',
                  train=self.history[self.TRAIN],
                  test=self.history[self.TEST],
-                 validation=self.history[self.VAL])
+                 validation=self.history[self.VAL],
+                 epoch_times=epoch_times,
+                 run_times=run_times)
 
     def new_best(self, data_set):
         return self._new_best[data_set]

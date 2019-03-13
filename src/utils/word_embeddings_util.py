@@ -230,8 +230,8 @@ class WordEmbeddingsUtil:
                 Using sys.maxsize throws an Overflow error on Windows 64-bit platforms since internal
                 representation of 'int'/'long' on Win64 is only 32-bit wide. Ideally limit on Win64
                 should not exceed ((2**31)-1) as long as internal representation uses 'int' and/or 'long'
-                csv.field_size_limit((2 ** 31) - 1)
                 """
+                csv.field_size_limit((2 ** 31) - 1)
             else:
                 csv.field_size_limit(sys.maxsize)
         except OverflowError as e:

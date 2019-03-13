@@ -175,31 +175,6 @@ class treeRNN(treeModel):
             label_max)
         self.acc = tf.reduce_mean(tf.cast(acc, tf.float32))
 
-    def build_train_op(self):
-        self.global_step = tf.train.create_global_step()
-
-        if FLAGS.lr_decay:
-            n = int(len(self.data.train_trees) / FLAGS.batch_size)
-            total_steps = FLAGS.epochs * n
-            decay_steps = n
-            decay_rate = (FLAGS.learning_rate_end / FLAGS.learning_rate) ** (decay_steps / total_steps)
-            self.learning_rate = tf.train.exponential_decay(FLAGS.learning_rate, self.global_step, decay_steps,
-                                                            decay_rate,
-                                                            name='learning_rate')
-
-            helper._print_header("Using learning rate with exponential decay")
-            helper._print("Decay for every step:", decay_rate)
-            helper._print("Learning rate start:", FLAGS.learning_rate)
-            helper._print("Learning rate end:", FLAGS.learning_rate_end)
-            helper._print("After number of epochs", FLAGS.epochs)
-        else:
-            self.learning_rate = tf.constant(FLAGS.learning_rate)
-
-        if FLAGS.optimizer == "adam":
-            self.train_op = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss, global_step=self.global_step)
-        else:
-            self.train_op = tf.train.AdagradOptimizer(self.learning_rate).minimize(self.loss,
-                                                                                   global_step=self.global_step)
 
     def build_feed_dict(self, batch):
         node_list_list = []

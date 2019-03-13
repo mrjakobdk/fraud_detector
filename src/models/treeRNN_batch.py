@@ -26,20 +26,10 @@ class treeRNN_GPU(treeModel):
         self.right_child_array = tf.placeholder(tf.int32, (None, None), name='right_child_array')
         self.label_array = tf.placeholder(tf.int32, (None, None, FLAGS.label_size), name='label_array')
         self.real_batch_size = tf.gather(tf.shape(self.is_leaf_array), 0)
-        # tf.placeholder(tf.int32, (None), name='real_batch_size')
 
     def build_variables(self):
         # initializers
-        xavier_initializer = tf.contrib.layers.xavier_initializer()
-        bias_initializer = tf.initializers.zeros()
-
-        def custom_initializer(shape_list, dtype, partition_info):
-            return tf.initializers.identity(gain=0.5)(shape_list, dtype,
-                                                      partition_info) + tf.initializers.random_uniform(minval=-0.05,
-                                                                                                       maxval=0.05)(
-                shape_list, dtype, partition_info)
-
-        weight_initializer = custom_initializer
+        xavier_initializer, weight_initializer, bias_initializer = self.get_initializers()
 
         # word variables
         self.W = tf.get_variable(name='W', shape=[FLAGS.sentence_embedding_size, FLAGS.word_embedding_size],
@@ -75,7 +65,7 @@ class treeRNN_GPU(treeModel):
             dynamic_size=True,
             clear_after_read=False,
             infer_shape=False)
-        word_array = word_array.write(0, self.word_zero)
+        word_array = word_array.write(0, self.word_zero) #todo this might not be right
 
         o_array = tf.TensorArray(
             tf.float32,
@@ -89,18 +79,8 @@ class treeRNN_GPU(treeModel):
         def embed_word(word_index):
             return tf.transpose(tf.nn.embedding_lookup(self.embeddings, word_index))
 
-        # todo check transpose perm
-        # batch_indices = [[[j, i, j] for j in range(FLAGS.batch_size)] for i in range(FLAGS.sentence_embedding_size)]
-        #
-        # def gather_rep(step, children_indices, rep_array):
-        #     children = tf.squeeze(tf.gather(children_indices, step, axis=1))
-        #     return tf.gather_nd(rep_array.gather(children), batch_indices)
-
-        # batch_indices = [[j, j] for j in range(FLAGS.batch_size)]
         batch_indices = tf.stack([tf.range(self.real_batch_size), tf.range(self.real_batch_size)], axis=1)
-
         def gather_rep(step, children_indices, rep_array):
-            # todo this fails with batch size 1 - think it is because child indices becomes a single value and not a list of values - does not work for tf.gather
             children = tf.squeeze(tf.gather(children_indices, step, axis=1))
             rep_entries = rep_array.gather(children)
             t_rep_entries = tf.transpose(rep_entries, perm=[0, 2, 1])
@@ -119,6 +99,9 @@ class treeRNN_GPU(treeModel):
 
         def tree_construction_body(rep_array, word_array, o_array, i):
             word_index = tf.gather(self.word_index_array, i, axis=1)
+            # print_op = tf.print("word_index:", word_index,
+            #                     output_stream=sys.stdout)
+            # with tf.control_dependencies([print_op]):
             word_emb = embed_word(word_index)
             word_array = word_array.write(i, word_emb)
 
@@ -131,7 +114,7 @@ class treeRNN_GPU(treeModel):
             i = tf.add(i, 1)
             return rep_array, word_array, o_array, i
 
-        termination_cond = lambda rep_a, word_a, o_a, i: tf.less(i, tf.gather(tf.shape(self.is_leaf_array), 1))
+        termination_cond = lambda rep_a, word_a, o_a, i: tf.less(i, tf.gather(tf.shape(self.left_child_array), 1))
 
         self.rep_array, self.word_array, self.o_array, _ = tf.while_loop(
             cond=termination_cond,
@@ -145,7 +128,7 @@ class treeRNN_GPU(treeModel):
         logits = tf.gather_nd(tf.transpose(self.o_array.stack(), perm=[2, 0, 1]), self.root_array)  # roots_padded)
         labels = tf.gather_nd(self.label_array, self.root_array)
 
-        softmax_cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=labels)
+        softmax_cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=labels)
         self.loss = tf.reduce_mean(softmax_cross_entropy)
 
         reg_weight = 0.001
@@ -174,105 +157,4 @@ class treeRNN_GPU(treeModel):
         acc = tf.equal(logits_max, labels_max)
         self.acc = tf.reduce_mean(tf.cast(acc, tf.float32))
 
-    def build_train_op(self):
-        self.global_step = tf.train.create_global_step()
 
-        if FLAGS.lr_decay:
-            n = int(len(self.data.train_trees) / FLAGS.batch_size)
-            total_steps = FLAGS.epochs * n
-            decay_steps = n
-            decay_rate = (FLAGS.learning_rate_end / FLAGS.learning_rate) ** (decay_steps / total_steps)
-            self.learning_rate = tf.train.exponential_decay(FLAGS.learning_rate, self.global_step, decay_steps,
-                                                            decay_rate,
-                                                            name='learning_rate')
-
-            helper._print_header("Using learning rate with exponential decay")
-            helper._print("Decay for every step:", decay_rate)
-            helper._print("Learning rate start:", FLAGS.learning_rate)
-            helper._print("Learning rate end:", FLAGS.learning_rate_end)
-            helper._print("After number of epochs", FLAGS.epochs)
-        else:
-            self.learning_rate = tf.constant(FLAGS.learning_rate)
-
-        if FLAGS.optimizer == "adam":
-            self.train_op = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss, global_step=self.global_step)
-        else:
-            self.train_op = tf.train.AdagradOptimizer(self.learning_rate).minimize(self.loss,
-                                                                                   global_step=self.global_step)
-
-    def build_feed_dict_old(self, roots):
-        node_list_list = []
-        node_to_index_list = []
-        for root in roots:
-            node_list = []
-            tree_util.depth_first_traverse(root, node_list, lambda node, node_list: node_list.append(node))
-            node_list_list.append(node_list)
-            node_to_index = helper.reverse_dict(node_list)
-            node_to_index_list.append(node_to_index)
-
-        feed_dict = {
-            self.root_array: [tree_util.size_of_tree(root) for root in roots],
-            self.is_leaf_array: helper.lists_pad([
-                [False] + [node.is_leaf for node in node_list]
-                for node_list in node_list_list], False),
-            self.word_index_array: helper.lists_pad([
-                [0] + [self.data.word_embed_util.get_idx(node.value) for node in node_list]
-                for node_list in node_list_list], self.data.word_embed_util.get_idx("ZERO")),
-            self.left_child_array: helper.lists_pad([
-                [0] + helper.add_one(
-                    [node_to_index[node.left_child] if node.left_child is not None else -1 for node in node_list])
-                for node_list, node_to_index in zip(node_list_list, node_to_index_list)], 0),
-            self.right_child_array: helper.lists_pad([
-                [0] + helper.add_one(
-                    [node_to_index[node.right_child] if node.right_child is not None else -1 for node in node_list])
-                for node_list, node_to_index in zip(node_list_list, node_to_index_list)], 0),
-            self.label_array: helper.lists_pad([
-                [[0, 0]] + [node.label for node in node_list]
-                for node_list in node_list_list], [0, 0])
-        }
-
-        return feed_dict
-
-    def build_feed_dict(self, roots):
-        roots_size = [tree_util.size_of_tree(root) for root in roots]
-        roots = helper.sort_by(roots, roots_size)
-        roots_size = [tree_util.size_of_tree(root) for root in roots]
-        roots_list = helper.greedy_bin_packing(roots, roots_size, np.max(roots_size))
-
-        node_list_list = []
-        node_to_index_list = []
-        root_indices = []
-        for i, roots in enumerate(roots_list):
-            node_list = []
-            root_index = 0
-            for root in roots:
-                tree_util.depth_first_traverse(root, node_list, lambda node, node_list: node_list.append(node))
-                root_index += tree_util.size_of_tree(root)
-                root_indices.append([i, root_index])
-            node_list_list.append(node_list)
-            node_to_index = helper.reverse_dict(node_list)
-            node_to_index_list.append(node_to_index)
-
-        feed_dict = {
-            # self.real_batch_size: len(node_list_list),
-            self.root_array: root_indices,
-            self.is_leaf_array: helper.lists_pad([
-                [False] + [node.is_leaf for node in node_list]
-                for node_list in node_list_list], False),
-            self.word_index_array: helper.lists_pad([
-                [0] + [self.data.word_embed_util.get_idx(node.value) for node in node_list]
-                for node_list in node_list_list], self.data.word_embed_util.get_idx("ZERO")),
-            self.left_child_array: helper.lists_pad([
-                [0] + helper.add_one(
-                    [node_to_index[node.left_child] if node.left_child is not None else -1 for node in node_list])
-                for node_list, node_to_index in zip(node_list_list, node_to_index_list)], 0),
-            self.right_child_array: helper.lists_pad([
-                [0] + helper.add_one(
-                    [node_to_index[node.right_child] if node.right_child is not None else -1 for node in node_list])
-                for node_list, node_to_index in zip(node_list_list, node_to_index_list)], 0),
-            self.label_array: helper.lists_pad([
-                [[0, 0]] + [node.label for node in node_list]
-                for node_list in node_list_list], [0, 0])
-        }
-
-        return feed_dict

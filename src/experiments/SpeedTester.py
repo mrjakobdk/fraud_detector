@@ -37,10 +37,20 @@ def plot(batch_sizes, labels):
     run_times_list = tmp["run_times_list"].tolist()
     epoch_times_list = tmp["epoch_times_list"].tolist()
 
+    plt.clf()
     for avg_epoch_times, label in zip(epoch_times_list, labels):
-        plt.plot(batch_sizes, avg_epoch_times, label=label)
+        plt.plot(batch_sizes, np.array(avg_epoch_times)/60, label=label)
+    plt.legend()
+    plt.xlabel('batch size')
+    plt.ylabel('minutes')
     plt.show()
 
+    plt.clf()
     for avg_run_times, label in zip(run_times_list, labels):
-        plt.plot(batch_sizes, avg_run_times, label=label)
+        plt.plot(batch_sizes, np.array(avg_run_times)/60, label=label)
+    plt.legend()
+    plt.xlabel('batch size')
+    plt.ylabel('minutes')
     plt.show()
+
+    plt.clf()
