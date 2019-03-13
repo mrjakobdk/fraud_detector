@@ -90,14 +90,11 @@ class WordEmbeddingsUtil:
         return np.array(weights, dtype=np.float32), word2idx, idx2word
 
     def glove_finetuned_embeddings(self):
-        helper._print_header('Getting pretrained GloVe embeddings and the fine-tuning them on the Enron corpus.')
+        helper._print_header('Getting fine-tuned GloVe embeddings')
         sentences = self.get_enron_sentences()
-        print('average:', np.average([len(doc) for doc in sentences]))
         vocab = helper.get_or_build(FLAGS.enron_emails_vocab_path, self.build_vocab, sentences)
-        cooccur_tuples = helper.get_or_build(FLAGS.enron_emails_cooccur_path, self.build_cooccur, vocab, sentences, 10, 3)
-        cooccur = self.make_numpy_cooccur(cooccur=cooccur_tuples)
+        cooccur = helper.get_or_build(FLAGS.enron_emails_cooccur_path, self.build_cooccur, vocab, sentences)
         print(cooccur)
-        print(vocab['busy'])
         return 'test', 'test', 'test'
 
     def word2vec_index_keyed_vector(self, keyed_vector):
@@ -272,7 +269,7 @@ class WordEmbeddingsUtil:
         return body.strip()
 
 
-    def build_vocab(self, corpus):
+    def build_vocab(self, corpus, min_count=FLAGS.glove_min_count):
         """
         Credit to https://github.com/hans/glove.py/blob/master/glove.py
         Returns a dictionary `w -> (i, f)`, mapping word strings to pairs of
@@ -283,23 +280,10 @@ class WordEmbeddingsUtil:
         for doc in corpus:
             vocab.update(doc)
         helper._print_subheader('Done building vocabulary')
-        return {word: (i, freq) for i, (word, freq) in enumerate(vocab.items())}
+        return {word: (i, freq) for i, (word, freq) in enumerate(vocab.items()) if freq > min_count}
 
     @listify
-    def build_cooccur(self, vocab, corpus, window=10, min_count=None):
-        """
-        Credit to https://github.com/hans/glove.py/blob/master/glove.py
-        Build a word co-occurrence list for the given corpus.
-        This function is a tuple generator, where each element (representing
-        a cooccurrence pair) is of the form
-            (i_main, i_context, cooccurrence)
-        where `i_main` is the ID of the main word in the cooccurrence and
-        `i_context` is the ID of the context word, and `cooccurrence` is the
-        `X_{ij}` cooccurrence value as described in Pennington et al.
-        (2014).
-        If `min_count` is not `None`, cooccurrence pairs where either word
-        occurs in the corpus fewer than `min_count` times are ignored.
-        """
+    def build_cooccur(self, vocab, corpus, window=10):
         helper._print_subheader("Building cooccurrence matrix")
 
         vocab_size = len(vocab)
@@ -307,11 +291,13 @@ class WordEmbeddingsUtil:
 
         # Collect cooccurrences internally as a sparse matrix for passable
         # indexing speed; we'll convert into a list later
-        cooccurrences = sparse.lil_matrix((vocab_size, vocab_size),
-                                          dtype=np.float64)
+        cooccurrences = np.zeros((vocab_size, vocab_size), dtype=np.float64)
+        helper._print('Enumerating through the corpus...')
         for i, sent in enumerate(corpus):
-            if i % 100000 == 0:
+            if i % 10000 == 0:
                 helper._print(f"{i}/{len(corpus)} sentences processed")
+                if i == 250000:
+                    break
             token_ids = [vocab[word][0] for word in sent]
 
             for center_i, center_id in enumerate(token_ids):
@@ -330,27 +316,20 @@ class WordEmbeddingsUtil:
                     # are calculating right contexts as well)
                     cooccurrences[center_id, left_id] += increment
                     cooccurrences[left_id, center_id] += increment
+        return cooccurrences
+        #
+        # # Now yield our tuple sequence (dig into the LiL-matrix internals to
+        # # quickly iterate through all nonzero cells)
+        # for i, (row, data) in enumerate(zip(cooccurrences.rows, cooccurrences.data)):
+        #     if min_count is not None and vocab[idx2word[i]][1] < min_count:
+        #         continue
+        #
+        #     for data_idx, j in enumerate(row):
+        #         if min_count is not None and vocab[idx2word[j]][1] < min_count:
+        #             continue
+        #
+        #         yield i, j, data[data_idx]
 
-        with open(FLAGS.glove_dir + 'cooccur_matrix', 'wb') as obj_f:
-            msgpack.dump(cooccurrences, obj_f)
-
-        # Now yield our tuple sequence (dig into the LiL-matrix internals to
-        # quickly iterate through all nonzero cells)
-        for i, (row, data) in enumerate(zip(cooccurrences.rows, cooccurrences.data)):
-            if min_count is not None and vocab[idx2word[i]][1] < min_count:
-                continue
-
-            for data_idx, j in enumerate(row):
-                if min_count is not None and vocab[idx2word[j]][1] < min_count:
-                    continue
-
-                yield i, j, data[data_idx]
-
-    def make_numpy_cooccur(self, cooccur):
-        helper._print_subheader('Building numpy cooccurrence matrix...')
-        print(np.sqrt(len(cooccur)))
-        helper._print_subheader('Done with numpy cooccurrence matrix...')
-        return 'test'
 
     def get_idx(self, word):
         if word in self.word2idx.keys():
