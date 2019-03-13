@@ -1,78 +1,81 @@
 import tensorflow as tf
+flags = tf.app.flags
 
 # --------------------------- Directories ---------------------------
 
-tf.app.flags.DEFINE_string("data_dir", '../data/', "Directory for data")
-tf.app.flags.DEFINE_string("logs_dir", '../logs/', "Directory for logs")
-tf.app.flags.DEFINE_string("enron_dir", '../data/enron/', "Directory for logs")
-tf.app.flags.DEFINE_string("histories_dir", '../histories/', "Directory for histories")
-tf.app.flags.DEFINE_string("model_name", 'rnn/', "Name for model")
-tf.app.flags.DEFINE_string("glove_dir", '../data/glove/', "Directory for pre-trained GloVe word embeddings")
-tf.app.flags.DEFINE_string("word2vec_dir", '../data/word2vec/', "Directory for pre-trained word2vec word embeddings")
-tf.app.flags.DEFINE_string("models_dir", '../trained_models/', "Directory for trained_models")
+flags.DEFINE_string("data_dir", '../data/', "Directory for data")
+flags.DEFINE_string("logs_dir", '../logs/', "Directory for logs")
+flags.DEFINE_string("enron_dir", '../data/enron/', "Directory for logs")
+flags.DEFINE_string("histories_dir", '../histories/', "Directory for histories")
+flags.DEFINE_string("model_name", 'rnn/', "Name for model")
+flags.DEFINE_string("glove_dir", '../data/glove/', "Directory for pre-trained GloVe word embeddings")
+flags.DEFINE_string("word2vec_dir", '../data/word2vec/', "Directory for pre-trained word2vec word embeddings")
+flags.DEFINE_string("models_dir", '../trained_models/', "Directory for trained_models")
 
 # --------------------------- Training Parameters ---------------------------
 
-tf.app.flags.DEFINE_integer("word_embedding_size", 300, "Size of the word embedding")
-tf.app.flags.DEFINE_integer("sentence_embedding_size", 300, "Size of the sentence embedding")
-tf.app.flags.DEFINE_integer("label_size", 2, "Number of labels")
+flags.DEFINE_integer("word_embedding_size", 300, "Size of the word embedding")
+flags.DEFINE_integer("sentence_embedding_size", 300, "Size of the sentence embedding")
+flags.DEFINE_integer("label_size", 2, "Number of labels")
+flags.DEFINE_integer("deepRNN_layers", 3, "Number of layers in DeepRNN")
 
-tf.app.flags.DEFINE_integer("epochs", 200, "Number of epochs during training")
-tf.app.flags.DEFINE_float("learning_rate", 0.01, "Learning rate for training")
-tf.app.flags.DEFINE_float("learning_rate_end", 0.00001, "End learning rate after the total number of epoches")
-tf.app.flags.DEFINE_boolean("lr_decay", False, "Use learning rate decay")
-tf.app.flags.DEFINE_integer("batch_size", 4, "Batch size for training")
-tf.app.flags.DEFINE_float("sensitive_weight", 1., "Weight on the sensitivity")
 
-tf.app.flags.DEFINE_string("optimizer", 'adagrad', "Network optimizer")
+flags.DEFINE_integer("epochs", 200, "Number of epochs during training")
+flags.DEFINE_float("learning_rate", 0.01, "Learning rate for training")
+flags.DEFINE_float("learning_rate_end", 0.00001, "End learning rate after the total number of epoches")
+flags.DEFINE_boolean("lr_decay", False, "Use learning rate decay")
+flags.DEFINE_integer("batch_size", 4, "Batch size for training")
+flags.DEFINE_float("sensitive_weight", 1., "Weight on the sensitivity")
 
-tf.app.flags.DEFINE_string("weight_initializer", 'identity', "Initializer for represetation weight")
-tf.app.flags.DEFINE_string("bias_initializer", 'zero', "Initializer for bias weight")
+flags.DEFINE_string("optimizer", 'adagrad', "Network optimizer")
 
-tf.app.flags.DEFINE_boolean("load_model", False, "Load a old model")
+flags.DEFINE_string("weight_initializer", 'identity', "Initializer for represetation weight")
+flags.DEFINE_string("bias_initializer", 'zero', "Initializer for bias weight")
+
+flags.DEFINE_boolean("load_model", False, "Load a old model")
 
 # ---------------------------- deepRNN ----------------------------
 
-tf.app.flags.DEFINE_integer("deepRNN_depth", 3, "Trees in the deepRNN")
+flags.DEFINE_integer("deepRNN_depth", 3, "Trees in the deepRNN")
 
 # --------------------------- Data ---------------------------
 
-tf.app.flags.DEFINE_string("enron_emails_csv_path", '../data/enron/emails.csv', "Path for enron/emails.csv data")
-tf.app.flags.DEFINE_string("enron_emails_txt_path", '../data/enron/emails.txt', "Path for enron/emails.txt data only containing the emails")
-tf.app.flags.DEFINE_string("enron_emails_zip_path", '../data/enron/enron-email-dataset.zip', "Path for enron/enron-email-dataset.zip")
-tf.app.flags.DEFINE_string("enron_emails_vocab_path", '../data/enron/vocab', "Path for enron vocabulary")
-tf.app.flags.DEFINE_string("enron_emails_cooccur_path", '../data/enron/cooccur', "Path for enron weighted cooccurrence matrix")
+flags.DEFINE_string("enron_emails_csv_path", '../data/enron/emails.csv', "Path for enron/emails.csv data")
+flags.DEFINE_string("enron_emails_txt_path", '../data/enron/emails.txt', "Path for enron/emails.txt data only containing the emails")
+flags.DEFINE_string("enron_emails_zip_path", '../data/enron/enron-email-dataset.zip', "Path for enron/enron-email-dataset.zip")
+flags.DEFINE_string("enron_emails_vocab_path", '../data/enron/vocab', "Path for enron vocabulary")
+flags.DEFINE_string("enron_emails_cooccur_path", '../data/enron/cooccur', "Path for enron weighted cooccurrence matrix")
 
 # --------------------------- Word embeddings ---------------------------
 
-tf.app.flags.DEFINE_string("word_embed_mode", '', "Flag to switch between word embeddings modes")
-tf.app.flags.DEFINE_string("glove_pretrained_mode", 'glove_pretrained', "Flag to use GloVe vectors from pretrained model")
-tf.app.flags.DEFINE_string("glove_finetuned_mode", 'glove_finetuned', "Flag to use GloVe vectors from finetuned Mittens model")
-tf.app.flags.DEFINE_string("glove_trained_mode", 'glove_trained', "Flag to use GloVe vectors trained on the data corpus")
-tf.app.flags.DEFINE_string("word2vec_pretrained_mode", 'word2vec_pretrained', "Flag to use word2vec vectors from pretrained model")
+flags.DEFINE_string("word_embed_mode", '', "Flag to switch between word embeddings modes")
+flags.DEFINE_string("glove_pretrained_mode", 'glove_pretrained', "Flag to use GloVe vectors from pretrained model")
+flags.DEFINE_string("glove_finetuned_mode", 'glove_finetuned', "Flag to use GloVe vectors from finetuned Mittens model")
+flags.DEFINE_string("glove_trained_mode", 'glove_trained', "Flag to use GloVe vectors trained on the data corpus")
+flags.DEFINE_string("word2vec_pretrained_mode", 'word2vec_pretrained', "Flag to use word2vec vectors from pretrained model")
 
-tf.app.flags.DEFINE_string("word2vec_finetuned_mode", 'word2vec_finetuned', "Flag to use word2vec vectors from pretrained model, but finetuned on the Enron dataset")
-tf.app.flags.DEFINE_integer("word2vec_finetuned_mode_epochs", 50, "How many epoch do we want to train the word2vec embeddings")
+flags.DEFINE_string("word2vec_finetuned_mode", 'word2vec_finetuned', "Flag to use word2vec vectors from pretrained model, but finetuned on the Enron dataset")
+flags.DEFINE_integer("word2vec_finetuned_mode_epochs", 50, "How many epoch do we want to train the word2vec embeddings")
 
-tf.app.flags.DEFINE_string("word2vec_trained_mode", 'word2vec_trained', "Flag to use word2vec vectors trained on the data corpus")
-tf.app.flags.DEFINE_integer("word2vec_trained_mode_epochs", 200, "How many epoch do we want to train the word2vec embeddings")
+flags.DEFINE_string("word2vec_trained_mode", 'word2vec_trained', "Flag to use word2vec vectors trained on the data corpus")
+flags.DEFINE_integer("word2vec_trained_mode_epochs", 200, "How many epoch do we want to train the word2vec embeddings")
 
-tf.app.flags.DEFINE_boolean("word_embed_subset", True, "Flag whether to use a subset of the word embeddings")
-tf.app.flags.DEFINE_integer("word_embed_subset_size", 100000, "Flag for the size of the subset of the word embeddings to use")
-tf.app.flags.DEFINE_string("glove_url", 'http://nlp.stanford.edu/data/wordvecs/', "Base url for downloading pre-trained GloVe vectors")
-tf.app.flags.DEFINE_string("glove_embedding_file", 'glove.6B', "Name of specific pre-trained GloVe vectors to be downloaded")
-tf.app.flags.DEFINE_integer("word_embed_dimensions", '300', "Dimensions of pre-trained word vectors")
-tf.app.flags.DEFINE_string("word2vec_embedding_file", 'GoogleNews-vectors-negative300', "Name of specific pre-trained word2vec vectors file")
+flags.DEFINE_boolean("word_embed_subset", True, "Flag whether to use a subset of the word embeddings")
+flags.DEFINE_integer("word_embed_subset_size", 100000, "Flag for the size of the subset of the word embeddings to use")
+flags.DEFINE_string("glove_url", 'http://nlp.stanford.edu/data/wordvecs/', "Base url for downloading pre-trained GloVe vectors")
+flags.DEFINE_string("glove_embedding_file", 'glove.6B', "Name of specific pre-trained GloVe vectors to be downloaded")
+flags.DEFINE_integer("word_embed_dimensions", '300', "Dimensions of pre-trained word vectors")
+flags.DEFINE_string("word2vec_embedding_file", 'GoogleNews-vectors-negative300', "Name of specific pre-trained word2vec vectors file")
 
 # --------------------------- Etc. ---------------------------
 
-tf.app.flags.DEFINE_boolean('verbose', True, "Global flag for 'verbose'")
-tf.app.flags.DEFINE_integer('print_step_interval', 1000, "Interval to print in training")
-tf.app.flags.DEFINE_boolean('run_tensorboard', False, "Flag")
-tf.app.flags.DEFINE_boolean('use_gpu', False, "Use the gpu friendly version")
+flags.DEFINE_boolean('verbose', True, "Global flag for 'verbose'")
+flags.DEFINE_integer('print_step_interval', 1000, "Interval to print in training")
+flags.DEFINE_boolean('run_tensorboard', False, "Flag")
+flags.DEFINE_boolean('use_gpu', False, "Use the gpu friendly version")
 
-tf.app.flags.DEFINE_boolean('run_speed_test',False,"Running speed tests")
+flags.DEFINE_boolean('run_speed_test',False,"Running speed tests")
 
 # --------------------------- Init FLAGS variable ---------------------------
 
-FLAGS = tf.app.flags.FLAGS
+FLAGS = flags.FLAGS
