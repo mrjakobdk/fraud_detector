@@ -49,7 +49,7 @@ flags.DEFINE_string("enron_emails_txt_path", '../data/enron/emails.txt',
 flags.DEFINE_string("enron_emails_zip_path", '../data/enron/enron-email-dataset.zip',
                     "Path for enron/enron-email-dataset.zip")
 flags.DEFINE_string("enron_emails_vocab_path", '../data/enron/vocab', "Path for enron vocabulary")
-flags.DEFINE_string("enron_emails_cooccur_path", '../data/enron/cooccur', "Path for enron weighted cooccurrence matrix")
+flags.DEFINE_string("enron_emails_cooccur_path", '../data/enron/cooccur.npy', "Path for enron weighted cooccurrence matrix")
 
 # --------------------------- Word embeddings ---------------------------
 
