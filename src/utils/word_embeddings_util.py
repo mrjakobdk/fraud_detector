@@ -1,4 +1,3 @@
-import msgpack
 from collections import Counter
 import nltk
 import numpy as np
@@ -6,7 +5,8 @@ import os
 import sys
 import csv
 import re
-from scipy import sparse
+
+from mittens import Mittens
 from utils.flags import FLAGS
 import utils.helper as helper
 from utils.helper import listify
@@ -48,19 +48,35 @@ class WordEmbeddingsUtil:
 
     def glove_pretrained_embeddings(self):
         helper._print_header('Getting pretrained GloVe embeddings')
-        self.word_embed_file_path = FLAGS.glove_dir + self.embedding_file + '.' + str(self.dimensions) + 'd.txt'
-        self.glove_zip_path = FLAGS.glove_dir + 'glove.zip'
-        if not os.path.isdir(FLAGS.glove_dir):
-            os.makedirs(FLAGS.glove_dir)
-        if not os.path.isfile(self.word_embed_file_path):
-            helper._print_header(
-                'Downloading GloVe embedding: {0}'.format(self.embedding_file))
-            url = 'http://nlp.stanford.edu/data/wordvecs/' + self.embedding_file + '.zip'
-            helper.download(url, self.glove_zip_path)
-            with zipfile.ZipFile(self.glove_zip_path, 'r') as zip:
-                helper._print_header(f'Extracting glove weights from {self.glove_zip_path} ')
-                zip.extractall(path=FLAGS.glove_dir)
+        self.glove_download_pretrained_model()
         return self.glove_generate_indexes()
+
+    def glove_finetuned_embeddings(self):
+        helper._print_header('Getting fine-tuned GloVe embeddings')
+        self.glove_download_pretrained_model()
+        sentences = self.get_enron_sentences()
+        vocab = helper.get_or_build(FLAGS.enron_emails_vocab_path, self.build_vocab, sentences)
+        # idx2word = {i: word for word, i in word2idx.items()}
+        cooccur = helper.get_or_build(FLAGS.enron_emails_cooccur_path, self.build_cooccur, vocab, sentences, type='numpy')
+        pretrained_embeddings = self.glove2dict(self.word_embed_file_path)
+        helper._print_subheader('Starting Mittens model...')
+        mittens_model = Mittens(n=self.dimensions, max_iter=1000, display_progress=1, log_dir=FLAGS.glove_dir)
+        finetuned_embeddings = mittens_model.fit(
+            cooccur,
+            vocab=vocab,
+            initial_embedding_dict= pretrained_embeddings)
+        print(finetuned_embeddings)
+
+        return 'test', 'test', 'test'
+
+    def glove2dict(self, glove_filename):
+        helper._print_subheader('Generating dict from pretrained GloVe embeddings')
+        with open(glove_filename) as file:
+            embed = {}
+            for index, line in enumerate(file):
+                values = line.split()
+                embed[values[0]] = np.asarray(values[1:], dtype=np.float32)
+        return embed
 
     def glove_generate_indexes(self):
         helper._print_subheader('Generating indexes for embeddings')
@@ -89,14 +105,19 @@ class WordEmbeddingsUtil:
             helper._print_subheader('Indexes done!')
         return np.array(weights, dtype=np.float32), word2idx, idx2word
 
-    def glove_finetuned_embeddings(self):
-        helper._print_header('Getting fine-tuned GloVe embeddings')
-        sentences = self.get_enron_sentences()
-        vocab = helper.get_or_build(FLAGS.enron_emails_vocab_path, self.build_vocab, sentences)
-        print(vocab)
-        cooccur = helper.get_or_build(FLAGS.enron_emails_cooccur_path, self.build_cooccur, vocab, sentences, type='numpy')
-        print(cooccur)
-        return 'test', 'test', 'test'
+    def glove_download_pretrained_model(self):
+        self.word_embed_file_path = FLAGS.glove_dir + self.embedding_file + '.' + str(self.dimensions) + 'd.txt'
+        self.glove_zip_path = FLAGS.glove_dir + 'glove.zip'
+        if not os.path.isdir(FLAGS.glove_dir):
+            os.makedirs(FLAGS.glove_dir)
+        if not os.path.isfile(self.word_embed_file_path):
+            helper._print_header(
+                'Downloading GloVe embedding: {0}'.format(self.embedding_file))
+            url = 'http://nlp.stanford.edu/data/wordvecs/' + self.embedding_file + '.zip'
+            helper.download(url, self.glove_zip_path)
+            with zipfile.ZipFile(self.glove_zip_path, 'r') as zip:
+                helper._print_header(f'Extracting glove weights from {self.glove_zip_path} ')
+                zip.extractall(path=FLAGS.glove_dir)
 
     def word2vec_index_keyed_vector(self, keyed_vector):
         helper._print_subheader('Creating index files!')
@@ -216,6 +237,7 @@ class WordEmbeddingsUtil:
             for index, line in enumerate(txt_file):
                 if index % 1000000 == 0 and index != 0:
                     helper._print(f'{index} sentences read')
+                    break
                 preproccesed_line = simple_preprocess(line)
                 if preproccesed_line != []:
                     yield preproccesed_line
@@ -279,28 +301,37 @@ class WordEmbeddingsUtil:
         """
         helper._print_subheader('Building vocabulary from corpus')
         vocab = Counter()
-        for doc in corpus:
+        for i, doc in enumerate(corpus):
+            if i % 100000 == 0 and i != 0:
+                helper._print(f"{i}/{len(corpus)} sentences processed")
+                break
             vocab.update(doc)
         helper._print_subheader('Done building vocabulary')
-        return {word: (i, freq) for i, (word, freq) in enumerate(vocab.items()) if freq >= min_count}
+        i = 0
+        word2index = {}
+        for word, freq in vocab.items():
+            if freq >= min_count:
+                word2index[word] = i
+                i += 1
+        return word2index
 
     @listify
     def build_cooccur(self, vocab, corpus, window=10):
         helper._print_subheader("Building cooccurrence matrix")
 
         vocab_size = len(vocab)
-        idx2word = dict((i, word) for word, (i, _) in vocab.items())
+        idx2word = {i: word for word, i in vocab.items()}
+        print(vocab)
+        print(idx2word)
 
-        # Collect cooccurrences internally as a sparse matrix for passable
-        # indexing speed; we'll convert into a list later
         cooccurrences = np.zeros((vocab_size, vocab_size), dtype=np.float64)
         helper._print('Enumerating through the corpus...')
         for i, sent in enumerate(corpus):
-            if i % 10000 == 0:
+            if i % 10000 == 0 and i != 0:
                 helper._print(f"{i}/{len(corpus)} sentences processed")
                 if i == 250000:
                     break
-            token_ids = [vocab[word][0] for word in sent if word in vocab.keys()]
+            token_ids = [vocab[word] for word in sent if word in vocab.keys()]
 
             for center_i, center_id in enumerate(token_ids):
                 # Collect all word IDs in left window of center word
@@ -319,18 +350,6 @@ class WordEmbeddingsUtil:
                     cooccurrences[center_id, left_id] += increment
                     cooccurrences[left_id, center_id] += increment
         return cooccurrences
-        #
-        # # Now yield our tuple sequence (dig into the LiL-matrix internals to
-        # # quickly iterate through all nonzero cells)
-        # for i, (row, data) in enumerate(zip(cooccurrences.rows, cooccurrences.data)):
-        #     if min_count is not None and vocab[idx2word[i]][1] < min_count:
-        #         continue
-        #
-        #     for data_idx, j in enumerate(row):
-        #         if min_count is not None and vocab[idx2word[j]][1] < min_count:
-        #             continue
-        #
-        #         yield i, j, data[data_idx]
 
 
     def get_idx(self, word):

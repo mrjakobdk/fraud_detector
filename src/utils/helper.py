@@ -149,14 +149,15 @@ def get_or_build(path, build_fn, *args, type=None, **kwargs):
             with open(path, 'rb') as obj_f:
                 obj = msgpack.load(obj_f, use_list=False, encoding='utf-8')
     else:
-
         save = True
 
     if obj is None:
-        obj = build_fn(*args, **kwargs)
+        _print_subheader('Saving to: ' + path)
+        obj = build_fn(*args)
 
         if save and path is not None:
             if type == 'numpy':
+                print(np.max(obj))
                 obj = np.save(path, obj)
             else:
                 with open(path, 'wb') as obj_f:
