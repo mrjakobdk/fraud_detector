@@ -11,7 +11,7 @@ class Data:
         self.test_trees = tree_util.parse_trees("test")
         self.val_trees = tree_util.parse_trees("val")
 
-        tree_util.trees_to_textfile(self.train_trees + self.test_trees + self.val_trees, "data/trees/all_sentences.txt")
+        tree_util.trees_to_textfile(list(self.train_trees) + list(self.test_trees) + list(self.val_trees), FLAGS.tree_sentences_txt_path)
 
         if FLAGS.word_embed_mode == '':
             self.word_embed_util = WordEmbeddingsUtil()

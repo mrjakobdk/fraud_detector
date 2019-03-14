@@ -94,7 +94,7 @@ def parse_trees(data_set="train", remove=False):  # todo maybe change input para
         helper._print("Shorten then 90 word:",
                       int(np.sum(np.array(sentence_length) <= 90) / len(sentence_length) * 100), "%")
         helper._print("Ratio of removed labels:", ratio_of_labels(trees[np.array(sentence_length) > 90]))
-        trees = helper.sort_by(trees[np.array(sentence_length) <= 90], sentence_length[np.array(sentence_length) <= 90])
+        trees = np.array(helper.sort_by(trees[np.array(sentence_length) <= 90], sentence_length[np.array(sentence_length) <= 90]))
     return trees
 
 
@@ -124,7 +124,7 @@ def trees_to_textfile(trees, path):
     if os.path.exists(path):
         os.remove(path)
 
-    with open(path, 'a+', encoding='utf-8') as text_file:
+    with open(path, 'w', encoding='utf-8') as text_file:
         for tree in trees:
             line = tree.to_string()
             text_file.write(line + '\n')
