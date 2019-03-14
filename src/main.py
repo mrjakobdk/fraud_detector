@@ -1,5 +1,6 @@
 import tensorflow as tf
 import utils.data_util as data_util
+from models.treeLSTM import treeLSTM
 from models.treeRNN import treeRNN
 from models.treeRNN_batch import treeRNN_batch
 from models.deepRNN import deepRNN
@@ -46,6 +47,8 @@ def main():
         model = treeRNN_batch(data, model_placement)
     elif FLAGS.model == "treeRNN_neerbek":
         model = treeRNN_neerbek(data, model_placement)
+    elif FLAGS.model == "treeLSTM":
+        model = treeLSTM(data, model_placement)
     else:
         model = treeRNN(data, model_placement)
 

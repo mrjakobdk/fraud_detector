@@ -67,10 +67,12 @@ def train(model, load=False, config=None, batch_size=FLAGS.batch_size, epochs=FL
             epoch_time = end_time - start_time
 
             if summary.new_best(summary.VAL):
+                helper._print("New best model found!!!")
                 model.save(sess, saver)
                 conv_count = conv_cond
                 total_time_end = time.time()
             else:
+                helper._print("No new best model found!!! Prev best acc:", summary.best_acc[summary.VAL])
                 conv_count -= 1
 
             helper._print("Epoch time:", str(int(epoch_time / 60)) + "m " + str(int(epoch_time % 60)) + "s")

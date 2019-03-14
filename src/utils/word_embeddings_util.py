@@ -59,7 +59,7 @@ class WordEmbeddingsUtil:
         # idx2word = {i: word for word, i in word2idx.items()}
         print(len(vocab))
         cooccur = helper.get_or_build(FLAGS.enron_emails_cooccur_path, self.build_cooccur, vocab, sentences, type='numpy')
-        print(cooccur)
+        print(np.shape(cooccur))
         pretrained_embeddings = self.glove2dict(self.word_embed_file_path)
         helper._print_subheader('Starting Mittens model...')
         mittens_model = Mittens(n=self.dimensions, max_iter=1000, display_progress=1, log_dir=FLAGS.glove_dir + 'mittens/')
@@ -73,7 +73,7 @@ class WordEmbeddingsUtil:
 
     def glove2dict(self, glove_filename):
         helper._print_subheader('Generating dict from pretrained GloVe embeddings')
-        with open(glove_filename) as file:
+        with open(glove_filename, 'r', encoding="utf8") as file:
             embed = {}
             for index, line in enumerate(file):
                 values = line.split()
@@ -317,7 +317,6 @@ class WordEmbeddingsUtil:
                 i += 1
         return word2index
 
-    @listify
     def build_cooccur(self, vocab, corpus, window=10):
         helper._print_subheader("Building cooccurrence matrix")
 

@@ -1,7 +1,7 @@
 from utils.flags import FLAGS
 import numpy as np
 import utils.helper as helper
-
+import os
 
 class Node():
     def __init__(self, is_leaf, value, label, left_child, right_child):
@@ -91,7 +91,8 @@ def parse_trees(data_set="train", remove=False):  # todo maybe change input para
     helper._print("Avg length:", np.average(sentence_length))
     trees = np.array(trees)
     if remove:
-        helper._print("Shorten then 90 word:", int(np.sum(np.array(sentence_length) <= 90) / len(sentence_length) * 100), "%")
+        helper._print("Shorten then 90 word:",
+                      int(np.sum(np.array(sentence_length) <= 90) / len(sentence_length) * 100), "%")
         helper._print("Ratio of removed labels:", ratio_of_labels(trees[np.array(sentence_length) > 90]))
         trees = helper.sort_by(trees[np.array(sentence_length) <= 90], sentence_length[np.array(sentence_length) <= 90])
     return trees
@@ -117,3 +118,13 @@ def size_of_tree(node):
         return 1
     else:
         return size_of_tree(node.left_child) + size_of_tree(node.right_child) + 1
+
+
+def trees_to_textfile(trees, path):
+    if os.path.exists(path):
+        os.remove(path)
+
+    with open(path, 'a+', encoding='utf-8') as text_file:
+        for tree in trees:
+            line = tree.to_string()
+            text_file.write(line + '\n')

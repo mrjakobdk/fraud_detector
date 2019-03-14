@@ -111,7 +111,7 @@ class treeRNN_neerbek(treeModel):
             word_left = tf.matmul(self.W_L, rep_word_l) + tf.matmul(self.b_W, is_leaf_l)
             word_right = tf.matmul(self.W_R, rep_word_r) + tf.matmul(self.b_W, is_leaf_r)
 
-            return tf.nn.leaky_relu(word_left + phrase_left + word_right, phrase_right)
+            return tf.nn.leaky_relu(word_left + phrase_left + word_right + phrase_right)
 
         def tree_construction_body(rep_array, word_array, o_array, i):
             word_index = tf.gather(self.word_index_array, i, axis=1)
