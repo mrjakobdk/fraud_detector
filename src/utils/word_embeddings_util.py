@@ -57,6 +57,7 @@ class WordEmbeddingsUtil:
         sentences = self.get_enron_sentences()
         vocab = helper.get_or_build(FLAGS.enron_emails_vocab_path, self.build_vocab, sentences)
         # idx2word = {i: word for word, i in word2idx.items()}
+        print(len(vocab))
         cooccur = helper.get_or_build(FLAGS.enron_emails_cooccur_path, self.build_cooccur, vocab, sentences, type='numpy')
         print(cooccur)
         pretrained_embeddings = self.glove2dict(self.word_embed_file_path)
