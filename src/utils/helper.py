@@ -163,3 +163,7 @@ def get_or_build(path, build_fn, *args, type=None, **kwargs):
                     msgpack.dump(obj, obj_f)
 
     return obj
+
+
+def to_int(l):
+    return [int(elem) for elem in l]

@@ -11,11 +11,16 @@ from tqdm import tqdm
 def train(model, load=False, config=None, batch_size=FLAGS.batch_size, epochs=FLAGS.epochs, run_times=[],
           epoch_times=[]):
     helper._print_header("Training " + FLAGS.model_name[:-1])
+    helper._print("Model:", model.class_name)
+    helper._print("Use GPU:", FLAGS.use_gpu)
     helper._print("Test ration:", tree_util.ratio_of_labels(model.data.test_trees))
     helper._print("Validation ration:", tree_util.ratio_of_labels(model.data.val_trees))
     helper._print("Train ration:", tree_util.ratio_of_labels(model.data.train_trees))
     helper._print("Batch size:", batch_size)
     helper._print("Epochs:", epochs)
+
+    conv_cond = FLAGS.conv_cond
+    conv_count = conv_cond
 
     with tf.Session(config=config) as sess:
         model.construct_dir()
@@ -30,7 +35,11 @@ def train(model, load=False, config=None, batch_size=FLAGS.batch_size, epochs=FL
             model.initialize(sess)
             summary.initialize()
 
-        for epoch in range(1, epochs + 1):
+        # for epoch in range(1, epochs + 1):
+        epoch = 0
+        total_time = time.time()
+        while conv_count > 0 and (FLAGS.epochs == 0 or FLAGS.epochs > epoch):
+            epoch += 1
             helper._print_subheader("Epoch " + str(epoch))
             helper._print("Learning rate:", sess.run(model.learning_rate))
             start_time = time.time()
@@ -53,17 +62,37 @@ def train(model, load=False, config=None, batch_size=FLAGS.batch_size, epochs=FL
             summary.write_and_reset(summary.TRAIN, epoch, _print=True)
             summary.compute(summary.VAL, data=model.data.val_trees, model=model, sess=sess, epoch=epoch, _print=True)
             summary.compute(summary.TEST, data=model.data.test_trees, model=model, sess=sess, epoch=epoch, _print=True)
-            summary.save_all()
 
             end_time = time.time()
             epoch_time = end_time - start_time
 
             if summary.new_best(summary.VAL):
                 model.save(sess, saver)
+                conv_count = conv_cond
+                total_time_end = time.time()
+            else:
+                conv_count -= 1
 
             helper._print("Epoch time:", str(int(epoch_time / 60)) + "m " + str(int(epoch_time % 60)) + "s")
             helper._print("Running time:", str(int(run_time / 60)) + "m " + str(int(run_time % 60)) + "s")
             epoch_times.append(epoch_time)
             run_times.append(run_time)
+
+            summary.save_all(epoch_times, run_times)
+        helper._print_header("Final stats")
+        helper._print("Total epochs:", epoch)
+        helper._print("Total running time:", str(int((total_time - total_time_end) / (60 * 60))) + "h",
+                      str(int(((total_time - total_time_end) % (60 * 60)) / 60)) + "m")
+
+        helper._print_subheader("Best model")
+        best_step = np.argmax(np.array(summary.history[summary.VAL])[:, 1])
+        helper._print_subheader("Accuracy")
+        helper._print("Test:", summary.history[summary.TEST][best_step][1])
+        helper._print("Validation:", summary.history[summary.VAL][best_step][1])
+        helper._print("Training:", summary.history[summary.TRAIN][best_step][1])
+        helper._print_subheader("Loss")
+        helper._print("Test:", summary.history[summary.TEST][best_step][2])
+        helper._print("Validation:", summary.history[summary.VAL][best_step][2])
+        helper._print("Training:", summary.history[summary.TRAIN][best_step][2])
 
         summary.close()
