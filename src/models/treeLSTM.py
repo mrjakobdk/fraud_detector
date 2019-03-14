@@ -8,7 +8,6 @@ import sys
 
 
 class treeLSTM(treeModel):
-    class_name = "treeLSTM"
 
     def build_constants(self):
         # embedding

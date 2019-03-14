@@ -11,7 +11,7 @@ from tqdm import tqdm
 def train(model, load=False, config=None, batch_size=FLAGS.batch_size, epochs=FLAGS.epochs, run_times=[],
           epoch_times=[]):
     helper._print_header("Training " + FLAGS.model_name[:-1])
-    helper._print("Model:", model.class_name)
+    helper._print("Model:", model.__class__.__name__)
     helper._print("Use GPU:", FLAGS.use_gpu)
     helper._print("Test ration:", tree_util.ratio_of_labels(model.data.test_trees))
     helper._print("Validation ration:", tree_util.ratio_of_labels(model.data.val_trees))

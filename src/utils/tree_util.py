@@ -3,6 +3,7 @@ import numpy as np
 import utils.helper as helper
 import os
 
+
 class Node():
     def __init__(self, is_leaf, value, label, left_child, right_child):
         self.is_leaf = is_leaf
@@ -18,12 +19,30 @@ class Node():
             return "(" + str(
                 np.argmax(self.label)) + " " + self.left_child.to_string() + " " + self.right_child.to_string() + ")"
 
+    def to_sentence(self):
+        if self.is_leaf:
+            return self.value
+        else:
+            return self.left_child.to_sentence() + " " + self.right_child.to_sentence()
+
 
 def depth_first_traverse(node, node_list, func):
     if not node.is_leaf:
         depth_first_traverse(node.left_child, node_list, func)
         depth_first_traverse(node.right_child, node_list, func)
     func(node, node_list)
+
+
+def get_preceding_lstm_index(node, start, i, preceding_lstm_index):
+    i_new = i
+    if not node.is_leaf:
+        i_new, curr_max = get_preceding_lstm_index(node.left_child, start, i, preceding_lstm_index)
+        _, curr_max = get_preceding_lstm_index(node.right_child, start, curr_max, preceding_lstm_index)
+    else:
+        i_new = i_new + 1
+        curr_max = i_new
+    preceding_lstm_index.append(i_new - 1 if i_new - 1 > start else 0)
+    return i_new, curr_max
 
 
 def parse_node(tokens):
@@ -94,7 +113,8 @@ def parse_trees(data_set="train", remove=False):  # todo maybe change input para
         helper._print("Shorten then 90 word:",
                       int(np.sum(np.array(sentence_length) <= 90) / len(sentence_length) * 100), "%")
         helper._print("Ratio of removed labels:", ratio_of_labels(trees[np.array(sentence_length) > 90]))
-        trees = np.array(helper.sort_by(trees[np.array(sentence_length) <= 90], sentence_length[np.array(sentence_length) <= 90]))
+        trees = np.array(
+            helper.sort_by(trees[np.array(sentence_length) <= 90], sentence_length[np.array(sentence_length) <= 90]))
     return trees
 
 
@@ -121,10 +141,8 @@ def size_of_tree(node):
 
 
 def trees_to_textfile(trees, path):
-    if os.path.exists(path):
-        os.remove(path)
-
-    with open(path, 'w', encoding='utf-8') as text_file:
-        for tree in trees:
-            line = tree.to_string()
-            text_file.write(line + '\n')
+    if not os.path.exists(path):
+        with open(path, 'w', encoding='utf-8') as text_file:
+            for tree in trees:
+                line = tree.to_sentence()
+                text_file.write(line + '\n')

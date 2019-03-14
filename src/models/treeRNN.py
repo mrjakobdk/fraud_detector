@@ -7,7 +7,6 @@ from models.treeModel import treeModel
 
 
 class treeRNN(treeModel):
-    class_name = "treeRNN"
 
     def build_constants(self):
         # Setup data

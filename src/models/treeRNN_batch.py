@@ -133,7 +133,7 @@ class treeRNN_batch(treeModel):
         softmax_cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=labels)
         self.loss = tf.reduce_mean(softmax_cross_entropy)
 
-        reg_weight = 0.0001
+        reg_weight = FLAGS.l2_strangth
         self.loss += reg_weight*tf.nn.l2_loss(self.W)
         self.loss += reg_weight*tf.nn.l2_loss(self.U_L)
         self.loss += reg_weight*tf.nn.l2_loss(self.U_R)

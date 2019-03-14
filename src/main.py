@@ -6,6 +6,7 @@ from models.treeRNN_batch import treeRNN_batch
 from models.deepRNN import deepRNN
 import trainers.TreeTrainer as trainer
 from models.treeRNN_neerbek import treeRNN_neerbek
+from models.treeRNN_tracker import treeRNN_tracker
 from utils.flags import FLAGS
 from experiments import SpeedTester
 
@@ -49,6 +50,8 @@ def main():
         model = treeRNN_neerbek(data, model_placement)
     elif FLAGS.model == "treeLSTM":
         model = treeLSTM(data, model_placement)
+    elif FLAGS.model == "treeRNN_tracker":
+        model = treeRNN_tracker(data, model_placement)
     else:
         model = treeRNN(data, model_placement)
 

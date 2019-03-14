@@ -118,3 +118,22 @@ print(sess.run(rep_l))
 print(sess.run(tf.transpose(tf.concat(
     [tf.gather(word, [1, 2], axis=1), tf.transpose(tf.gather_nd(rep_array.gather([0, 0]), [[0, 0], [1, 2]])),
      tf.transpose(tf.gather_nd(rep_array.gather([1, 1]), [[0, 0], [1, 2]]))], axis=0))))
+
+
+
+from utils import tree_util
+
+test_lstm_tree = ["(0 (0 (0 a) (0 b)) (0 (0 c) (0 d)))",
+                  "(1 (1 a) (1 (1 b) (1 (1 c) (1 d))))"]
+
+roots = [tree_util.parse_tree(tree) for tree in test_lstm_tree]
+
+
+prev_idx = []
+node_list = []
+start = 0
+for root in roots:
+    _, start = tree_util.get_preceding_lstm_index(root,start,start,prev_idx)
+
+
+    tree_util.depth_first_traverse(root, node_list, lambda node, node_list: node_list.append(int(node.is_leaf)))
