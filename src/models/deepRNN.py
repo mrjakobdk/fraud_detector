@@ -5,6 +5,7 @@ import sys
 
 
 class deepRNN(treeModel):
+    class_name = "deepRNN"
 
     def __init__(self, data, model_placement, label_size=FLAGS.label_size, layers=FLAGS.deepRNN_layers):
         self.layers = layers
