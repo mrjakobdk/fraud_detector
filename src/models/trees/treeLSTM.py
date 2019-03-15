@@ -4,7 +4,6 @@ from models.trees.treeModel import treeModel
 
 
 class treeLSTM(treeModel):
-    class_name = "treeLSTM"
 
     def build_constants(self):
         # embedding

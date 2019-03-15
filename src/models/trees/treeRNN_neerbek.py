@@ -5,7 +5,6 @@ import sys
 
 
 class treeRNN_neerbek(treeModel):
-    class_name = "treeRNN_neerbek"
 
     def build_constants(self):
         # embedding

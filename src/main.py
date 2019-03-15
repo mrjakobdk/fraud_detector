@@ -49,6 +49,8 @@ def main():
         model = treeRNN_neerbek(data, model_placement)
     elif FLAGS.model == "treeLSTM":
         model = treeLSTM(data, model_placement)
+    elif FLAGS.model == "treeRNN_tracker":
+        model = treeRNN_tracker(data, model_placement)
     else:
         model = treeRNN(data, model_placement)
 

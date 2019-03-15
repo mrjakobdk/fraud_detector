@@ -29,6 +29,7 @@ flags.DEFINE_float("learning_rate_end", 0.00001, "End learning rate after the to
 flags.DEFINE_integer("lr_decay", 500, "Implicit decay rate, if 0 no exp decay")
 flags.DEFINE_integer("batch_size", 4, "Batch size for training")
 flags.DEFINE_float("sensitive_weight", 1., "Weight on the sensitivity")
+flags.DEFINE_float("l2_strangth", 0.0001, "Strangth for l2 reg.")
 
 flags.DEFINE_string("optimizer", 'adagrad', "Network optimizer")
 
