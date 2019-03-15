@@ -17,3 +17,4 @@ class Data:
             self.word_embed_util = WordEmbeddingsUtil()
         else:
             self.word_embed_util = WordEmbeddingsUtil(mode=FLAGS.word_embed_mode)
+

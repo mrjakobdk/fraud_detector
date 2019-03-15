@@ -8,7 +8,7 @@ class treeRNN_neerbek(treeModel):
 
     def build_constants(self):
         # embedding
-        self.embeddings = tf.constant(self.data.word_embed_util.embeddings)
+        self.embeddings = tf.constant(self.word_embed.embeddings)
         ## dummi values
         self.rep_zero = tf.constant(0., shape=[FLAGS.sentence_embedding_size])
         self.word_zero = tf.constant(0., shape=[FLAGS.word_embedding_size])
@@ -121,10 +121,7 @@ class treeRNN_neerbek(treeModel):
             rep_array = rep_array.write(i, rep)
 
             o = tf.matmul(self.V, rep) + self.b_p
-            print_op = tf.print("o:", o,
-                                output_stream=sys.stdout)
-            with tf.control_dependencies([print_op]):
-                o_array = o_array.write(i, o)
+            o_array = o_array.write(i, o)
 
             i = tf.add(i, 1)
             return rep_array, word_array, o_array, i

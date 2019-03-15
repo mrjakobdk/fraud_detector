@@ -11,7 +11,7 @@ class deepRNN(treeModel):
 
     def build_constants(self):
         # embedding
-        self.embeddings = tf.constant(self.data.word_embed_util.embeddings)
+        self.embeddings = tf.constant(self.word_embed.embeddings)
         ## dummi values
         self.rep_zero = tf.constant(0., shape=[FLAGS.sentence_embedding_size])
         self.word_zero = tf.constant(0., shape=[FLAGS.word_embedding_size])

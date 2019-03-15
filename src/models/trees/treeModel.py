@@ -6,9 +6,10 @@ from utils import tree_util
 import numpy as np
 
 class treeModel:
-    def __init__(self, data, model_placement, label_size = FLAGS.label_size):
+    def __init__(self, data, word_embed, model_placement, label_size = FLAGS.label_size):
         # config
         self.data = data
+        self.word_embed
         self.model_placement = model_placement
         self.label_size = label_size
 
@@ -54,7 +55,7 @@ class treeModel:
             helper._print("Decay for every step:", decay_rate)
             helper._print("Learning rate start:", FLAGS.learning_rate)
             helper._print("Learning rate end:", FLAGS.learning_rate_end)
-            helper._print("After number of epochs", FLAGS.epochs)
+            helper._print("2 time end lr after:", FLAGS.lr_decay)
         else:
             self.learning_rate = tf.constant(FLAGS.learning_rate)
 

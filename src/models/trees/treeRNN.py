@@ -10,7 +10,7 @@ class treeRNN(treeModel):
 
     def build_constants(self):
         # Setup data
-        self.embeddings = tf.constant(self.data.word_embed_util.embeddings)
+        self.embeddings = tf.constant(self.word_embed.embeddings)
 
         # constants
         # leaf constant output
