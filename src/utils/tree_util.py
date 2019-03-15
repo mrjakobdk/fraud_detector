@@ -1,3 +1,4 @@
+from utils import directories
 from utils.flags import FLAGS
 import numpy as np
 import utils.helper as helper
@@ -100,7 +101,7 @@ def parse_trees(data_set="train", remove=False):  # todo maybe change input para
     :param data_set: what dataset to use
     :return: a list of trees
     """
-    file = FLAGS.data_dir + 'trees/%s.txt' % data_set
+    file = directories.TREES_DIR + '%s.txt' % data_set
     helper._print("Loading %s trees.." % data_set)
     with open(file, 'r') as fid:
         trees = [parse_tree(l) for l in fid.readlines()]

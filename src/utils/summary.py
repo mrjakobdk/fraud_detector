@@ -1,4 +1,5 @@
 import utils.helper as helper
+from utils import directories
 from utils.flags import FLAGS
 import os
 import shutil
@@ -25,13 +26,13 @@ class summarizer():
 
 
     def construct_writers(self):
-        directory = FLAGS.logs_dir + self.model_name
+        directory = directories.LOGS_DIR + self.model_name
         self.writer[self.TRAIN] = tf.summary.FileWriter(directory + self.TRAIN, self.sess.graph)
         self.writer[self.VAL] = tf.summary.FileWriter(directory + self.VAL)
         self.writer[self.TEST] = tf.summary.FileWriter(directory + self.TEST)
 
     def load(self):
-        tmp = np.load(FLAGS.histories_dir + self.model_name + 'history.npz')
+        tmp = np.load(directories.HISTORIES_DIR + self.model_name + 'history.npz')
 
         for data_set in self.all_data_sets:
             self.history[data_set] = tmp[data_set].tolist()
@@ -47,17 +48,17 @@ class summarizer():
     def construct_dir(self):
         helper._print("Constructing directories...")
 
-        directory = FLAGS.logs_dir + self.model_name
+        directory = directories.LOGS_DIR + self.model_name
         if os.path.exists(directory):
             shutil.rmtree(directory)
         os.mkdir(directory)
         os.mkdir(directory + self.TRAIN)
         os.mkdir(directory + self.VAL)
         os.mkdir(directory + self.TEST)
-        if not os.path.exists(FLAGS.histories_dir):
-            os.mkdir(FLAGS.histories_dir)
-        if not os.path.exists(FLAGS.histories_dir + self.model_name):
-            os.mkdir(FLAGS.histories_dir + self.model_name)
+        if not os.path.exists(directories.HISTORIES_DIR):
+            os.mkdir(directories.HISTORIES_DIR)
+        if not os.path.exists(directories.HISTORIES_DIR + self.model_name):
+            os.mkdir(directories.HISTORIES_DIR + self.model_name)
 
         helper._print("Directories constructed!")
 
@@ -105,7 +106,7 @@ class summarizer():
         self.write_and_reset(data_set, epoch, _print=_print)
 
     def save_all(self, epoch_times, run_times):
-        np.savez(FLAGS.histories_dir + self.model_name + 'history.npz',
+        np.savez(directories.HISTORIES_DIR + self.model_name + 'history.npz',
                  train=self.history[self.TRAIN],
                  test=self.history[self.TEST],
                  validation=self.history[self.VAL],

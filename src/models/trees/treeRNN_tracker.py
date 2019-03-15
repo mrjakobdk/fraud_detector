@@ -2,7 +2,7 @@ import tensorflow as tf
 from utils.flags import FLAGS
 import utils.tree_util as tree_util
 import utils.helper as helper
-from models.treeModel import treeModel
+from models.trees.treeModel import treeModel
 import numpy as np
 import sys
 
@@ -227,7 +227,7 @@ class treeRNN_tracker(treeModel):
         softmax_cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=labels)
         self.loss = tf.reduce_mean(softmax_cross_entropy)
 
-        reg_weight = FLAGS.l2_strangth
+        reg_weight = FLAGS.l2_strength
         self.loss += reg_weight * tf.nn.l2_loss(self.W)
         self.loss += reg_weight * tf.nn.l2_loss(self.U_L)
         self.loss += reg_weight * tf.nn.l2_loss(self.U_R)
@@ -284,7 +284,7 @@ class treeRNN_tracker(treeModel):
 
         feed_dict = {
             self.leaf_word_array: helper.lists_pad(
-                [[0] + [self.data.word_embed_util.get_idx(node.value) for node in node_list if node.is_leaf]
+                [[0] + [self.word_embed.get_idx(node.value) for node in node_list if node.is_leaf]
                 for node_list in node_list_list]
             ,0),
             self.lstm_index_array: helper.lists_pad(
@@ -295,8 +295,8 @@ class treeRNN_tracker(treeModel):
                 [0] + helper.to_int([node.is_leaf for node in node_list])
                 for node_list in node_list_list], 0),
             self.word_index_array: helper.lists_pad([
-                [0] + [self.data.word_embed_util.get_idx(node.value) for node in node_list]
-                for node_list in node_list_list], self.data.word_embed_util.get_idx("ZERO")),
+                [0] + [self.word_embed.get_idx(node.value) for node in node_list]
+                for node_list in node_list_list], self.word_embed.get_idx("ZERO")),
             self.left_child_array: helper.lists_pad([
                 [0] + helper.add_one(
                     [node_to_index[node.left_child] if node.left_child is not None else -1 for node in node_list])

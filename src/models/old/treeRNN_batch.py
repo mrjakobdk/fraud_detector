@@ -1,4 +1,6 @@
 import tensorflow as tf
+
+from utils import constants
 from utils.flags import FLAGS
 import utils.tree_util as tree_util
 import utils.helper as helper
@@ -166,9 +168,9 @@ class treeRNN_GPU(treeModel):
         else:
             self.learning_rate = tf.constant(FLAGS.learning_rate)
 
-        if FLAGS.optimizer == "adam":
+        if FLAGS.optimizer == constants.ADAM_OPTIMIZER:
             self.train_op = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss, global_step=self.global_step)
-        else:
+        else:  # FLAGS.optimizer == constants.ADAGRAD_OPTIMIZER:
             self.train_op = tf.train.AdagradOptimizer(self.learning_rate).minimize(self.loss,
                                                                                    global_step=self.global_step)
 

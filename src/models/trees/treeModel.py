@@ -2,7 +2,7 @@ import tensorflow as tf
 import utils.helper as helper
 from utils.flags import FLAGS
 import os
-from utils import tree_util
+from utils import tree_util, directories, constants
 import numpy as np
 
 class treeModel:
@@ -59,7 +59,7 @@ class treeModel:
         else:
             self.learning_rate = tf.constant(FLAGS.learning_rate)
 
-        if FLAGS.optimizer == "adam":
+        if FLAGS.optimizer == constants.ADAM_OPTIMIZER:
             self.train_op = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss, global_step=self.global_step)
         else:
             self.train_op = tf.train.AdagradOptimizer(self.learning_rate).minimize(self.loss,
@@ -106,8 +106,8 @@ class treeModel:
                 [0] + helper.to_int([node.is_leaf for node in node_list])
                 for node_list in node_list_list], 0),
             self.word_index_array: helper.lists_pad([
-                [0] + [self.data.word_embed_util.get_idx(node.value) for node in node_list]
-                for node_list in node_list_list], self.data.word_embed_util.get_idx("ZERO")),
+                [0] + [self.word_embed.get_idx(node.value) for node in node_list]
+                for node_list in node_list_list], self.word_embed.get_idx("ZERO")),
             self.left_child_array: helper.lists_pad([
                 [0] + helper.add_one(
                     [node_to_index[node.left_child] if node.left_child is not None else -1 for node in node_list])
@@ -124,10 +124,10 @@ class treeModel:
         return feed_dict
 
     def construct_dir(self):
-        if not os.path.exists(FLAGS.models_dir):
-            os.mkdir(FLAGS.models_dir)
-        if not os.path.exists(FLAGS.models_dir + FLAGS.model_name):
-            os.mkdir(FLAGS.models_dir + FLAGS.model_name)
+        if not os.path.exists(directories.TRAINED_MODELS_DIR):
+            os.mkdir(directories.TRAINED_MODELS_DIR)
+        if not os.path.exists(directories.TRAINED_MODELS_DIR + FLAGS.model_name):
+            os.mkdir(directories.TRAINED_MODELS_DIR + FLAGS.model_name)
 
     def get_initializers(self):
         xavier_initializer = tf.contrib.layers.xavier_initializer()

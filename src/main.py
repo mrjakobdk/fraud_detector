@@ -1,11 +1,16 @@
 import tensorflow as tf
 import utils.data_util as data_util
+import trainers.TreeTrainer as trainer
+
 from models.trees.treeLSTM import treeLSTM
 from models.trees.treeRNN import treeRNN
 from models.trees.treeRNN_batch import treeRNN_batch
 from models.trees.deepRNN import deepRNN
-import trainers.TreeTrainer as trainer
 from models.trees.treeRNN_neerbek import treeRNN_neerbek
+from models.trees.treeRNN_tracker import treeRNN_tracker
+from models.words_embeddings.glove import GloVe
+from models.words_embeddings.word2vec import Word2Vec
+from utils import constants, directories
 from utils.flags import FLAGS
 from experiments import SpeedTester
 
@@ -29,21 +34,29 @@ def main():
                            "_LrEnd" + str(FLAGS.learning_rate_end) + \
                            "_ExpDecay" + str(FLAGS.lr_decay) + \
                            "_ConvCond" + str(FLAGS.conv_cond) + \
+                           "_WordEmbed" + str(FLAGS.word_embed_model) + '-' + str(FLAGS.word_embed_mode) + \
+                           "_WordEmbedDim" + str(FLAGS.word_embedding_size) + \
                            "/"
 
-    model_placement = FLAGS.models_dir + FLAGS.model_name + "model.ckpt"
-    if FLAGS.model == "deepRNN":
-        model = deepRNN(data, model_placement)
-    elif FLAGS.model == "treeRNN_batch":
-        model = treeRNN_batch(data, model_placement)
-    elif FLAGS.model == "treeRNN_neerbek":
-        model = treeRNN_neerbek(data, model_placement)
-    elif FLAGS.model == "treeLSTM":
-        model = treeLSTM(data, model_placement)
-    elif FLAGS.model == "treeRNN_tracker":
-        model = treeRNN_tracker(data, model_placement)
+
+    if FLAGS.word_embed_model == constants.WORD2VEC:
+        word_embeddings = Word2Vec(mode=FLAGS.word_embed_mode, dimensions=FLAGS.word_embedding_size)
+    else:  # FLAGS.word_embed_model == constants.GLOVE
+        word_embeddings = GloVe(mode=FLAGS.word_embed_mode, dimensions=FLAGS.word_embedding_size)
+
+    model_placement = directories.TRAINED_MODELS_DIR + FLAGS.model_name + "model.ckpt"
+    if FLAGS.model == constants.DEEP_RNN:
+        model = deepRNN(data, word_embeddings, model_placement)
+    elif FLAGS.model == constants.BATCH_TREE_RNN:
+        model = treeRNN_batch(data, word_embeddings, model_placement)
+    elif FLAGS.model == constants.NEERBEK_TREE_RNN:
+        model = treeRNN_neerbek(data, word_embeddings, model_placement)
+    elif FLAGS.model == constants.TREE_LSTM:
+        model = treeLSTM(data, word_embeddings, model_placement)
+    elif FLAGS.model == constants.TRACKER_TREE_RNN:
+        model = treeRNN_tracker(data, word_embeddings, model_placement)
     else:
-        model = treeRNN(data, model_placement)
+        model = treeRNN(data, word_embeddings, model_placement)
 
     trainer.train(model, load=False, config=config)
 

@@ -1,5 +1,4 @@
 import os
-import numpy as np
 from utils.flags import FLAGS
 from tqdm import tqdm
 from functools import wraps
@@ -7,7 +6,6 @@ import urllib
 from kaggle.api.kaggle_api_extended import KaggleApi
 import msgpack
 import numpy as np
-import sys
 
 
 class DownloadProgressBar(tqdm):

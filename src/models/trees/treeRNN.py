@@ -193,7 +193,7 @@ class treeRNN(treeModel):
         feed_dict = {
             self.root_array: root_array,
             self.is_leaf_array: helper.flatten([[node.is_leaf for node in node_list] for node_list in node_list_list]),
-            self.word_index_array: helper.flatten([[self.data.word_embed_util.get_idx(node.value) for node in node_list]
+            self.word_index_array: helper.flatten([[self.word_embed.get_idx(node.value) for node in node_list]
                                                    for node_list in node_list_list]),
             self.left_child_array: helper.flatten([
                 [node_to_index[node.left_child] if node.left_child is not None else -1 for node in node_list]
