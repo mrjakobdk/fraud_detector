@@ -8,7 +8,7 @@ from utils.summary import summarizer
 from tqdm import tqdm
 
 
-def train(model, load=False, config=None, batch_size=None, epochs=None, run_times=[],
+def train(model, load=False, config=None, batch_size=FLAGS.batch_size, epochs=FLAGS.epochs, run_times=[],
           epoch_times=[]):
     helper._print_header("Training " + FLAGS.model_name[:-1])
     helper._print("Model:", model.__class__.__name__)
@@ -16,9 +16,7 @@ def train(model, load=False, config=None, batch_size=None, epochs=None, run_time
     helper._print("Test ration:", tree_util.ratio_of_labels(model.data.test_trees))
     helper._print("Validation ration:", tree_util.ratio_of_labels(model.data.val_trees))
     helper._print("Train ration:", tree_util.ratio_of_labels(model.data.train_trees))
-    batch_size = FLAGS.batch_size if batch_size is None else batch_size
     helper._print("Batch size:", batch_size)
-    epochs = FLAGS.epochs if epochs is None else epochs
     helper._print("Epochs:", epochs)
 
 
@@ -41,6 +39,8 @@ def train(model, load=False, config=None, batch_size=None, epochs=None, run_time
         # for epoch in range(1, epochs + 1):
         epoch = 0
         total_time = time.time()
+        total_time_end = time.time()
+        best_epoch = epoch
         while conv_count > 0 and (epochs == 0 or epochs > epoch):
             epoch += 1
             helper._print_subheader("Epoch " + str(epoch))
