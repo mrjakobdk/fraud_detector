@@ -24,13 +24,13 @@ class Word2Vec(WordModel):
         if not self.dimensions == 300:
             helper._print('Only support word2vec with vectors of size 300')
 
-        if not os.path.isfile(word_embed_file_path):
+        if not os.path.isfile(self.word_embed_file_path):
             helper._print(
                 'Binary file not there. Download from: https://drive.google.com/file/d/0B7XkCwpI5KDYNlNUTTlSS21pQmM')
             sys.exit()
         else:
-            helper._print_subheader('Unpacking ' + word_embed_file_path)
-            model = KeyedVectors.load_word2vec_format(word_embed_file_path, binary=True)
+            helper._print_subheader('Unpacking ' + self.word_embed_file_path)
+            model = KeyedVectors.load_word2vec_format(self.word_embed_file_path, binary=True)
             helper._print_subheader('Done unpacking!')
             return self.word2vec_index_keyed_vector(model)
 
@@ -47,27 +47,31 @@ class Word2Vec(WordModel):
             if not self.dimensions == 300:
                 helper._print('Only support word2vec with vectors of size 300')
                 sys.exit()
-            binary_file_path = directories.WORD2VEC_DIR + self.embedding_file + '.bin'
-            if not os.path.isfile(binary_file_path):
+            if not os.path.isfile(self.word_embed_file_path):
                 helper._print(
                     'Binary file not there. Download from: https://drive.google.com/file/d/0B7XkCwpI5KDYNlNUTTlSS21pQmM')
                 sys.exit()
-            helper._print_subheader('Unpacking ' + binary_file_path)
-            model = KeyedVectors.load_word2vec_format(binary_file_path, binary=True)
+            helper._print_subheader('Unpacking ' + self.word_embed_file_path)
+            model = KeyedVectors.load_word2vec_format(self.word_embed_file_path, binary=True)
             helper._print_subheader('Done unpacking!')
             sentences = self.get_enron_sentences()
-            finetuned_model = Word2Vec(
-                size=300,
-                min_count=3
+            finetuned_model = gensim.models.Word2Vec(
+                size=FLAGS.word_embedding_size,
+                sg=1,  # Use Skip-Gram (0 for CBOW)
+                hs=0,  # Use Negative sampling. (1 for Hierarchical Softmax)
+                window=FLAGS.word2vec_window,
+                min_count=FLAGS.word2vec_min_count,
+                workers=10,
+                iter=1
             )
             helper._print_subheader('Building fine-tuned model vocab...')
             finetuned_model.build_vocab(sentences)
             helper._print_subheader('Updating with pretrained model vocab...')
             finetuned_model.build_vocab([list(model.vocab.keys())], update=True)
             helper._print_subheader('Intersection with pretrained vectors...')
-            finetuned_model.intersect_word2vec_format(binary_file_path, binary=True, lockf=1.0)
+            finetuned_model.intersect_word2vec_format(self.word_embed_file_path, binary=True, lockf=1.0)
             model_logger = Word2VecLogger()
-            finetuned_model.train(sentences, total_examples=len(sentences), epochs=FLAGS.word2vec_training_mode_epochs,
+            finetuned_model.train(sentences, total_examples=len(sentences), epochs=FLAGS.word2vec_epochs,
                                   callbacks=[model_logger])
             helper._print_subheader('Saving model...')
             model.save(directories.WORD2VEC_DIR + 'finetuned_word2vec.model')
@@ -87,17 +91,17 @@ class Word2Vec(WordModel):
             helper._print_subheader('Building model...')
             model = gensim.models.Word2Vec(
                 documents,
-                size=300,
+                size=FLAGS.word_embedding_size,
                 sg=1,  # Use Skip-Gram (0 for CBOW)
                 hs=0,  # Use Negative sampling. (1 for Hierarchical Softmax)
-                window=10,
-                min_count=3,
+                window=FLAGS.word2vec_window,
+                min_count=FLAGS.word2vec_min_count,
                 workers=10,
                 iter=1
             )
             helper._print_subheader('Saving untrained model...')
             model.save(directories.WORD2VEC_DIR + 'word2vec.model')
-        model.train(documents, total_examples=len(documents), epochs=FLAGS.word2vec_training_mode_epochs, callbacks=[model_logger])
+        model.train(documents, total_examples=len(documents), epochs=FLAGS.word2vec_epochs, callbacks=[model_logger])
         helper._print_subheader('Saving model...')
         model.save(directories.WORD2VEC_DIR + 'trained_word2vec.model')
 

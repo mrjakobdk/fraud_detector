@@ -48,9 +48,12 @@ flags.DEFINE_integer("word_embed_subset_size",
                                         100000,      "Flag for the size of the subset of the word embeddings to use")
 
 flags.DEFINE_integer("glove_min_count", 2,           "How many times does a word need to be present in the corpus")
+flags.DEFINE_integer("glove_window",    10,          "How many times does a word need to be present in the corpus")
 
-flags.DEFINE_integer("word2vec_training_mode_epochs",
-                                        20,          "Number of epochs to train word2vec models.")
+flags.DEFINE_integer("word2vec_min_count",
+                                        50,          "How many times does a word need to be present in the corpus")
+flags.DEFINE_integer("word2vec_window", 10,          "How many times does a word need to be present in the corpus")
+flags.DEFINE_integer("word2vec_epochs", 20,          "Number of epochs to train word2vec models.")
 
 
 # --------------------------- Etc. ---------------------------
