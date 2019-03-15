@@ -14,7 +14,7 @@ class treeRNN_tracker(treeModel):
         self.embeddings = tf.constant(self.data.word_embed_util.embeddings)
         ## dummi values
         self.rep_zero = tf.constant(0., shape=[FLAGS.sentence_embedding_size])
-        self.word_zero = tf.constant(0., shape=[FLAGS.word_embedding_size, 1])
+        self.word_zero = tf.constant(0., shape=[FLAGS.word_embedding_size]) #todo changed from 1d
         self.label_zero = tf.constant(0., shape=[FLAGS.label_size])
 
     def build_placeholders(self):
@@ -34,6 +34,34 @@ class treeRNN_tracker(treeModel):
     def build_variables(self):
         # initializers
         xavier_initializer, weight_initializer, bias_initializer = self.get_initializers()
+
+        # lstm variables
+        self.Wc = tf.get_variable(name='Wc', shape=[FLAGS.sentence_embedding_size, FLAGS.word_embedding_size],
+                                 initializer=xavier_initializer)
+        self.Wi = tf.get_variable(name='Wi', shape=[FLAGS.sentence_embedding_size, FLAGS.word_embedding_size],
+                                  initializer=xavier_initializer)
+        self.Wf = tf.get_variable(name='Wf', shape=[FLAGS.sentence_embedding_size, FLAGS.word_embedding_size],
+                                  initializer=xavier_initializer)
+        self.Wo = tf.get_variable(name='Wo', shape=[FLAGS.sentence_embedding_size, FLAGS.word_embedding_size],
+                                  initializer=xavier_initializer)
+
+        self.Uc = tf.get_variable(name='Uc', shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
+                                  initializer=xavier_initializer)
+        self.Ui = tf.get_variable(name='Ui', shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
+                                  initializer=xavier_initializer)
+        self.Uf = tf.get_variable(name='Uf', shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
+                                  initializer=xavier_initializer)
+        self.Uo = tf.get_variable(name='Uo', shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
+                                  initializer=xavier_initializer)
+
+        self.bc = tf.get_variable(name='bc', shape=[FLAGS.sentence_embedding_size, 1], initializer=bias_initializer)
+        self.bi = tf.get_variable(name='bi', shape=[FLAGS.sentence_embedding_size, 1], initializer=bias_initializer)
+        self.bf = tf.get_variable(name='bf', shape=[FLAGS.sentence_embedding_size, 1], initializer=bias_initializer)
+        self.bo = tf.get_variable(name='bo', shape=[FLAGS.sentence_embedding_size, 1], initializer=bias_initializer)
+
+        # tracker encoding variable
+        self.E = tf.get_variable(name='E', shape=[FLAGS.sentence_embedding_size, FLAGS.word_embedding_size],
+                                 initializer=xavier_initializer)
 
         # word variables
         self.W = tf.get_variable(name='W', shape=[FLAGS.sentence_embedding_size, FLAGS.word_embedding_size],
@@ -185,10 +213,10 @@ class treeRNN_tracker(treeModel):
 
         termination_cond = lambda rep_a, word_a, o_a, e_a, i: tf.less(i, tf.gather(tf.shape(self.left_child_array), 1))
 
-        self.rep_array, self.word_array, self.o_array, _, _ = tf.while_loop(
+        self.rep_array, self.word_array, self.o_array, self.e_array, _ = tf.while_loop(
             cond=termination_cond,
             body=tree_construction_body,
-            loop_vars=(rep_array, word_array, o_array, e_array, 1),
+            loop_vars=(rep_array, word_array, o_array, self.e_array, 1),
             parallel_iterations=1
         )
 
