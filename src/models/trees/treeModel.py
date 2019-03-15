@@ -5,12 +5,17 @@ import os
 from utils import tree_util, directories, constants
 import numpy as np
 
+
 class treeModel:
-    def __init__(self, data, word_embed, model_placement, label_size = FLAGS.label_size):
+    def __init__(self, data, word_embed, model_placement,
+                 label_size=FLAGS.label_size,
+                 learning_rate=FLAGS.learning_rate):
+
         # config
         self.data = data
         self.word_embed = word_embed
         self.model_placement = model_placement
+        self.learning_rate = learning_rate
         self.label_size = label_size
 
         self.build_constants()
@@ -19,6 +24,7 @@ class treeModel:
         self.build_model()
         self.build_loss()
         self.build_accuracy()
+        self.build_predict()
         self.build_train_op()
 
     def build_constants(self):
@@ -39,6 +45,10 @@ class treeModel:
     def build_accuracy(self):
         raise NotImplementedError("Each Model must re-implement this method.")
 
+    def build_predict(self):
+        logits = tf.gather_nd(tf.transpose(self.o_array.stack(), perm=[2, 0, 1]), self.root_array)
+        self.p = tf.nn.softmax(logits, axis=-1)
+
     def build_train_op(self):
         self.global_step = tf.train.create_global_step()
 
@@ -46,18 +56,18 @@ class treeModel:
             n = int(len(self.data.train_trees) / FLAGS.batch_size)
             total_steps = FLAGS.lr_decay * n
             decay_steps = n
-            decay_rate = (FLAGS.learning_rate_end / FLAGS.learning_rate) ** (decay_steps / total_steps)
-            self.learning_rate = tf.train.exponential_decay(FLAGS.learning_rate, self.global_step, decay_steps,
+            decay_rate = (FLAGS.learning_rate_end / self.learning_rate) ** (decay_steps / total_steps)
+            self.learning_rate = tf.train.exponential_decay(self.learning_rate, self.global_step, decay_steps,
                                                             decay_rate,
                                                             name='learning_rate') + FLAGS.learning_rate_end
 
             helper._print_header("Using learning rate with exponential decay")
             helper._print("Decay for every step:", decay_rate)
-            helper._print("Learning rate start:", FLAGS.learning_rate)
+            helper._print("Learning rate start:", self.learning_rate)
             helper._print("Learning rate end:", FLAGS.learning_rate_end)
             helper._print("2 time end lr after:", FLAGS.lr_decay)
         else:
-            self.learning_rate = tf.constant(FLAGS.learning_rate)
+            self.learning_rate = tf.constant(self.learning_rate)
 
         if FLAGS.optimizer == constants.ADAM_OPTIMIZER:
             self.train_op = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss, global_step=self.global_step)
@@ -141,3 +151,13 @@ class treeModel:
 
         weight_initializer = custom_initializer
         return xavier_initializer, weight_initializer, bias_initializer
+
+    def predict(self, data, sess):
+        helper._print_subheader("Predicting")
+        feed_dict = self.build_feed_dict(data)
+        return sess.run(self.p, feed_dict=feed_dict)
+
+    def accuracy(self, data, sess):
+        helper._print_subheader("Computing accuracy")
+        feed_dict = self.build_feed_dict(data)
+        return sess.run(self.acc, feed_dict=feed_dict)

@@ -28,7 +28,7 @@ flags.DEFINE_float("learning_rate_end", 0.00001,    "End learning rate after the
 flags.DEFINE_float("sensitive_weight",  1.,         "Weight on the sensitivity")
 flags.DEFINE_float("l2_strength",       0.0001,     "Strangth for l2 reg.")
 
-flags.DEFINE_string("optimizer",        'adam',     "Network optimizer")
+flags.DEFINE_string("optimizer",        'adagrad',     "Network optimizer")
 flags.DEFINE_boolean("load_model",      False,      "Load a old model")
 
 # ---------------------------- deepRNN ----------------------------
@@ -63,7 +63,13 @@ flags.DEFINE_integer('print_step_interval', 1000, "Interval to print in training
 flags.DEFINE_boolean('run_tensorboard', False, "Flag")
 flags.DEFINE_boolean('use_gpu', False, "Use the gpu friendly version")
 
+# --------------------------- Experiments ---------------------------
 flags.DEFINE_boolean('run_speed_test', False, "Running speed tests")
+flags.DEFINE_boolean('run_batch_exp', False, "...")
+flags.DEFINE_boolean('run_lr_exp', False, "...")
+flags.DEFINE_boolean('run_decay_exp', False, "...")
+flags.DEFINE_boolean('run_word_exp', False, "...")
+flags.DEFINE_boolean('run_model_exp', False, "...")
 
 # --------------------------- Init FLAGS variable ---------------------------
 
