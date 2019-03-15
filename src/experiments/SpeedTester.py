@@ -1,7 +1,7 @@
-from models.treeRNN import treeRNN
-from models.treeRNN_batch import treeRNN_batch
-from models.treeRNN_neerbek import treeRNN_neerbek
-from utils import helper, data_util
+from models.trees.treeRNN import treeRNN
+from models.trees.treeRNN_batch import treeRNN_batch
+from models.trees.treeRNN_neerbek import treeRNN_neerbek
+from utils import data_util
 from trainers import TreeTrainer as trainer
 import numpy as np
 import matplotlib.pyplot as plt

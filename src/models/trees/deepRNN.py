@@ -1,7 +1,6 @@
-from models.treeModel import treeModel
+from models.trees.treeModel import treeModel
 import tensorflow as tf
 from utils.flags import FLAGS
-import sys
 
 
 class deepRNN(treeModel):

@@ -3,7 +3,7 @@ from utils.flags import FLAGS
 import utils.helper as helper
 import utils.tree_util as tree_util
 import sys
-from models.treeModel import treeModel
+from models.trees.treeModel import treeModel
 
 
 class treeRNN(treeModel):

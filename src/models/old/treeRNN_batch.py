@@ -2,7 +2,7 @@ import tensorflow as tf
 from utils.flags import FLAGS
 import utils.tree_util as tree_util
 import utils.helper as helper
-from models.treeModel import treeModel
+from models.trees.treeModel import treeModel
 import numpy as np
 
 class treeRNN_GPU(treeModel):

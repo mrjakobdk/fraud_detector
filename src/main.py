@@ -1,11 +1,11 @@
 import tensorflow as tf
 import utils.data_util as data_util
-from models.treeLSTM import treeLSTM
-from models.treeRNN import treeRNN
-from models.treeRNN_batch import treeRNN_batch
-from models.deepRNN import deepRNN
+from models.trees.treeLSTM import treeLSTM
+from models.trees.treeRNN import treeRNN
+from models.trees.treeRNN_batch import treeRNN_batch
+from models.trees.deepRNN import deepRNN
 import trainers.TreeTrainer as trainer
-from models.treeRNN_neerbek import treeRNN_neerbek
+from models.trees.treeRNN_neerbek import treeRNN_neerbek
 from utils.flags import FLAGS
 from experiments import SpeedTester
 

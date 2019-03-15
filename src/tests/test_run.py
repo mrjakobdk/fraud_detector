@@ -1,5 +1,5 @@
 from utils import data_util
-from models.treeRNN_batch import treeRNN
+from models.trees.treeRNN_batch import treeRNN
 from utils.flags import FLAGS
 import trainers.TreeTrainer as trainer
 
