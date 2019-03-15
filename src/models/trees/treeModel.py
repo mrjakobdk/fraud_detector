@@ -9,7 +9,7 @@ class treeModel:
     def __init__(self, data, word_embed, model_placement, label_size = FLAGS.label_size):
         # config
         self.data = data
-        self.word_embed
+        self.word_embed = word_embed
         self.model_placement = model_placement
         self.label_size = label_size
 
