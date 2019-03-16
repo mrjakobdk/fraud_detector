@@ -137,3 +137,22 @@ for root in roots:
 
 
     tree_util.depth_first_traverse(root, node_list, lambda node, node_list: node_list.append(int(node.is_leaf)))
+
+
+
+import tensorflow as tf
+
+sess = tf.Session()
+embed = tf.constant([[1, 2],
+                     [10, 20],
+                     [100, 200]])
+
+is_leaf = tf.squeeze(tf.constant([[1,0]]))
+
+get_node = tf.linalg.tensor_diag(is_leaf)
+#tf.transpose(tf.reshape(tf.tile(tf.squeeze(is_leaf),[2]),[2,2]))
+
+sess.run(is_leaf)
+sess.run(embed)
+sess.run(get_node)
+sess.run(tf.matmul(embed,get_node))

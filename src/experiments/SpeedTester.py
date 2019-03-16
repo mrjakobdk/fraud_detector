@@ -115,7 +115,7 @@ def run2():
             run_times = []
             epoch_times = []
             with tf.Graph().as_default():
-                model_placement = directories.TRAINED_MODELS_DIR + "test/" + "model.ckpt"
+                model_placement = directories.TRAINED_MODELS_DIR + FLAGS.model_name + "model.ckpt"
                 trainer.train(model(data, word_embed, model_placement), load=False, config=config, batch_size=batch_size, epochs=epochs,
                               run_times=run_times, epoch_times=epoch_times)
             avg_run_times.append(np.average(run_times))
