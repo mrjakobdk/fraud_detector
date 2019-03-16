@@ -12,13 +12,12 @@ def train(model, load=False, config=None, batch_size=FLAGS.batch_size, epochs=FL
           epoch_times=[]):
     helper._print_header("Training " + FLAGS.model_name[:-1])
     helper._print("Model:", model.__class__.__name__)
-    helper._print("Use GPU:", FLAGS.use_gpu)
+    helper._print("Use GPU:", config == None)
     helper._print("Test ration:", tree_util.ratio_of_labels(model.data.test_trees))
     helper._print("Validation ration:", tree_util.ratio_of_labels(model.data.val_trees))
     helper._print("Train ration:", tree_util.ratio_of_labels(model.data.train_trees))
     helper._print("Batch size:", batch_size)
     helper._print("Epochs:", epochs)
-
 
     conv_cond = FLAGS.conv_cond
     conv_count = conv_cond

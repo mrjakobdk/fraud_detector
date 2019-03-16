@@ -128,7 +128,7 @@ def run2():
 
 
 def plot2():
-    tmp = np.load("../experiments/SpeedTester.npz")
+    tmp = np.load("../experiments/run2.npz")
 
     run_times_list = tmp["run_times_list"].tolist()
     epoch_times_list = tmp["epoch_times_list"].tolist()

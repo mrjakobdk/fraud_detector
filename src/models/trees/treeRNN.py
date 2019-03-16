@@ -156,6 +156,9 @@ class treeRNN(treeModel):
             tf.nn.softmax_cross_entropy_with_logits_v2(logits=tf.reshape(self.o_array.stack(), [-1, FLAGS.label_size]),
                                                        labels=self.label_array))
 
+    def build_predict(self):
+        self.p = tf.nn.softmax(tf.reshape(self.o_array.stack(), [-1, FLAGS.label_size]), axis=-1)
+
     def build_accuracy(self):
         # Accuracy
         root_array = self.root_array

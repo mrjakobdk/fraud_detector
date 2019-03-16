@@ -222,3 +222,6 @@ class deepRNN(treeModel):
 
         acc = tf.equal(logits_max, labels_max)
         self.acc = tf.reduce_mean(tf.cast(acc, tf.float32))
+
+    def build_predict(self):
+        self.p = tf.nn.softmax(self.logits, axis=-1)
