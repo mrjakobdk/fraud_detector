@@ -88,7 +88,7 @@ def train(model, load=False, config=None, batch_size=FLAGS.batch_size, epochs=FL
         helper._print_header("Final stats for best model")
         helper._print("Total epochs:", best_epoch)
         helper._print("Total running time:", str(int((total_time - total_time_end) / (60 * 60))) + "h",
-                      str(int(((total_time - total_time_end) % (60 * 60)) / 60)) + "m")
+                      str(int(((total_time - total_time_end) / 60) % 60)) + "m")
 
         helper._print_subheader("Best model")
         best_step = np.argmax(np.array(summary.history[summary.VAL])[:, 1])

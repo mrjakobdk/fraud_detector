@@ -17,7 +17,7 @@ if FLAGS.run_speed_test:
     # )
     #SpeedTester.plot1(batch_sizes, ["Neerbek - CPU", "Neerbek - GPU", "Our - CPU", "Our - GPU"])
 
-    SpeedTester.run2()
+    #SpeedTester.run2()
     SpeedTester.plot2()
 
 

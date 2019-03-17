@@ -50,9 +50,11 @@ class Performance:
         :return:
         """
 
-        probs = model.predict(data, sess)
-        print(probs)
-        labels = get_labels(data)
+        probs, labels = model.predict_and_label(data, sess)
+        print(probs, np.shape(probs))
+        print(labels, np.shape(labels))
+        labels = get_prediction(labels)
+        print(labels, np.shape(labels))
 
         print("max", np.max(np.sum(probs, axis=1)))
         print("min", np.min(np.sum(probs, axis=1)))

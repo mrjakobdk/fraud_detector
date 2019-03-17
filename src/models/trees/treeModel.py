@@ -47,6 +47,7 @@ class treeModel:
 
     def build_predict(self):
         logits = tf.gather_nd(tf.transpose(self.o_array.stack(), perm=[2, 0, 1]), self.root_array)
+        self.labels = tf.gather_nd(self.label_array, self.root_array)
         self.p = tf.nn.softmax(logits, axis=-1)
 
     def build_train_op(self):
@@ -156,6 +157,12 @@ class treeModel:
         helper._print_subheader("Predicting")
         feed_dict = self.build_feed_dict(data)
         return sess.run(self.p, feed_dict=feed_dict)
+
+    def predict_and_label(self, data, sess):
+        helper._print_subheader("Predicting")
+        feed_dict = self.build_feed_dict(data)
+        return sess.run([self.p, self.labels], feed_dict=feed_dict)
+
 
     def accuracy(self, data, sess):
         helper._print_subheader("Computing accuracy")

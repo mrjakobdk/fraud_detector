@@ -225,3 +225,4 @@ class deepRNN(treeModel):
 
     def build_predict(self):
         self.p = tf.nn.softmax(self.logits, axis=-1)
+        self.labels = tf.gather_nd(self.label_array, self.root_array)
