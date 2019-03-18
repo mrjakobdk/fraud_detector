@@ -62,7 +62,7 @@ class GloVe(WordModel):
             np.random.seed(240993)
             weights.append(np.random.randn(self.dimensions))
 
-            # self.get_TSNE_plot(weights, [key for key in word2idx.keys()], ['the', 'ZERO', 'UNK'])
+            # self.get_TSNE_plot(weights, [key for key in word2idx.keys()])
 
             helper._print_subheader(f'Indexes done! {len(weights) - 2} word embeddings!')
         return np.array(weights, dtype=np.float32), word2idx, idx2word

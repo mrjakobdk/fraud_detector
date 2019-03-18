@@ -131,7 +131,10 @@ class Word2Vec(WordModel):
         word2idx['UNK'] = UNKNOWN_TOKEN
         np.random.seed(240993)
         weights.append(np.random.randn(self.dimensions))
+
         helper._print_subheader('Index files ready!')
+
+        # self.get_TSNE_plot(weights, [key for key in word2idx.keys()])
         return np.array(weights, dtype=np.float32), word2idx, idx2word
 
 
