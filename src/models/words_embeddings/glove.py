@@ -33,14 +33,15 @@ class GloVe(WordModel):
     ################## HELPER FUNCTIONS ##################
 
     def glove_generate_indexes(self):
-        helper._print_subheader('Generating indexes for embeddings')
-        ZERO_TOKEN = 0
-        word2idx = {'ZERO': ZERO_TOKEN}
-        idx2word = {ZERO_TOKEN: 'ZERO'}
-        weights = [np.zeros(self.dimensions)]
 
         all_sentences = self.get_enron_sentences(kaggle=False)
         all_vocab = helper.get_or_build(directories.TREE_ALL_SENTENCES_VOCAB_PATH, self.build_vocab, all_sentences, 1)
+
+        helper._print_subheader('Generating indexes for embeddings')
+        weights = [np.zeros(self.dimensions)]
+        ZERO_TOKEN = 0
+        word2idx = {'ZERO': ZERO_TOKEN}
+        idx2word = {ZERO_TOKEN: 'ZERO'}
 
         with open(self.word_embed_file_path, 'r', encoding="utf8") as file:
             for index, line in enumerate(file):
@@ -48,8 +49,9 @@ class GloVe(WordModel):
                 word = values[0]  # Word is first symbol on each line
                 if word in all_vocab.keys():
                     word_weights = np.asarray(values[1:], dtype=np.float32)  # Remainder of line is weights for word
-                    word2idx[word] = index + 1  # ZERO is our zeroth index so shift by one weights.append(word_weights)
-                    idx2word[index + 1] = word
+                    i = all_vocab[word]
+                    word2idx[word] = i + 1  # ZERO is our zeroth index so shift by one weights.append(word_weights)
+                    idx2word[i + 1] = word
                     weights.append(word_weights)
                 if index % FLAGS.word_embed_subset_size == 0 and index != 0:
                     helper._print(f'{index} words indexed')
@@ -59,6 +61,8 @@ class GloVe(WordModel):
             word2idx['UNK'] = UNKNOWN_TOKEN
             np.random.seed(240993)
             weights.append(np.random.randn(self.dimensions))
+
+            # self.get_TSNE_plot(weights, [key for key in word2idx.keys()], ['the', 'ZERO', 'UNK'])
 
             helper._print_subheader(f'Indexes done! {len(weights) - 2} word embeddings!')
         return np.array(weights, dtype=np.float32), word2idx, idx2word
@@ -155,7 +159,7 @@ class GloVe(WordModel):
             pretrained_embeddings = self.glove2dict(directories.GLOVE_EMBEDDING_FILE_PATH)
             print(f'{len([v for v in vocab.keys() if v in pretrained_embeddings.keys()])} words in common with the pretrained set')
             helper._print_subheader('Done with cooccurrence matrix. Starting Mittens model...')
-            mittens_model = Mittens(n=self.dimensions, max_iter=100, display_progress=10,
+            mittens_model = Mittens(n=self.dimensions, max_iter=1000, display_progress=10,
                                     log_dir=directories.GLOVE_DIR + 'mittens/')
             finetuned_embeddings = mittens_model.fit(
                 cooccur,

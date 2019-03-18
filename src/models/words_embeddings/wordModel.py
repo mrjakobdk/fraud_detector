@@ -4,11 +4,14 @@ import re
 import sys
 import zipfile
 import nltk
+import numpy as np
 
 from gensim.utils import simple_preprocess
 from utils import constants, helper, directories, tree_util
 from utils.flags import FLAGS
 from utils.helper import listify
+from sklearn.manifold import TSNE
+from matplotlib import pyplot
 
 
 class WordModel:
@@ -106,4 +109,25 @@ class WordModel:
             return self.word2idx[word]
         else:
             return self.word2idx['UNK']
+
+    def get_TSNE_plot(self, embeddings, vocab, words=None):
+        helper._print_subheader('Plotting embeddings')
+        vocab = vocab
+        embeddings = embeddings
+        # fit a 2d PCA model to the vectors
+        tsne = TSNE(
+            perplexity=30, n_components=2, verbose=2, init='pca', n_iter=5000, method='exact')
+        result = tsne.fit_transform(embeddings)
+        # create a scatter plot of the projection
+        if not words is None:
+            result = np.array([[x,y,i] for i, (x,y) in enumerate(result) if vocab[i] in words], dtype=np.float64)
+            pyplot.scatter(result[:, 0], result[:, 1])
+            for r in result:
+                pyplot.annotate(vocab[int(r[2])], xy=(r[0], r[1]))
+        else:
+            pyplot.scatter(result[:, 0], result[:, 1])
+            for i, word in enumerate(vocab):
+                pyplot.annotate(word, xy=(result[i, 0], result[i, 1]))
+        pyplot.show()
+
 
