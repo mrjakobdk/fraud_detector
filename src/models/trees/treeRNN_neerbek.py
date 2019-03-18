@@ -90,13 +90,13 @@ class treeRNN_neerbek(treeModel):
 
         def build_node(i, rep_array, word_array):
             left_child = tf.stack([tf.range(self.real_batch_size), tf.gather(self.left_child_array, i, axis=1)], axis=1)
-            right_child = tf.stack([tf.range(self.real_batch_size), tf.gather(self.right_child_array, i, axis=1)], axis=1)
+            right_child = tf.stack([tf.range(self.real_batch_size), tf.gather(self.right_child_array, i, axis=1)],
+                                   axis=1)
 
+            is_leaf = tf.reshape(tf.gather(self.is_leaf_array, i, axis=1), shape=(1, -1))
             is_leaf_l = tf.reshape(tf.gather_nd(self.is_leaf_array, left_child), shape=(1, -1))
             is_leaf_r = tf.reshape(tf.gather_nd(self.is_leaf_array, right_child), shape=(1, -1))
 
-
-            #todo this is not correct in the leaves!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             rep_l = gather_rep(i, self.left_child_array, rep_array)
             rep_r = gather_rep(i, self.right_child_array, rep_array)
             rep_word_l = gather_rep(i, self.left_child_array, word_array)
@@ -107,7 +107,10 @@ class treeRNN_neerbek(treeModel):
             word_left = tf.matmul(self.W_L, rep_word_l) + tf.matmul(self.b_W, is_leaf_l)
             word_right = tf.matmul(self.W_R, rep_word_r) + tf.matmul(self.b_W, is_leaf_r)
 
-            return tf.nn.leaky_relu(word_left + phrase_left + word_right + phrase_right)
+            is_node = 1. - tf.squeeze(is_leaf)
+            is_node_diag = tf.linalg.tensor_diag(is_node)
+
+            return tf.matmul(tf.nn.leaky_relu(word_left + phrase_left + word_right + phrase_right), is_node_diag)
 
         def tree_construction_body(rep_array, word_array, o_array, i):
             word_index = tf.gather(self.word_index_array, i, axis=1)

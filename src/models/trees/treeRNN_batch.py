@@ -129,11 +129,11 @@ class treeRNN_batch(treeModel):
         softmax_cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=labels)
         self.loss = tf.reduce_mean(softmax_cross_entropy)
 
-        reg_weight = FLAGS.l2_strength
-        self.loss += reg_weight*tf.nn.l2_loss(self.W)
-        self.loss += reg_weight*tf.nn.l2_loss(self.U_L)
-        self.loss += reg_weight*tf.nn.l2_loss(self.U_R)
-        self.loss += reg_weight*tf.nn.l2_loss(self.V)
+        # reg_weight = FLAGS.l2_strength
+        # self.loss += reg_weight*tf.nn.l2_loss(self.W)
+        # self.loss += reg_weight*tf.nn.l2_loss(self.U_L)
+        # self.loss += reg_weight*tf.nn.l2_loss(self.U_R)
+        # self.loss += reg_weight*tf.nn.l2_loss(self.V)
 
         # todo is this reshaped in the correct way?
         # todo fix loss - might drag the bias to zero??? tests and fix it

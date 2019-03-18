@@ -5,9 +5,9 @@ from utils.flags import FLAGS
 
 class deepRNN(treeModel):
 
-    def __init__(self, data, model_placement, label_size=FLAGS.label_size, layers=FLAGS.deepRNN_layers):
+    def __init__(self, data, word_embed, model_placement, label_size=FLAGS.label_size, layers=FLAGS.deepRNN_layers):
         self.layers = layers
-        super(deepRNN, self).__init__(data, model_placement, label_size)
+        super(deepRNN, self).__init__(data, word_embed, model_placement, label_size)
 
     def build_constants(self):
         # embedding
@@ -222,3 +222,7 @@ class deepRNN(treeModel):
 
         acc = tf.equal(logits_max, labels_max)
         self.acc = tf.reduce_mean(tf.cast(acc, tf.float32))
+
+    def build_predict(self):
+        self.p = tf.nn.softmax(self.logits, axis=-1)
+        self.labels = tf.gather_nd(self.label_array, self.root_array)

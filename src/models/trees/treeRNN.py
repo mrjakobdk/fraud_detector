@@ -30,18 +30,18 @@ class treeRNN(treeModel):
         xavier_initializer = tf.contrib.layers.xavier_initializer()
 
         weight_initializer = xavier_initializer
-        if FLAGS.weight_initializer == "identity":
-            def custom_initializer(shape_list, dtype, partition_info):
-                return tf.initializers.identity(gain=0.5)(shape_list, dtype,
-                                                          partition_info) + tf.initializers.random_uniform(minval=-0.05,
-                                                                                                           maxval=0.05)(
-                    shape_list, dtype, partition_info)
+        #if FLAGS.weight_initializer == "identity":
+        def custom_initializer(shape_list, dtype, partition_info):
+            return tf.initializers.identity(gain=0.5)(shape_list, dtype,
+                                                      partition_info) + tf.initializers.random_uniform(minval=-0.05,
+                                                                                                       maxval=0.05)(
+                shape_list, dtype, partition_info)
 
-            weight_initializer = custom_initializer
+        weight_initializer = custom_initializer
 
         bias_initializer = xavier_initializer
-        if FLAGS.bias_initializer == "zero":
-            bias_initializer = tf.initializers.zeros()
+        #if FLAGS.bias_initializer == "zero":
+        bias_initializer = tf.initializers.zeros()
 
         # encoding variables
         self.W_l = tf.get_variable(name='W_l', shape=[FLAGS.sentence_embedding_size, FLAGS.word_embedding_size],
@@ -155,6 +155,9 @@ class treeRNN(treeModel):
         self.loss = tf.reduce_mean(
             tf.nn.softmax_cross_entropy_with_logits_v2(logits=tf.reshape(self.o_array.stack(), [-1, FLAGS.label_size]),
                                                        labels=self.label_array))
+
+    def build_predict(self):
+        self.p = tf.nn.softmax(tf.reshape(self.o_array.stack(), [-1, FLAGS.label_size]), axis=-1)
 
     def build_accuracy(self):
         # Accuracy
