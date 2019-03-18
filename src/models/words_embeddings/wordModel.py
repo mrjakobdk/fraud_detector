@@ -6,7 +6,7 @@ import zipfile
 import nltk
 
 from gensim.utils import simple_preprocess
-from utils import constants, helper, directories
+from utils import constants, helper, directories, tree_util
 from utils.flags import FLAGS
 from utils.helper import listify
 
@@ -32,11 +32,18 @@ class WordModel:
     ################## HELPER FUNCTIONS ##################
 
     @listify
-    def get_enron_sentences(self):
-        helper._print_subheader('Reading ' + directories.ENRON_EMAILS_TXT_PATH + '...')
-        if not os.path.isfile(directories.ENRON_EMAILS_TXT_PATH):
-            self.load_enron_txt_data()
-        with open(directories.ENRON_EMAILS_TXT_PATH, 'r', encoding='utf-8') as txt_file:
+    def get_enron_sentences(self, kaggle=True, all=True):
+        if kaggle:
+            path = directories.ENRON_EMAILS_TXT_PATH
+            if not os.path.isfile(path):
+                self.load_enron_txt_data()
+        else:
+            if all:
+                path = directories.TREE_ALL_SENTENCES_TXT_PATH
+            else:
+                path = directories.TREE_SENTENCES_TXT_PATH
+        helper._print_subheader('Reading ' + path + '...')
+        with open(path, 'r', encoding='utf-8') as txt_file:
             for index, line in enumerate(txt_file):
                 if index % 1000000 == 0 and index != 0:
                     helper._print(f'{index} sentences read')

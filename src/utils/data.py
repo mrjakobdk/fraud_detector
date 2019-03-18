@@ -8,5 +8,6 @@ class Data:
         self.test_trees = tree_util.parse_trees("test")
         self.val_trees = tree_util.parse_trees("val")
 
-        tree_util.trees_to_textfile(list(self.train_trees) + list(self.test_trees) + list(self.val_trees), directories.TREE_SENTENCES_TXT_PATH)
+        tree_util.trees_to_textfile(list(self.train_trees) + list(self.test_trees) + list(self.val_trees), directories.TREE_ALL_SENTENCES_TXT_PATH)
+        tree_util.trees_to_textfile(list(self.train_trees), directories.TREE_SENTENCES_TXT_PATH)
 
