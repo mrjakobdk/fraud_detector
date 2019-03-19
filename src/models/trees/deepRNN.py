@@ -17,16 +17,16 @@ class deepRNN(treeModel):
         self.word_zero = tf.constant(0., shape=[FLAGS.word_embedding_size])
         self.label_zero = tf.constant(0., shape=[FLAGS.label_size])
 
-    def build_placeholders(self):
-        # tree structure placeholders
-        self.root_array = tf.placeholder(tf.int32, (None),
-                                         name='root_array')  # contains id for the root of each tree in the batch
-        self.is_leaf_array = tf.placeholder(tf.float32, (None, None), name='is_leaf_array')
-        self.word_index_array = tf.placeholder(tf.int32, (None, None), name='word_index_array')
-        self.left_child_array = tf.placeholder(tf.int32, (None, None), name='left_child_array')
-        self.right_child_array = tf.placeholder(tf.int32, (None, None), name='right_child_array')
-        self.label_array = tf.placeholder(tf.int32, (None, None, self.label_size), name='label_array')
-        self.real_batch_size = tf.gather(tf.shape(self.is_leaf_array), 0)
+    # def build_placeholders(self):
+    #     # tree structure placeholders
+    #     self.root_array = tf.placeholder(tf.int32, (None),
+    #                                      name='root_array')  # contains id for the root of each tree in the batch
+    #     self.is_leaf_array = tf.placeholder(tf.float32, (None, None), name='is_leaf_array')
+    #     self.word_index_array = tf.placeholder(tf.int32, (None, None), name='word_index_array')
+    #     self.left_child_array = tf.placeholder(tf.int32, (None, None), name='left_child_array')
+    #     self.right_child_array = tf.placeholder(tf.int32, (None, None), name='right_child_array')
+    #     self.label_array = tf.placeholder(tf.int32, (None, None, self.label_size), name='label_array')
+    #     self.real_batch_size = tf.gather(tf.shape(self.is_leaf_array), 0)
 
     def build_variables(self):
         xavier_initializer, weight_initializer, bias_initializer = self.get_initializers()
@@ -207,6 +207,7 @@ class deepRNN(treeModel):
         self.logits = tf.transpose(tf.matmul(self.V, tf.transpose(root_rep)) + self.b_p)
 
     def build_loss(self):
+        # todo make it work for internal nodes
         # print_op = tf.print("root:", self.root_array,
         #                     output_stream=sys.stdout)
         # with tf.control_dependencies([print_op]):

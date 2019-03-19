@@ -14,6 +14,7 @@ flags.DEFINE_string("root", '../', "path to root folder of the project.")
 flags.DEFINE_string("model_name", '', "Name for model")
 flags.DEFINE_string("model", "treeRNN", "Selecting the model to be used")
 
+
 flags.DEFINE_integer("sentence_embedding_size",
                                         300,        "Size of the sentence embedding")
 flags.DEFINE_integer("label_size",      2,          "Number of labels")
@@ -31,6 +32,7 @@ flags.DEFINE_float("l2_strength",       0.0001,     "Strangth for l2 reg.")
 
 flags.DEFINE_string("optimizer",        'adagrad',     "Network optimizer")
 flags.DEFINE_boolean("load_model",      False,      "Load a old model")
+flags.DEFINE_boolean("use_root_loss", False, "use root or internal root loss")
 
 # ---------------------------- deepRNN ----------------------------
 

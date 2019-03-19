@@ -15,15 +15,15 @@ class treeRNN_batch(treeModel):
         self.word_zero = tf.constant(0., shape=[FLAGS.word_embedding_size, 1])
         self.label_zero = tf.constant(0., shape=[FLAGS.label_size])
 
-    def build_placeholders(self):
-        # tree structure placeholders
-        self.root_array = tf.placeholder(tf.int32, (None), name='root_array')
-        self.is_leaf_array = tf.placeholder(tf.bool, (None, None), name='is_leaf_array')
-        self.word_index_array = tf.placeholder(tf.int32, (None, None), name='word_index_array')
-        self.left_child_array = tf.placeholder(tf.int32, (None, None), name='left_child_array')
-        self.right_child_array = tf.placeholder(tf.int32, (None, None), name='right_child_array')
-        self.label_array = tf.placeholder(tf.int32, (None, None, FLAGS.label_size), name='label_array')
-        self.real_batch_size = tf.gather(tf.shape(self.is_leaf_array), 0)
+    # def build_placeholders(self):
+    #     # tree structure placeholders
+    #     self.root_array = tf.placeholder(tf.int32, (None, None), name='root_array')
+    #     self.is_leaf_array = tf.placeholder(tf.bool, (None, None), name='is_leaf_array')
+    #     self.word_index_array = tf.placeholder(tf.int32, (None, None), name='word_index_array')
+    #     self.left_child_array = tf.placeholder(tf.int32, (None, None), name='left_child_array')
+    #     self.right_child_array = tf.placeholder(tf.int32, (None, None), name='right_child_array')
+    #     self.label_array = tf.placeholder(tf.int32, (None, None, FLAGS.label_size), name='label_array')
+    #     self.real_batch_size = tf.gather(tf.shape(self.is_leaf_array), 0)
 
     def build_variables(self):
         # initializers
@@ -121,38 +121,38 @@ class treeRNN_batch(treeModel):
             parallel_iterations=1
         )
 
-    def build_loss(self):
-
-        logits = tf.gather_nd(tf.transpose(self.o_array.stack(), perm=[2, 0, 1]), self.root_array)  # roots_padded)
-        labels = tf.gather_nd(self.label_array, self.root_array)
-
-        softmax_cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=labels)
-        self.loss = tf.reduce_mean(softmax_cross_entropy)
-
-        # reg_weight = FLAGS.l2_strength
-        # self.loss += reg_weight*tf.nn.l2_loss(self.W)
-        # self.loss += reg_weight*tf.nn.l2_loss(self.U_L)
-        # self.loss += reg_weight*tf.nn.l2_loss(self.U_R)
-        # self.loss += reg_weight*tf.nn.l2_loss(self.V)
-
-        # todo is this reshaped in the correct way?
-        # todo fix loss - might drag the bias to zero??? tests and fix it
-        # self.loss = tf.reduce_mean(
-        #     tf.nn.softmax_cross_entropy_with_logits_v2(logits=tf.reshape(self.o_array.stack(), [-1, FLAGS.label_size]),
-        #                                                # stacking o_array this way might be wrong
-        #                                                labels=self.label_array))
-
-    def build_accuracy(self):
-        # roots_pad = tf.constant([i for i in range(FLAGS.batch_size)])
-        # roots_padded = tf.stack([roots_pad, self.root_array], axis=1)
-
-        logits = tf.gather_nd(tf.transpose(self.o_array.stack(), perm=[2, 0, 1]), self.root_array)  # roots_padded)
-        labels = tf.gather_nd(self.label_array, self.root_array)  # roots_padded)
-
-        logits_max = tf.argmax(logits, axis=1)
-        labels_max = tf.argmax(labels, axis=1)
-
-        acc = tf.equal(logits_max, labels_max)
-        self.acc = tf.reduce_mean(tf.cast(acc, tf.float32))
+    # def build_loss(self):
+    #
+    #     logits = tf.gather_nd(tf.transpose(self.o_array.stack(), perm=[2, 0, 1]), self.root_array)  # roots_padded)
+    #     labels = tf.gather_nd(self.label_array, self.root_array)
+    #
+    #     softmax_cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=labels)
+    #     self.loss = tf.reduce_mean(softmax_cross_entropy)
+    #
+    #     # reg_weight = FLAGS.l2_strength
+    #     # self.loss += reg_weight*tf.nn.l2_loss(self.W)
+    #     # self.loss += reg_weight*tf.nn.l2_loss(self.U_L)
+    #     # self.loss += reg_weight*tf.nn.l2_loss(self.U_R)
+    #     # self.loss += reg_weight*tf.nn.l2_loss(self.V)
+    #
+    #     # todo is this reshaped in the correct way?
+    #     # todo fix loss - might drag the bias to zero??? tests and fix it
+    #     # self.loss = tf.reduce_mean(
+    #     #     tf.nn.softmax_cross_entropy_with_logits_v2(logits=tf.reshape(self.o_array.stack(), [-1, FLAGS.label_size]),
+    #     #                                                # stacking o_array this way might be wrong
+    #     #                                                labels=self.label_array))
+    #
+    # def build_accuracy(self):
+    #     # roots_pad = tf.constant([i for i in range(FLAGS.batch_size)])
+    #     # roots_padded = tf.stack([roots_pad, self.root_array], axis=1)
+    #
+    #     logits = tf.gather_nd(tf.transpose(self.o_array.stack(), perm=[2, 0, 1]), self.root_array)  # roots_padded)
+    #     labels = tf.gather_nd(self.label_array, self.root_array)  # roots_padded)
+    #
+    #     logits_max = tf.argmax(logits, axis=1)
+    #     labels_max = tf.argmax(labels, axis=1)
+    #
+    #     acc = tf.equal(logits_max, labels_max)
+    #     self.acc = tf.reduce_mean(tf.cast(acc, tf.float32))
 
 
