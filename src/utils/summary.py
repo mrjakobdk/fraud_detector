@@ -1,5 +1,6 @@
 import csv
 import sys
+import math
 
 import utils.helper as helper
 from utils import directories
@@ -21,7 +22,7 @@ class summarizer():
     writer = {TRAIN: None, VAL: None, TEST: None}
     rounds = {TRAIN: 0, VAL: 0, TEST: 0}
     acc = {TRAIN: 0, VAL: 0, TEST: 0}
-    loss = {TRAIN: 0, VAL: 0, TEST: 0}
+    loss = {TRAIN: math.inf, VAL: math.inf, TEST: math.inf}
     history = {TRAIN: [], VAL: [], TEST: []}
     best_acc = {TRAIN: 0, VAL: 0, TEST: 0}
     best_loss = {TRAIN: 0, VAL: 0, TEST: 0}
