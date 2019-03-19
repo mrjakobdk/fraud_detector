@@ -16,7 +16,8 @@ class treeRNN_neerbek(treeModel):
 
     def build_placeholders(self):
         # tree structure placeholders
-        self.root_array = tf.placeholder(tf.int32, (None), name='root_array')
+        self.internal_nodes_array = tf.placeholder(tf.int32, (None, None), name='internal_nodes_array')
+        self.root_array = tf.placeholder(tf.int32, (None, None), name='root_array')
         self.is_leaf_array = tf.placeholder(tf.float32, (None, None), name='is_leaf_array')
         self.word_index_array = tf.placeholder(tf.int32, (None, None), name='word_index_array')
         self.left_child_array = tf.placeholder(tf.int32, (None, None), name='left_child_array')
@@ -139,8 +140,13 @@ class treeRNN_neerbek(treeModel):
         )
 
     def build_loss(self):
-        logits = tf.gather_nd(tf.transpose(self.o_array.stack(), perm=[2, 0, 1]), self.root_array)  # roots_padded)
-        labels = tf.gather_nd(self.label_array, self.root_array)
+        # for root only
+        # logits = tf.gather_nd(tf.transpose(self.o_array.stack(), perm=[2, 0, 1]), self.root_array)  # roots_padded)
+        # labels = tf.gather_nd(self.label_array, self.root_array)
+
+        # for all nodes
+        logits = tf.gather_nd(tf.transpose(self.o_array.stack(), perm=[2, 0, 1]), self.internal_nodes_array)
+        labels = tf.gather_nd(self.label_array, self.internal_nodes_array)
 
         softmax_cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=labels)
         self.loss = tf.reduce_mean(softmax_cross_entropy)

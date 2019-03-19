@@ -22,6 +22,7 @@ def BEST_MODEL_FILE(model_name): return BEST_MODEL_DIR(model_name) + "model.ckpt
 def SPEED_FILE(model_name): return TRAINED_MODELS_DIR + model_name + '/speed.csv'
 def PERFORMANCE_FILE(model_name): return TRAINED_MODELS_DIR + model_name + '/performance.csv'
 def PARAMETERS_FILE(model_name): return TRAINED_MODELS_DIR + model_name + '/parameters.csv'
+def SYS_ARG_FILE(model_name): return TRAINED_MODELS_DIR + model_name + '/sys_arg.csv'
 def HISTORIES_FILE(model_name): return TRAINED_MODELS_DIR + model_name + '/histories/history.npz'
 def ROC_PLOT(model_name): return TRAINED_MODELS_DIR + model_name + '/plots/roc.png'
 ENRON_EMAILS_CSV_PATH = ENRON_DIR + 'emails.csv'

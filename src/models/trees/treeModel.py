@@ -74,7 +74,7 @@ class treeModel:
             helper._print("Learning rate end:", self.learning_rate_end)
             helper._print("Reach End lr after:", self.lr_decay)
         else:
-            learning_rate = tf.constant(self.learning_rate)
+            self.lr = tf.constant(self.learning_rate)
 
         if self.optimizer == constants.ADAM_OPTIMIZER:
             self.train_op = tf.train.AdamOptimizer(self.lr).minimize(self.loss, global_step=self.global_step)
@@ -94,6 +94,7 @@ class treeModel:
         node_list_list = []
         node_to_index_list = []
         root_indices = []
+        internal_nodes_array = []
         for i, roots in enumerate(roots_list):
             node_list = []
             root_index = 0
@@ -104,10 +105,14 @@ class treeModel:
             node_list_list.append(node_list)
             node_to_index = helper.reverse_dict(node_list)
             node_to_index_list.append(node_to_index)
+            for node in node_list:
+                if not node.is_leaf:
+                    internal_nodes_array.append([i, node_to_index[node]+1])
 
         feed_dict = {
             # self.real_batch_size: len(node_list_list),
             self.root_array: root_indices,
+            self.internal_nodes_array: internal_nodes_array,
             self.is_leaf_array: helper.lists_pad([
                 [0] + helper.to_int([node.is_leaf for node in node_list])
                 for node_list in node_list_list], 0),

@@ -19,6 +19,7 @@ flags.DEFINE_integer("sentence_embedding_size",
 flags.DEFINE_integer("label_size",      2,          "Number of labels")
 flags.DEFINE_integer("deepRNN_layers",  3,          "Number of layers in DeepRNN")
 
+flags.DEFINE_integer("backoff_rate", 5, "Max number of steps in wrong direction before going back")
 flags.DEFINE_integer("conv_cond",       100,        "Number of epochs without find a better model(convergence condition)")
 flags.DEFINE_integer("epochs",          200,        "Number of epochs during training")
 flags.DEFINE_integer("lr_decay",        500,        "Implicit decay rate, if 0 no exp decay")
@@ -61,7 +62,7 @@ flags.DEFINE_boolean('verbose', True, "Global flag for 'verbose'")
 flags.DEFINE_integer('print_step_interval', 1000, "Interval to print in training")
 flags.DEFINE_boolean('run_tensorboard', False, "Flag")
 flags.DEFINE_boolean('use_gpu', False, "Use the gpu friendly version")
-flags.DEFINE_integer('num_threads', 8, "Number of threads to be use on the CPU")
+flags.DEFINE_integer('num_threads', 1, "Number of threads to be use on the CPU")
 
 # --------------------------- Experiments ---------------------------
 flags.DEFINE_boolean('run_speed_test', False, "Running speed tests")

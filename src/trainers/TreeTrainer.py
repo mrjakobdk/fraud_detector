@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 
 def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS.epochs, run_times=[],
-          epoch_times=[], conv_cond=FLAGS.conv_cond, num_threads=FLAGS.num_threads):
+          epoch_times=[], conv_cond=FLAGS.conv_cond, backoff_rate=FLAGS.backoff_rate, num_threads=FLAGS.num_threads):
     helper._print_header("Training " + model.model_name)
     helper._print("Model:", model.__class__.__name__)
     helper._print("Use GPU:", gpu)
@@ -81,7 +81,7 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
             end_time = time.time()
             epoch_time = end_time - start_time
 
-            if summary.new_best(summary.VAL):
+            if summary.new_best_acc(summary.VAL):
                 helper._print("New best model found!!!")
                 model.save(sess, saver)
                 conv_count = conv_cond
@@ -92,6 +92,9 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
             else:
                 helper._print("No new best model found!!! Prev best acc:", summary.best_acc[summary.VAL])
                 conv_count -= 1
+                if conv_count % backoff_rate == 0:
+                    helper._print("Stepping back...")
+                    model.load(sess, saver)
 
             helper._print("Epoch time:", str(int(epoch_time / 60)) + "m " + str(int(epoch_time % 60)) + "s")
             helper._print("Running time:", str(int(run_time / 60)) + "m " + str(int(run_time % 60)) + "s")

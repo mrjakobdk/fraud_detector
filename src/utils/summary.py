@@ -24,7 +24,9 @@ class summarizer():
     loss = {TRAIN: 0, VAL: 0, TEST: 0}
     history = {TRAIN: [], VAL: [], TEST: []}
     best_acc = {TRAIN: 0, VAL: 0, TEST: 0}
-    _new_best = {TRAIN: False, VAL: False, TEST: False}
+    best_loss = {TRAIN: 0, VAL: 0, TEST: 0}
+    _new_best_acc = {TRAIN: False, VAL: False, TEST: False}
+    _new_best_loss = {TRAIN: False, VAL: False, TEST: False}
 
     #########
     parameters = {
@@ -60,8 +62,8 @@ class summarizer():
 
     def construct_writers(self):
         self.writer[self.TRAIN] = tf.summary.FileWriter(directories.LOGS_TRAIN_DIR(self.model_name))
-        self.writer[self.VAL] = tf.summary.FileWriter(directories.LOGS_TRAIN_DIR(self.model_name))
-        self.writer[self.TEST] = tf.summary.FileWriter(directories.LOGS_TRAIN_DIR(self.model_name))
+        self.writer[self.VAL] = tf.summary.FileWriter(directories.LOGS_VAL_DIR(self.model_name))
+        self.writer[self.TEST] = tf.summary.FileWriter(directories.LOGS_TEST_DIR(self.model_name))
 
     def load(self):
         tmp = np.load(directories.HISTORIES_FILE(self.model_name))
@@ -125,9 +127,15 @@ class summarizer():
 
         if avg_acc > self.best_acc[data_set]:
             self.best_acc[data_set] = avg_acc
-            self._new_best[data_set] = True
+            self._new_best_acc[data_set] = True
         else:
-            self._new_best[data_set] = False
+            self._new_best_acc[data_set] = False
+
+        if avg_loss < self.best_loss[data_set]:
+            self.best_loss[data_set] = avg_loss
+            self._new_best_loss[data_set] = True
+        else:
+            self._new_best_loss[data_set] = False
 
         if _print:
             helper._print(data_set.capitalize(), "-", "acc:", avg_acc, "loss:", avg_loss)
@@ -175,6 +183,9 @@ class summarizer():
         }
         helper.save_dict(self.parameters, placement=directories.PARAMETERS_FILE(self.model_name))
 
+        with open(directories.SYS_ARG_FILE(self.model_name), "w") as text_file:
+            text_file.write(str(sys.argv))
+
     def save_speed(self, epochs, total_time):
         self.speed = {
             "epochs": epochs,
@@ -182,8 +193,11 @@ class summarizer():
         }
         helper.save_dict(self.speed, placement=directories.SPEED_FILE(self.model_name))
 
-    def new_best(self, data_set):
-        return self._new_best[data_set]
+    def new_best_acc(self, data_set):
+        return self._new_best_acc[data_set]
+
+    def new_best_loss(self, data_set):
+        return self._new_best_loss[data_set]
 
     def close(self):
         self.writer[self.TRAIN].close()
