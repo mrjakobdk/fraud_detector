@@ -57,11 +57,11 @@ flags.DEFINE_integer("word2vec_epochs", 20,          "Number of epochs to train 
 
 
 # --------------------------- Etc. ---------------------------
-
 flags.DEFINE_boolean('verbose', True, "Global flag for 'verbose'")
 flags.DEFINE_integer('print_step_interval', 1000, "Interval to print in training")
 flags.DEFINE_boolean('run_tensorboard', False, "Flag")
 flags.DEFINE_boolean('use_gpu', False, "Use the gpu friendly version")
+flags.DEFINE_integer('num_threads', 8, "Number of threads to be use on the CPU")
 
 # --------------------------- Experiments ---------------------------
 flags.DEFINE_boolean('run_speed_test', False, "Running speed tests")

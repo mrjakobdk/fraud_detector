@@ -1,3 +1,4 @@
+import csv
 import os
 from utils.flags import FLAGS
 from tqdm import tqdm
@@ -165,3 +166,27 @@ def get_or_build(path, build_fn, *args, type=None, **kwargs):
 
 def to_int(l):
     return [int(elem) for elem in l]
+
+def save_dict(dictionary, placement):
+    with open(placement, 'w') as csv_file:
+        writer = csv.writer(csv_file)
+        for key, value in dictionary.items():
+            writer.writerow([key, value])
+
+def load_dict(placement):
+    with open(placement) as csv_file:
+        reader = csv.reader(csv_file)
+        d = []
+        for row in reader:
+            if len(row)>0:
+                converted = False
+                for f in [int, float, bool]:
+                    if not converted:
+                        try:
+                            row[1] = f(row[1])
+                            converted = True
+                        except ValueError:
+                            pass
+                d.append(row)
+        dictionary = dict(d)
+        return dictionary

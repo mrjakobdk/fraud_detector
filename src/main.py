@@ -26,17 +26,16 @@ def main():
         config = tf.ConfigProto(
             device_count={'GPU': 0}
         )
-
+    model_name = FLAGS.model_name
     if FLAGS.model_name == "":
-        FLAGS.model_name = FLAGS.model + \
+        model_name = FLAGS.model + \
                            "_BathcSize" + str(FLAGS.batch_size) + \
                            "_LrStart" + str(FLAGS.learning_rate) + \
                            "_LrEnd" + str(FLAGS.learning_rate_end) + \
                            "_ExpDecay" + str(FLAGS.lr_decay) + \
                            "_ConvCond" + str(FLAGS.conv_cond) + \
                            "_WordEmbed" + str(FLAGS.word_embed_model) + '-' + str(FLAGS.word_embed_mode) + \
-                           "_WordEmbedDim" + str(FLAGS.word_embedding_size) + \
-                           "/"
+                           "_WordEmbedDim" + str(FLAGS.word_embedding_size)
 
 
     if FLAGS.word_embed_model == constants.WORD2VEC:
@@ -44,21 +43,20 @@ def main():
     else:  # FLAGS.word_embed_model == constants.GLOVE
         word_embeddings = GloVe(mode=FLAGS.word_embed_mode, dimensions=FLAGS.word_embedding_size)
 
-    model_placement = directories.TRAINED_MODELS_DIR + FLAGS.model_name + "model.ckpt"
     if FLAGS.model == constants.DEEP_RNN:
-        model = deepRNN(data, word_embeddings, model_placement)
+        model = deepRNN(data, word_embeddings, model_name)
     elif FLAGS.model == constants.BATCH_TREE_RNN:
-        model = treeRNN_batch(data, word_embeddings, model_placement)
+        model = treeRNN_batch(data, word_embeddings, model_name)
     elif FLAGS.model == constants.NEERBEK_TREE_RNN:
-        model = treeRNN_neerbek(data, word_embeddings, model_placement)
+        model = treeRNN_neerbek(data, word_embeddings, model_name)
     elif FLAGS.model == constants.TREE_LSTM:
-        model = treeLSTM(data, word_embeddings, model_placement)
+        model = treeLSTM(data, word_embeddings, model_name)
     elif FLAGS.model == constants.TRACKER_TREE_RNN:
-        model = treeRNN_tracker(data, word_embeddings, model_placement)
+        model = treeRNN_tracker(data, word_embeddings, model_name)
     else:
-        model = treeRNN(data, word_embeddings, model_placement)
+        model = treeRNN(data, word_embeddings, model_name)
 
-    trainer.train(model, load=False, config=config)
+    trainer.train(model, load=FLAGS.load_model, gpu=FLAGS.use_gpu)
 
 
 if __name__ == "__main__":

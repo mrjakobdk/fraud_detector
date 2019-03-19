@@ -1,17 +1,29 @@
-# --------------------------- Directories ---------------------------
 from utils.flags import FLAGS
 
+# --------------------------- Directories ---------------------------
 DATA_DIR = FLAGS.root + 'data/'
-LOGS_DIR = FLAGS.root + 'logs/'
-HISTORIES_DIR = FLAGS.root + 'histories/'
 TRAINED_MODELS_DIR = FLAGS.root + 'trained_models/'
+def MODEL_DIR(model_name): return TRAINED_MODELS_DIR + model_name
+def LOGS_DIR(model_name): return TRAINED_MODELS_DIR + model_name + '/logs/'
+def LOGS_TRAIN_DIR(model_name): return TRAINED_MODELS_DIR + model_name + '/logs/train/'
+def LOGS_VAL_DIR(model_name): return TRAINED_MODELS_DIR + model_name + '/logs/val/'
+def LOGS_TEST_DIR(model_name): return TRAINED_MODELS_DIR + model_name + '/logs/test/'
+def HISTORIES_DIR(model_name): return TRAINED_MODELS_DIR + model_name + '/histories/'
+def PLOTS_DIR(model_name): return TRAINED_MODELS_DIR + model_name + '/plots/'
+def BEST_MODEL_DIR(model_name): return TRAINED_MODELS_DIR + model_name + '/best_model/'
 ENRON_DIR = DATA_DIR + 'enron/'
 GLOVE_DIR = DATA_DIR + 'glove/'
 WORD2VEC_DIR = DATA_DIR + 'word2vec/'
 TREES_DIR = DATA_DIR + 'trees/'
 
-# --------------------------- File Paths ---------------------------
 
+# --------------------------- File Paths ---------------------------
+def BEST_MODEL_FILE(model_name): return BEST_MODEL_DIR(model_name) + "model.ckpt"
+def SPEED_FILE(model_name): return TRAINED_MODELS_DIR + model_name + '/speed.csv'
+def PERFORMANCE_FILE(model_name): return TRAINED_MODELS_DIR + model_name + '/performance.csv'
+def PARAMETERS_FILE(model_name): return TRAINED_MODELS_DIR + model_name + '/parameters.csv'
+def HISTORIES_FILE(model_name): return TRAINED_MODELS_DIR + model_name + '/histories/history.npz'
+def ROC_PLOT(model_name): return TRAINED_MODELS_DIR + model_name + '/plots/roc.png'
 ENRON_EMAILS_CSV_PATH = ENRON_DIR + 'emails.csv'
 ENRON_EMAILS_TXT_PATH = ENRON_DIR + 'emails.txt'
 ENRON_EMAILS_ZIP_PATH = ENRON_DIR + 'enron-email-dataset.zip'

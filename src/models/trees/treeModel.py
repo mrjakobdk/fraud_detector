@@ -7,16 +7,23 @@ import numpy as np
 
 
 class treeModel:
-    def __init__(self, data, word_embed, model_placement,
+    def __init__(self, data, word_embed, model_name,
                  label_size=FLAGS.label_size,
-                 learning_rate=FLAGS.learning_rate):
+                 learning_rate=FLAGS.learning_rate,
+                 learning_rate_end=FLAGS.learning_rate_end,
+                 lr_decay=FLAGS.lr_decay,
+                 batch_size=FLAGS.batch_size, optimizer=FLAGS.optimizer):
 
         # config
         self.data = data
         self.word_embed = word_embed
-        self.model_placement = model_placement
+        self.model_name = model_name
         self.learning_rate = learning_rate
+        self.learning_rate_end = learning_rate_end
         self.label_size = label_size
+        self.lr_decay = lr_decay
+        self.batch_size = batch_size
+        self.optimizer = optimizer
 
         self.build_constants()
         self.build_placeholders()
@@ -53,42 +60,30 @@ class treeModel:
     def build_train_op(self):
         self.global_step = tf.train.create_global_step()
 
-        if FLAGS.lr_decay > 0:
-            n = int(len(self.data.train_trees) / FLAGS.batch_size)
-            total_steps = FLAGS.lr_decay * n
+        if self.lr_decay > 0:
+            n = int(len(self.data.train_trees) / self.batch_size)
+            total_steps = self.lr_decay * n
             decay_steps = n
-            decay_rate = (FLAGS.learning_rate_end / self.learning_rate) ** (decay_steps / total_steps)
-            self.learning_rate = tf.train.exponential_decay(self.learning_rate, self.global_step, decay_steps,
-                                                            decay_rate,
-                                                            name='learning_rate') + FLAGS.learning_rate_end
+            decay_rate = (self.learning_rate_end / self.learning_rate) ** (decay_steps / total_steps)
+            self.lr = tf.train.exponential_decay(self.learning_rate, self.global_step, decay_steps,
+                                                       decay_rate, name='learning_rate')
 
             helper._print_header("Using learning rate with exponential decay")
             helper._print("Decay for every step:", decay_rate)
             helper._print("Learning rate start:", self.learning_rate)
-            helper._print("Learning rate end:", FLAGS.learning_rate_end)
-            helper._print("2 time end lr after:", FLAGS.lr_decay)
+            helper._print("Learning rate end:", self.learning_rate_end)
+            helper._print("Reach End lr after:", self.lr_decay)
         else:
-            self.learning_rate = tf.constant(self.learning_rate)
+            learning_rate = tf.constant(self.learning_rate)
 
-        if FLAGS.optimizer == constants.ADAM_OPTIMIZER:
-            self.train_op = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss, global_step=self.global_step)
+        if self.optimizer == constants.ADAM_OPTIMIZER:
+            self.train_op = tf.train.AdamOptimizer(self.lr).minimize(self.loss, global_step=self.global_step)
         else:
-            self.train_op = tf.train.AdagradOptimizer(self.learning_rate).minimize(self.loss,
-                                                                                   global_step=self.global_step)
+            self.train_op = tf.train.AdagradOptimizer(self.lr).minimize(self.loss, global_step=self.global_step)
 
     def initialize(self, sess):
         # todo construct model folder
         sess.run(tf.global_variables_initializer())
-
-    def load(self, sess, saver):
-        helper._print("Restoring model...")
-        saver.restore(sess, self.model_placement)
-        helper._print("Model restored!")
-
-    def save(self, sess, saver):
-        helper._print("Saving model...")
-        saver.save(sess, self.model_placement)
-        helper._print("Model saved!")
 
     def build_feed_dict(self, roots):
         roots_size = [tree_util.size_of_tree(root) for root in roots]
@@ -134,11 +129,11 @@ class treeModel:
 
         return feed_dict
 
-    def construct_dir(self):
-        if not os.path.exists(directories.TRAINED_MODELS_DIR):
-            os.mkdir(directories.TRAINED_MODELS_DIR)
-        if not os.path.exists(directories.TRAINED_MODELS_DIR + FLAGS.model_name):
-            os.mkdir(directories.TRAINED_MODELS_DIR + FLAGS.model_name)
+    # def construct_dir(self):
+    #     if not os.path.exists(directories.TRAINED_MODELS_DIR):
+    #         os.mkdir(directories.TRAINED_MODELS_DIR)
+    #     if not os.path.exists(directories.TRAINED_MODELS_DIR + FLAGS.model_name):
+    #         os.mkdir(directories.TRAINED_MODELS_DIR + FLAGS.model_name)
 
     def get_initializers(self):
         xavier_initializer = tf.contrib.layers.xavier_initializer()
@@ -163,8 +158,29 @@ class treeModel:
         feed_dict = self.build_feed_dict(data)
         return sess.run([self.p, self.labels], feed_dict=feed_dict)
 
-
     def accuracy(self, data, sess):
         helper._print_subheader("Computing accuracy")
         feed_dict = self.build_feed_dict(data)
         return sess.run(self.acc, feed_dict=feed_dict)
+
+    def load(self, sess, saver):
+        helper._print("Restoring model...")
+        saver.restore(sess, directories.BEST_MODEL_FILE(self.model_name))
+        helper._print("Model restored!")
+
+    def save(self, sess, saver):
+        helper._print("Saving model...")
+        saver.save(sess, directories.BEST_MODEL_FILE(self.model_name))
+        helper._print("Model saved!")
+
+    def get_no_trainable_variables(self):
+        # https://stackoverflow.com/questions/38160940/how-to-count-total-number-of-trainable-parameters-in-a-tensorflow-model
+        total_parameters = 0
+        for variable in tf.trainable_variables():
+            # shape is an array of tf.Dimension
+            shape = variable.get_shape()
+            variable_parameters = 1
+            for dim in shape:
+                variable_parameters *= dim.value
+            total_parameters += variable_parameters
+        return total_parameters

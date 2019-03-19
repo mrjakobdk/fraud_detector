@@ -80,8 +80,8 @@ def run2():
     make_experiment_folder()
     epochs = 4
     batch_sizes = [2 ** i for i in range(1, 10)]
-    config_CPU = tf.ConfigProto(device_count={'GPU': 0})
-    config_GPU = None
+    config_CPU = False
+    config_GPU = True
 
     to_be_tested = [
         (treeRNN, config_CPU),
@@ -116,7 +116,8 @@ def run2():
             epoch_times = []
             with tf.Graph().as_default():
                 model_placement = directories.TRAINED_MODELS_DIR + FLAGS.model_name + "model.ckpt"
-                trainer.train(model(data, word_embed, model_placement), load=False, config=config, batch_size=batch_size, epochs=epochs,
+                trainer.train(model(data, word_embed, model_placement), load=False, config=config,
+                              batch_size=batch_size, epochs=epochs,
                               run_times=run_times, epoch_times=epoch_times)
             avg_run_times.append(np.average(run_times[1:]))
             avg_epoch_times.append(np.average(epoch_times[1:]))

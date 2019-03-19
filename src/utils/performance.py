@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn import metrics
 
 
 def get_labels(data):
@@ -51,31 +52,40 @@ class Performance:
         """
 
         probs, labels = model.predict_and_label(data, sess)
-        print(probs, np.shape(probs))
-        print(labels, np.shape(labels))
         labels = get_prediction(labels)
-        print(labels, np.shape(labels))
-
-        print("max", np.max(np.sum(probs, axis=1)))
-        print("min", np.min(np.sum(probs, axis=1)))
-
-        predictions = get_prediction_at(probs, 0.5)
-        self.acc = get_accuracy(labels, predictions)
-        print(self.acc)
 
         predictions = get_prediction(probs)
         self.acc = get_accuracy(labels, predictions)
-        print(self.acc)
 
         self.TP, self.FP, self.TN, self.FN = get_confusion_matrix(labels, predictions)
 
         self.precision = self.TP / (self.TP + self.FP)
         self.recall = self.TP / (self.TP + self.FN)
+        self.F1 = 2 * (self.precision * self.recall) / (self.precision + self.recall)
 
         self.TPR_list, self.FPR_list = get_roc_values(labels, probs)
+        self.auc = metrics.auc(self.FPR_list, self.TPR_list)
 
-    def plot_ROC(self):
+
+    def get_performance(self):
+        performance = {
+            "accuracy": self.acc,
+            "auc": self.auc,
+            "tp": self.TP,
+            "fp": self.FP,
+            "tn": self.TN,
+            "fn": self.FN,
+            "precision": self.precision,
+            "recall": self.recall,
+            "f1": self.F1,
+        }
+        return performance
+
+    def plot_ROC(self, show=False, placement=""):
         plt.plot(self.FPR_list, self.TPR_list)
         plt.ylabel("True positive rate")
         plt.xlabel("False positive rate")
-        plt.show()
+        if show:
+            plt.show()
+        else:
+            plt.savefig(placement)

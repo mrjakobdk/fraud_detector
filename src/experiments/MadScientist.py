@@ -9,7 +9,7 @@ from utils.flags import FLAGS
 
 
 class Experiment():
-    def __init__(self, model, data, word_embed, model_placement,
+    def __init__(self, model, data, word_embed, model_name,
                  lr=FLAGS.learning_rate,
                  lr_decay=FLAGS.lr_decay,
                  lr_end=FLAGS.learning_rate_end,
@@ -18,7 +18,7 @@ class Experiment():
         self.model = model
         self.data = data
         self.word_embed = word_embed
-        self.model_placement = model_placement
+        self.model_name = model_name
         self.lr = lr
         self.lr_decay = lr_decay
         self.lr_end = lr_end
@@ -27,11 +27,10 @@ class Experiment():
 
     def run(self):
         with tf.Graph().as_default():
-            model = self.model(self.data, self.word_embed, self.model_placement,
-                               learning_rate=self.lr)
+            model = self.model(self.data, self.word_embed, self.model_name,
+                               learning_rate=self.lr, batch_size=self.batch_size)
             # model, load=False, config=None, batch_size=FLAGS.batch_size, epochs=FLAGS.epochs, run_times=[], epoch_times=[]
             TreeTrainer.train(model, self.lr_decay, self.lr_end, self.conv_cond)
-
 
 
 class MadScientist():
