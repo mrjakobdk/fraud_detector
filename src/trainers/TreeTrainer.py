@@ -81,7 +81,7 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
             end_time = time.time()
             epoch_time = end_time - start_time
 
-            if summary.new_best_acc(summary.VAL):
+            if summary.new_best_loss(summary.VAL):
                 helper._print("New best model found!!!")
                 model.save(sess, saver)
                 conv_count = conv_cond
@@ -90,7 +90,7 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
                 total_time += total_time_end - total_time_start
                 summary.save_speed(best_epoch, total_time)
             else:
-                helper._print("No new best model found!!! Prev best acc:", summary.best_acc[summary.VAL])
+                helper._print("No new best model found!!! Prev best loss:", summary.best_loss[summary.VAL])
                 conv_count -= 1
                 if conv_count % backoff_rate == 0:
                     helper._print("Stepping back...")
