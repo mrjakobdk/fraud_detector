@@ -82,6 +82,7 @@ def run2():
     batch_sizes = [2 ** i for i in range(1, 10)]
     config_CPU = False
     config_GPU = True
+    placement = "../experiments/run2.npz"
 
     to_be_tested = [
         (treeRNN, config_CPU),
@@ -116,7 +117,7 @@ def run2():
             epoch_times = []
             with tf.Graph().as_default():
                 model_placement = directories.TRAINED_MODELS_DIR + FLAGS.model_name + "model.ckpt"
-                trainer.train(model(data, word_embed, model_placement), load=False, config=config,
+                trainer.train(model(data, word_embed, model_placement), load=False, gpu=config,
                               batch_size=batch_size, epochs=epochs,
                               run_times=run_times, epoch_times=epoch_times)
             avg_run_times.append(np.average(run_times[1:]))
@@ -124,12 +125,55 @@ def run2():
         run_times_list.append(avg_run_times)
         epoch_times_list.append(avg_epoch_times)
 
-    np.savez("../experiments/run2.npz", run_times_list=run_times_list, epoch_times_list=epoch_times_list, labels=labels,
+    np.savez(placement, run_times_list=run_times_list, epoch_times_list=epoch_times_list, labels=labels,
              batch_sizes=batch_sizes)
 
 
-def plot2():
-    tmp = np.load("../experiments/run2.npz")
+def run3():
+    make_experiment_folder()
+    epochs = 4
+    num_threads_list = [i for i in range(0, 8)]
+    placement = "../experiments/runThreads.npz"
+
+    to_be_tested = [
+        (treeRNN_neerbek, 32),
+        (treeRNN_neerbek, 64),
+        (treeRNN_neerbek, 128)
+    ]
+
+    labels = [
+        "Batch size 32",
+        "Batch size 64",
+        "Batch size 128",
+    ]
+
+    _data_util = data_util.DataUtil()
+    data = _data_util.get_data()
+
+    word_embed = GloVe(mode=constants.PRETRAINED_MODE, dimensions=FLAGS.word_embedding_size)
+
+    run_times_list = []
+    epoch_times_list = []
+    for model, batch_size in to_be_tested:
+        avg_run_times = []
+        avg_epoch_times = []
+        for num_threads in num_threads_list:
+            run_times = []
+            epoch_times = []
+            with tf.Graph().as_default():
+                trainer.train(model(data, word_embed, batch_size=batch_size), load=False, gpu=True, batch_size=batch_size,
+                              epochs=epochs, run_times=run_times, epoch_times=epoch_times, num_threads=num_threads)
+            avg_run_times.append(np.average(run_times[1:]))
+            avg_epoch_times.append(np.average(epoch_times[1:]))
+        run_times_list.append(avg_run_times)
+        epoch_times_list.append(avg_epoch_times)
+
+    np.savez(placement, run_times_list=run_times_list, epoch_times_list=epoch_times_list, labels=labels,
+             batch_sizes=batch_sizes)
+
+
+def plot(placement, x_label='batch size', y_label='minutes'):
+    tmp = np.load(placement)
 
     run_times_list = tmp["run_times_list"].tolist()
     epoch_times_list = tmp["epoch_times_list"].tolist()
@@ -140,16 +184,16 @@ def plot2():
     for avg_epoch_times, label in zip(epoch_times_list, labels):
         plt.plot(batch_sizes, np.array(avg_epoch_times) / 60, label=label)
     plt.legend()
-    plt.xlabel('batch size')
-    plt.ylabel('minutes')
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
     plt.show()
 
     plt.clf()
     for avg_run_times, label in zip(run_times_list, labels):
         plt.plot(batch_sizes, np.array(avg_run_times) / 60, label=label)
     plt.legend()
-    plt.xlabel('batch size')
-    plt.ylabel('minutes')
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
     plt.show()
 
     plt.clf()

@@ -7,7 +7,7 @@ import numpy as np
 
 
 class treeModel:
-    def __init__(self, data, word_embed, model_name,
+    def __init__(self, data, word_embed, model_name=FLAGS.model_name,
                  label_size=FLAGS.label_size,
                  learning_rate=FLAGS.learning_rate,
                  learning_rate_end=FLAGS.learning_rate_end,

@@ -17,8 +17,8 @@ if FLAGS.run_speed_test:
     # )
     #SpeedTester.plot1(batch_sizes, ["Neerbek - CPU", "Neerbek - GPU", "Our - CPU", "Our - GPU"])
 
-    #SpeedTester.run2()
-    SpeedTester.plot2()
+    SpeedTester.run3()
+    SpeedTester.plot("../experiments/runThreads.npz", )
 
 
 ms = MadScientist()
