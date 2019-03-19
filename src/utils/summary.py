@@ -22,10 +22,10 @@ class summarizer():
     writer = {TRAIN: None, VAL: None, TEST: None}
     rounds = {TRAIN: 0, VAL: 0, TEST: 0}
     acc = {TRAIN: 0, VAL: 0, TEST: 0}
-    loss = {TRAIN: math.inf, VAL: math.inf, TEST: math.inf}
+    loss = {TRAIN: 0, VAL: 0, TEST: 0}
     history = {TRAIN: [], VAL: [], TEST: []}
     best_acc = {TRAIN: 0, VAL: 0, TEST: 0}
-    best_loss = {TRAIN: 0, VAL: 0, TEST: 0}
+    best_loss = {TRAIN: math.inf, VAL: math.inf, TEST: math.inf}
     _new_best_acc = {TRAIN: False, VAL: False, TEST: False}
     _new_best_loss = {TRAIN: False, VAL: False, TEST: False}
 
