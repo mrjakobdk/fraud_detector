@@ -223,7 +223,7 @@ class summarizer():
                 acc.append(self.history[data_set][i][1])
             plt.plot(list(range(1, epochs + 1)), acc, label=data_set)
         plt.legend()
-        plt.ylabel("Acc")
+        plt.ylabel("Accuracy")
         plt.xlabel("Epoch")
         plt.savefig(directories.ACC_HISTORY_PLOT(self.model_name))
 

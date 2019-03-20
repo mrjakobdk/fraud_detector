@@ -34,6 +34,7 @@ class treeModel:
         self.build_accuracy()
         self.build_predict()
         self.build_train_op()
+        self.build_rep()
 
     def build_constants(self):
         raise NotImplementedError("Each Model must re-implement this method.")
@@ -72,6 +73,9 @@ class treeModel:
         # self.loss += reg_weight * tf.nn.l2_loss(self.U_L)
         # self.loss += reg_weight * tf.nn.l2_loss(self.U_R)
         # self.loss += reg_weight * tf.nn.l2_loss(self.V)
+
+    def build_rep(self):
+        self.sentence_representations = tf.gather_nd(tf.transpose(self.rep_array.stack(), perm=[2, 0, 1]), self.root_array)
 
     def build_accuracy(self):
         logits = tf.gather_nd(tf.transpose(self.o_array.stack(), perm=[2, 0, 1]), self.root_array)
