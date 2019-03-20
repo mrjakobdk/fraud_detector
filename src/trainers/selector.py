@@ -52,7 +52,7 @@ class Selector:
         data_to_use = []
         for cluster, acc in cluster_acc:
             new_percent = removed_percent + len(predictions[cluster_predictions == cluster]) / len(predictions)
-            if removed_percent > cut_off or abs(new_percent - cut_off) < abs(removed_percent - cut_off):
+            if removed_percent > cut_off or (new_percent > cut_off and abs(new_percent - cut_off) > abs(removed_percent - cut_off)):
                 data_to_use.extend(data[cluster_predictions == cluster])
             removed_percent = new_percent
 
