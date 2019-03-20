@@ -58,4 +58,6 @@ class Selector:
 
         helper._print(
             f'Done selecting data for training. Overall time used for selection is {int((time() - t)/60)} minutes and {(time() - t) % 60} seconds')
+        helper._print(
+            f'Using {len(data_to_use)}/{len(data)} ({len(data_to_use)/len(data)*100}%) for the next {FLAGS.select_freq} epochs')
         return data_to_use
