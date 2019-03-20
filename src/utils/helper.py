@@ -91,14 +91,11 @@ def lists_pad(lists, padding):
 def sort_by(X, Y):
     return [x for _, x in sorted(zip(Y, X), key=lambda pair: pair[0])]
 
-
-def greedy_best_fit(l):
-    pass
-
-
 def greedy_bin_packing(items, values, max):
     bins = [[]]
     bins_size = [0]
+
+    items_to_index = reverse_dict(items)
 
     for item, value in zip(items, values):
         found = False
@@ -112,7 +109,12 @@ def greedy_bin_packing(items, values, max):
             bins.append([item])
             bins_size.append(value)
 
-    return bins
+    permutation = []
+    for bin in bins:
+        for item in bin:
+            permutation.append(items_to_index[item])
+
+    return bins, permutation
 
 
 def all_combinations(*args):

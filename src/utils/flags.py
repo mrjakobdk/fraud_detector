@@ -20,7 +20,7 @@ flags.DEFINE_integer("sentence_embedding_size",
 flags.DEFINE_integer("label_size",      2,          "Number of labels")
 flags.DEFINE_integer("deepRNN_layers",  3,          "Number of layers in DeepRNN")
 
-flags.DEFINE_integer("backoff_rate", 5, "Max number of steps in wrong direction before going back")
+flags.DEFINE_integer("backoff_rate", 0, "Max number of steps in wrong direction before going back")
 flags.DEFINE_integer("conv_cond",       100,        "Number of epochs without find a better model(convergence condition)")
 flags.DEFINE_integer("epochs",          200,        "Number of epochs during training")
 flags.DEFINE_integer("lr_decay",        500,        "Implicit decay rate, if 0 no exp decay")

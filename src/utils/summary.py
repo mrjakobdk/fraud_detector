@@ -1,15 +1,15 @@
 import csv
 import sys
 import math
-
+import matplotlib.pyplot as plt
 import utils.helper as helper
-from utils import directories
-from utils.flags import FLAGS
 import os
 import shutil
 import tensorflow as tf
 import numpy as np
 
+from utils import directories
+from utils.flags import FLAGS
 from utils.performance import Performance
 
 
@@ -156,7 +156,7 @@ class summarizer():
         self.writer[data_set].add_summary(summary, epoch)
 
     def compute(self, data_set, data, model, epoch, _print=False):
-        feed_dict = model.build_feed_dict(data)
+        feed_dict, _ = model.build_feed_dict(data)
         acc, loss = self.sess.run([model.acc, model.loss], feed_dict=feed_dict)
         self.add(data_set, acc, loss)
         self.write_and_reset(data_set, epoch, _print=_print)
@@ -215,4 +215,48 @@ class summarizer():
         self.writer[self.TEST].close()
 
     def plot_history(self):
-        pass
+        plt.clf()
+        epochs = len(self.history[self.TEST])
+        for data_set in self.all_data_sets:
+            acc = []
+            for i in range(epochs):
+                acc.append(self.history[data_set][i][1])
+            plt.plot(list(range(1, epochs + 1)), acc, label=data_set)
+        plt.legend()
+        plt.ylabel("Acc")
+        plt.xlabel("Epoch")
+        plt.savefig(directories.ACC_HISTORY_PLOT(self.model_name))
+
+        plt.clf()
+        epochs = len(self.history[self.TEST])
+        for data_set in self.all_data_sets:
+            acc = []
+            for i in range(epochs):
+                acc.append(self.history[data_set][i][2])
+            plt.plot(list(range(1, epochs + 1)), acc, label=data_set)
+        plt.legend()
+        plt.ylabel("Loss")
+        plt.xlabel("Epoch")
+        plt.savefig(directories.LOSS_HISTORY_PLOT(self.model_name))
+
+    def print_performance(self):
+        helper._print_header("Final stats for best model")
+
+        helper._print("Best epoch:", self.speed["best_epoch"])
+        helper._print("Total epochs:", self.speed["epochs"])
+        helper._print("Total running time:",
+                      str(int(self.speed["total_time"] / (60 * 60))) + "h",
+                      str((int(self.speed["total_time"] / 60) % 60)) + "m")
+
+        helper._print_subheader("Best model")
+        best_step = np.argmax(np.array(self.history[self.VAL])[:, 1])
+        helper._print_subheader("Accuracy")
+        helper._print("Test:", self.history[self.TEST][best_step][1])
+        helper._print("Validation:", self.history[self.VAL][best_step][1])
+        helper._print("Training:", self.history[self.TRAIN][best_step][1])
+        helper._print_subheader("Loss")
+        helper._print("Test:", self.history[self.TEST][best_step][2])
+        helper._print("Validation:", self.history[self.VAL][best_step][2])
+        helper._print("Training:", self.history[self.TRAIN][best_step][2])
+        helper._print_subheader("Stats")
+        helper._print(self.performance)

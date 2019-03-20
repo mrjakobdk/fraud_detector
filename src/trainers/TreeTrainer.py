@@ -31,9 +31,7 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
     with tf.Session(config=config) as sess:
 
         saver = tf.train.Saver()
-
         summary = summarizer(model.model_name, sess)
-
         summary.construct_dir()
 
         if load:
@@ -63,7 +61,7 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
             batches = helper.batches(model.data.train_trees, batch_size, perm=True)
             pbar = tqdm(bar_format="{percentage:.0f}%|{bar}{r_bar}", total=len(batches))
             for step, batch in enumerate(batches):
-                feed_dict = model.build_feed_dict(batch)
+                feed_dict, _ = model.build_feed_dict(batch)
                 start_run_time = time.time()
                 _, acc, loss = sess.run([model.train_op, model.acc, model.loss], feed_dict=feed_dict)
                 end_run_time = time.time()
@@ -93,7 +91,7 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
             else:
                 helper._print("No new best model found!!! Prev best loss:", summary.best_loss[summary.VAL])
                 conv_count -= 1
-                if conv_count % backoff_rate == 0:
+                if backoff_rate != 0 and conv_count % backoff_rate == 0:
                     helper._print("Stepping back...")
                     model.load(sess, saver)
 
@@ -106,6 +104,7 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
             summary.save_history(epoch_times, run_times)
 
         summary.save_performance(model.data.test_trees, model)
+        summary.print_performance()
         helper._print_header("Final stats for best model")
         helper._print("Total epochs:", best_epoch)
         helper._print("Total running time:",
@@ -127,3 +126,4 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
         helper._print(summary.performance)
 
         summary.close()
+

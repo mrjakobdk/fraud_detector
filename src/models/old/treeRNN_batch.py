@@ -207,45 +207,45 @@ class treeRNN_GPU(treeModel):
 
         return feed_dict
 
-    def build_feed_dict(self, roots):
-        roots_size = [tree_util.size_of_tree(root) for root in roots]
-        roots = helper.sort_by(roots, roots_size)
-        roots_size = [tree_util.size_of_tree(root) for root in roots]
-        roots_list = helper.greedy_bin_packing(roots, roots_size, np.max(roots_size))
-
-        node_list_list = []
-        node_to_index_list = []
-        root_indices = []
-        for i, roots in enumerate(roots_list):
-            node_list = []
-            root_index = 0
-            for root in roots:
-                tree_util.depth_first_traverse(root, node_list, lambda node, node_list: node_list.append(node))
-                root_index += tree_util.size_of_tree(root)
-                root_indices.append([i,root_index])
-            node_list_list.append(node_list)
-            node_to_index = helper.reverse_dict(node_list)
-            node_to_index_list.append(node_to_index)
-
-        feed_dict = {
-            self.root_array: root_indices,
-            self.is_leaf_array: helper.lists_pad([
-                [False] + [node.is_leaf for node in node_list]
-                for node_list in node_list_list], False),
-            self.word_index_array: helper.lists_pad([
-                [0] + [self.data.word_embed_util.get_idx(node.value) for node in node_list]
-                for node_list in node_list_list], self.data.word_embed_util.get_idx("ZERO")),
-            self.left_child_array: helper.lists_pad([
-                [0] + helper.add_one(
-                    [node_to_index[node.left_child] if node.left_child is not None else -1 for node in node_list])
-                for node_list, node_to_index in zip(node_list_list, node_to_index_list)], 0),
-            self.right_child_array: helper.lists_pad([
-                [0] + helper.add_one(
-                    [node_to_index[node.right_child] if node.right_child is not None else -1 for node in node_list])
-                for node_list, node_to_index in zip(node_list_list, node_to_index_list)], 0),
-            self.label_array: helper.lists_pad([
-                [[0, 0]] + [node.label for node in node_list]
-                for node_list in node_list_list], [0, 0])
-        }
-
-        return feed_dict
+    # def build_feed_dict(self, roots):
+    #     roots_size = [tree_util.size_of_tree(root) for root in roots]
+    #     roots = helper.sort_by(roots, roots_size)
+    #     roots_size = [tree_util.size_of_tree(root) for root in roots]
+    #     roots_list = helper.greedy_bin_packing(roots, roots_size, np.max(roots_size))
+    #
+    #     node_list_list = []
+    #     node_to_index_list = []
+    #     root_indices = []
+    #     for i, roots in enumerate(roots_list):
+    #         node_list = []
+    #         root_index = 0
+    #         for root in roots:
+    #             tree_util.depth_first_traverse(root, node_list, lambda node, node_list: node_list.append(node))
+    #             root_index += tree_util.size_of_tree(root)
+    #             root_indices.append([i,root_index])
+    #         node_list_list.append(node_list)
+    #         node_to_index = helper.reverse_dict(node_list)
+    #         node_to_index_list.append(node_to_index)
+    #
+    #     feed_dict = {
+    #         self.root_array: root_indices,
+    #         self.is_leaf_array: helper.lists_pad([
+    #             [False] + [node.is_leaf for node in node_list]
+    #             for node_list in node_list_list], False),
+    #         self.word_index_array: helper.lists_pad([
+    #             [0] + [self.data.word_embed_util.get_idx(node.value) for node in node_list]
+    #             for node_list in node_list_list], self.data.word_embed_util.get_idx("ZERO")),
+    #         self.left_child_array: helper.lists_pad([
+    #             [0] + helper.add_one(
+    #                 [node_to_index[node.left_child] if node.left_child is not None else -1 for node in node_list])
+    #             for node_list, node_to_index in zip(node_list_list, node_to_index_list)], 0),
+    #         self.right_child_array: helper.lists_pad([
+    #             [0] + helper.add_one(
+    #                 [node_to_index[node.right_child] if node.right_child is not None else -1 for node in node_list])
+    #             for node_list, node_to_index in zip(node_list_list, node_to_index_list)], 0),
+    #         self.label_array: helper.lists_pad([
+    #             [[0, 0]] + [node.label for node in node_list]
+    #             for node_list in node_list_list], [0, 0])
+    #     }
+    #
+    #     return feed_dict
