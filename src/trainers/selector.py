@@ -38,6 +38,9 @@ class Selector:
         # Return data
         print(cluster_acc)
         cluster_acc.sort(key=lambda el:  el[1], reverse=True)
+        helper._print('Cluster accuracies:')
+        for k, acc in cluster_acc:
+            helper._print(f'\tCluster {k}: {acc}')
         print(cluster_acc)
 
         removed_percent = 0
