@@ -24,6 +24,7 @@ class summarizer():
     acc = {TRAIN: 0, VAL: 0, TEST: 0}
     loss = {TRAIN: 0, VAL: 0, TEST: 0}
     history = {TRAIN: [], VAL: [], TEST: []}
+    # todo and fix log load model...
     best_acc = {TRAIN: 0, VAL: 0, TEST: 0}
     best_loss = {TRAIN: math.inf, VAL: math.inf, TEST: math.inf}
     _new_best_acc = {TRAIN: False, VAL: False, TEST: False}
@@ -42,6 +43,7 @@ class summarizer():
     }
     # summary at the time of best performance
     speed = {
+        "best_epoch": 0,
         "epochs": 0,
         "total_time": 0,
     }
@@ -75,6 +77,10 @@ class summarizer():
             self.performance = helper.load_dict(directories.PERFORMANCE_FILE(self.model_name))
         if os.path.exists(directories.SPEED_FILE(self.model_name)):
             self.speed = helper.load_dict(directories.SPEED_FILE(self.model_name))
+        if os.path.exists(directories.BEST_ACC_FILE(self.model_name)):
+            self.best_acc = helper.load_dict(directories.BEST_ACC_FILE(self.model_name))
+        if os.path.exists(directories.BEST_LOSS_FILE(self.model_name)):
+            self.best_loss = helper.load_dict(directories.BEST_LOSS_FILE(self.model_name))
 
         for data_set in self.all_data_sets:
             self.history[data_set] = tmp[data_set].tolist()
@@ -129,12 +135,14 @@ class summarizer():
         if avg_acc > self.best_acc[data_set]:
             self.best_acc[data_set] = avg_acc
             self._new_best_acc[data_set] = True
+            helper.save_dict(self.best_acc, placement=directories.BEST_ACC_FILE(self.model_name))
         else:
             self._new_best_acc[data_set] = False
 
         if avg_loss < self.best_loss[data_set]:
             self.best_loss[data_set] = avg_loss
             self._new_best_loss[data_set] = True
+            helper.save_dict(self.best_loss, placement=directories.BEST_LOSS_FILE(self.model_name))
         else:
             self._new_best_loss[data_set] = False
 
@@ -187,8 +195,9 @@ class summarizer():
         with open(directories.SYS_ARG_FILE(self.model_name), "w") as text_file:
             text_file.write(str(sys.argv))
 
-    def save_speed(self, epochs, total_time):
+    def save_speed(self, best_epoch, epochs, total_time):
         self.speed = {
+            "best_epoch": best_epoch,
             "epochs": epochs,
             "total_time": total_time,
         }

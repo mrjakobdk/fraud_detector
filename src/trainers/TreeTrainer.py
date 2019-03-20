@@ -50,7 +50,7 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
 
         # for epoch in range(1, epochs + 1):
         epoch = summary.speed["epochs"]
-        best_epoch = epoch
+        best_epoch = summary.speed["best_epoch"]
         total_time = summary.speed["total_time"]
         total_time_start = time.time()
         while conv_count > 0 and (epochs == 0 or epochs > epoch):
@@ -81,6 +81,7 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
             end_time = time.time()
             epoch_time = end_time - start_time
 
+            # todo make loss / acc flag
             if summary.new_best_loss(summary.VAL):
                 helper._print("New best model found!!!")
                 model.save(sess, saver)
@@ -88,7 +89,7 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
                 total_time_end = time.time()
                 best_epoch = epoch
                 total_time += total_time_end - total_time_start
-                summary.save_speed(best_epoch, total_time)
+                summary.save_speed(best_epoch, epoch, total_time)
             else:
                 helper._print("No new best model found!!! Prev best loss:", summary.best_loss[summary.VAL])
                 conv_count -= 1
