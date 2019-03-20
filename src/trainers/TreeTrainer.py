@@ -61,7 +61,7 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
             helper._print("Learning rate:", sess.run(model.lr))
             start_time = time.time()
             run_time = 0
-            if epochs % FLAGS.select_freq == 0 and FLAGS.use_selective_training:
+            if epoch % FLAGS.select_freq == 0 and FLAGS.use_selective_training:
                 helper._print_subheader(f'Selecting sentences to use for the next {FLAGS.select_freq} epochs')
                 train_trees = selector.select_data(model.data.train_trees, FLAGS.selection_cut_off)
             batches = helper.batches(train_trees, batch_size, perm=True)

@@ -1,3 +1,4 @@
+import sys
 import tensorflow as tf
 import utils.helper as helper
 from utils.flags import FLAGS
@@ -30,11 +31,14 @@ class treeModel:
         self.build_placeholders()
         self.build_variables()
         self.build_model()
+        self.build_rep()
+        # print_op = tf.print("reps:", self.sentence_representations, self.U_L, self.U_R, self.b_U,
+        #                     output_stream=sys.stdout)
+        # with tf.control_dependencies([print_op]):
         self.build_loss()
         self.build_accuracy()
         self.build_predict()
         self.build_train_op()
-        self.build_rep()
 
     def build_constants(self):
         raise NotImplementedError("Each Model must re-implement this method.")
@@ -130,12 +134,15 @@ class treeModel:
         node_to_index_list = []
         root_indices = []
         internal_nodes_array = []
+        length_of_sentence = []
         for i, roots in enumerate(roots_list):
             node_list = []
             root_index = 0
             for root in roots:
                 tree_util.depth_first_traverse(root, node_list, lambda node, node_list: node_list.append(node))
-                root_index += tree_util.size_of_tree(root)
+                size = tree_util.size_of_tree(root)
+                root_index += size
+                length_of_sentence.append(size)
                 root_indices.append([i, root_index])
             node_list_list.append(node_list)
             node_to_index = helper.reverse_dict(node_list)

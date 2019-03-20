@@ -37,18 +37,18 @@ class treeRNN_neerbek(treeModel):
 
         # phrase weights
         self.U_L = tf.get_variable(name='U_L', shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
-                                   initializer=weight_initializer)
+                                   initializer=xavier_initializer)
         self.U_R = tf.get_variable(name='U_R', shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
-                                   initializer=weight_initializer)
+                                   initializer=xavier_initializer)
 
         # bias
-        self.b_W = tf.get_variable(name='b_W', shape=[FLAGS.sentence_embedding_size, 1], initializer=bias_initializer)
-        self.b_U = tf.get_variable(name='b_U', shape=[FLAGS.sentence_embedding_size, 1], initializer=bias_initializer)
+        self.b_W = tf.get_variable(name='b_W', shape=[FLAGS.sentence_embedding_size, 1], initializer=xavier_initializer)
+        self.b_U = tf.get_variable(name='b_U', shape=[FLAGS.sentence_embedding_size, 1], initializer=xavier_initializer)
 
         # classifier weights
         self.V = tf.get_variable(name='V', shape=[FLAGS.label_size, FLAGS.sentence_embedding_size],
                                  initializer=xavier_initializer)
-        self.b_p = tf.get_variable(name='b_p', shape=[FLAGS.label_size, 1], initializer=bias_initializer)
+        self.b_p = tf.get_variable(name='b_p', shape=[FLAGS.label_size, 1], initializer=xavier_initializer)
 
     def build_model(self):
         rep_array = tf.TensorArray(
@@ -111,7 +111,7 @@ class treeRNN_neerbek(treeModel):
             is_node = 1. - tf.squeeze(is_leaf)
             is_node_diag = tf.linalg.tensor_diag(is_node)
 
-            return tf.matmul(tf.nn.leaky_relu(word_left + phrase_left + word_right + phrase_right), is_node_diag)
+            return tf.matmul(tf.nn.relu(word_left + phrase_left + word_right + phrase_right), is_node_diag)
 
         def tree_construction_body(rep_array, word_array, o_array, i):
             word_index = tf.gather(self.word_index_array, i, axis=1)
