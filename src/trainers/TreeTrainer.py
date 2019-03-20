@@ -1,5 +1,7 @@
 import tensorflow as tf
 import time
+
+from trainers.selector import Selector
 from utils import tree_util
 from utils.flags import FLAGS
 import utils.helper as helper
@@ -30,6 +32,8 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
     conv_count = conv_cond
     with tf.Session(config=config) as sess:
 
+        selector = Selector(model, sess, FLAGS.num_clusters, FLAGS.cluster_model)
+
         saver = tf.train.Saver()
 
         summary = summarizer(model.model_name, sess)
@@ -48,19 +52,21 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
                                 number_variables=model.get_no_trainable_variables(),
                                 max_epochs=epochs, optimizer=model.optimizer)
 
-        # for epoch in range(1, epochs + 1):
         epoch = summary.speed["epochs"]
         best_epoch = epoch
         total_time = summary.speed["total_time"]
         total_time_start = time.time()
+        train_trees = model.data.train_trees
         while conv_count > 0 and (epochs == 0 or epochs > epoch):
             epoch += 1
             helper._print_subheader("Epoch " + str(epoch))
             helper._print("Learning rate:", sess.run(model.lr))
             start_time = time.time()
             run_time = 0
-
-            batches = helper.batches(model.data.train_trees, batch_size, perm=True)
+            if epochs % FLAGS.select_freq == 0 and FLAGS.use_selective_training:
+                helper._print_subheader(f'Selecting sentences to use for the next {FLAGS.select_freq} epochs')
+                train_trees = selector.select_data(model.data.train_trees, FLAGS.selection_cut_off)
+            batches = helper.batches(train_trees, batch_size, perm=True)
             pbar = tqdm(bar_format="{percentage:.0f}%|{bar}{r_bar}", total=len(batches))
             for step, batch in enumerate(batches):
                 feed_dict = model.build_feed_dict(batch)

@@ -20,7 +20,7 @@ flags.DEFINE_integer("sentence_embedding_size",
 flags.DEFINE_integer("label_size",      2,          "Number of labels")
 flags.DEFINE_integer("deepRNN_layers",  3,          "Number of layers in DeepRNN")
 
-flags.DEFINE_integer("backoff_rate", 5, "Max number of steps in wrong direction before going back")
+flags.DEFINE_integer("backoff_rate",    5,          "Max number of steps in wrong direction before going back")
 flags.DEFINE_integer("conv_cond",       100,        "Number of epochs without find a better model(convergence condition)")
 flags.DEFINE_integer("epochs",          200,        "Number of epochs during training")
 flags.DEFINE_integer("lr_decay",        500,        "Implicit decay rate, if 0 no exp decay")
@@ -32,11 +32,23 @@ flags.DEFINE_float("l2_strength",       0.0001,     "Strangth for l2 reg.")
 
 flags.DEFINE_string("optimizer",        'adagrad',     "Network optimizer")
 flags.DEFINE_boolean("load_model",      False,      "Load a old model")
-flags.DEFINE_boolean("use_root_loss", False, "use root or internal root loss")
+flags.DEFINE_boolean("use_root_loss",   False,      "use root or internal root loss")
+flags.DEFINE_boolean("use_selective_training",
+                                        True,       "Use selective training (default: True)")
 
 # ---------------------------- deepRNN ----------------------------
 
 flags.DEFINE_integer("deepRNN_depth",   3,          "Trees in the deepRNN")
+
+# ---------------------------- Selective Training ----------------------------
+
+flags.DEFINE_integer("num_clusters",    10,          "Number of clusters to use (default: 10)")
+flags.DEFINE_integer("select_freq",     10,          "Number of epochs between each selection (default: 10)")
+flags.DEFINE_float("selection_cut_off", 0.27
+                                        ,          "The expected percent to cut-off for selective training (default: 0.27)")
+flags.DEFINE_string("cluster_model",   'kmeans',    "Which clustering model to use. (default: kmeans)")
+flags.DEFINE_string("cluster_initialization",
+                                       'k-means++',    "How to initialize clusters. (k-means++’, ‘random’ or an ndarray, default: k-means++)")
 
 # --------------------------- Word embeddings ---------------------------
 
