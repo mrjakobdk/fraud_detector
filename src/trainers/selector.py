@@ -26,7 +26,7 @@ class Selector:
             representations.extend(reps)
             predictions.extend(preds)
             labels.extend(labs)
-            permutations.extend(list(i*batch_size + np.array(permuts)))
+            permutations.extend(list(i * batch_size + np.array(permuts)))
 
         representations = np.array(representations)[permutations]
         print(representations)
@@ -51,9 +51,10 @@ class Selector:
         removed_percent = 0
         data_to_use = []
         for cluster, acc in cluster_acc:
-            if removed_percent > cut_off:
+            new_percent = removed_percent + len(predictions[cluster_predictions == cluster]) / len(predictions)
+            if removed_percent > cut_off or abs(new_percent - cut_off) < abs(removed_percent - cut_off):
                 data_to_use.extend(data[cluster_predictions == cluster])
-            removed_percent += len(predictions[cluster_predictions == cluster]) / len(predictions)
+            removed_percent = new_percent
 
         helper._print(
             f'Done selecting data for training. Overall time used for selection is {int((time() - t)/60)} minutes and {int((time() - t) % 60)} seconds')

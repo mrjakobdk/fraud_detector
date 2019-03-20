@@ -21,6 +21,7 @@ def download(url, output_path):
                              miniters=1, desc=url.split('/')[-1]) as t:
         urllib.request.urlretrieve(url, filename=output_path, reporthook=t.update_to)
 
+
 def download_from_kaggle(data_name, dest):
     api = KaggleApi()
     api.authenticate()
@@ -38,6 +39,7 @@ def _print_header(text, total=80):
     padding_left = "=" * padding_size
     padding_right = "=" * (padding_size + (1 if (n - total) % 2 == 1 else 0))
     print(padding_left, text, padding_right)
+
 
 def _print_subheader(text, total=80):
     n = len(text)
@@ -66,7 +68,8 @@ def batches(data_list, batch_size, use_tail=True, perm=True):
             batch_list.append(batch)
             batch = []
     if use_tail and ((step + 1) % batch_size != 0):
-        batch_list.append(batch)
+        if len(batch) > 1:
+            batch_list.append(batch)
     return batch_list
 
 
@@ -88,8 +91,10 @@ def lists_pad(lists, padding):
 
     return lists
 
+
 def sort_by(X, Y):
     return [x for _, x in sorted(zip(Y, X), key=lambda pair: pair[0])]
+
 
 def greedy_bin_packing(items, values, max):
     bins = [[]]
@@ -120,6 +125,7 @@ def greedy_bin_packing(items, values, max):
 def all_combinations(*args):
     return np.array(np.meshgrid(*args)).T.reshape(-1, len(args))
 
+
 def listify(fn):
     """
     Use this decorator on a generator function to make it return a list
@@ -131,6 +137,7 @@ def listify(fn):
         return list(fn(*args, **kwargs))
 
     return listified
+
 
 def get_or_build(path, build_fn, *args, type=None, **kwargs):
     """
@@ -169,18 +176,20 @@ def get_or_build(path, build_fn, *args, type=None, **kwargs):
 def to_int(l):
     return [int(elem) for elem in l]
 
+
 def save_dict(dictionary, placement):
     with open(placement, 'w') as csv_file:
         writer = csv.writer(csv_file)
         for key, value in dictionary.items():
             writer.writerow([key, value])
 
+
 def load_dict(placement):
     with open(placement) as csv_file:
         reader = csv.reader(csv_file)
         d = []
         for row in reader:
-            if len(row)>0:
+            if len(row) > 0:
                 converted = False
                 for f in [int, float, bool]:
                     if not converted:
