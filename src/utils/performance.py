@@ -43,6 +43,8 @@ def get_roc_values(labels, probs):
     return TPR_list, FPR_list
 
 
+
+
 class Performance:
     def __init__(self, data, model, sess):
         """
@@ -82,6 +84,7 @@ class Performance:
         return performance
 
     def plot_ROC(self, show=False, placement=""):
+        plt.clf()
         plt.plot(self.FPR_list, self.TPR_list)
         plt.ylabel("True positive rate")
         plt.xlabel("False positive rate")

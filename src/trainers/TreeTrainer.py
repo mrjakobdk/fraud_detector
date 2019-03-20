@@ -35,9 +35,7 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
         selector = Selector(model, sess, FLAGS.num_clusters, FLAGS.cluster_model)
 
         saver = tf.train.Saver()
-
         summary = summarizer(model.model_name, sess)
-
         summary.construct_dir()
 
         if load:
@@ -53,7 +51,7 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
                                 max_epochs=epochs, optimizer=model.optimizer)
 
         epoch = summary.speed["epochs"]
-        best_epoch = epoch
+        best_epoch = summary.speed["best_epoch"]
         total_time = summary.speed["total_time"]
         total_time_start = time.time()
         train_trees = model.data.train_trees
@@ -69,7 +67,7 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
             batches = helper.batches(train_trees, batch_size, perm=True)
             pbar = tqdm(bar_format="{percentage:.0f}%|{bar}{r_bar}", total=len(batches))
             for step, batch in enumerate(batches):
-                feed_dict = model.build_feed_dict(batch)
+                feed_dict, _ = model.build_feed_dict(batch)
                 start_run_time = time.time()
                 _, acc, loss = sess.run([model.train_op, model.acc, model.loss], feed_dict=feed_dict)
                 end_run_time = time.time()
@@ -87,6 +85,7 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
             end_time = time.time()
             epoch_time = end_time - start_time
 
+            # todo make loss / acc flag
             if summary.new_best_loss(summary.VAL):
                 helper._print("New best model found!!!")
                 model.save(sess, saver)
@@ -94,11 +93,11 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
                 total_time_end = time.time()
                 best_epoch = epoch
                 total_time += total_time_end - total_time_start
-                summary.save_speed(best_epoch, total_time)
+                summary.save_speed(best_epoch, epoch, total_time)
             else:
                 helper._print("No new best model found!!! Prev best loss:", summary.best_loss[summary.VAL])
                 conv_count -= 1
-                if conv_count % backoff_rate == 0:
+                if backoff_rate != 0 and conv_count % backoff_rate == 0:
                     helper._print("Stepping back...")
                     model.load(sess, saver)
 
@@ -111,6 +110,7 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
             summary.save_history(epoch_times, run_times)
 
         summary.save_performance(model.data.test_trees, model)
+        summary.print_performance()
         helper._print_header("Final stats for best model")
         helper._print("Total epochs:", best_epoch)
         helper._print("Total running time:",
@@ -132,3 +132,4 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
         helper._print(summary.performance)
 
         summary.close()
+

@@ -1,15 +1,15 @@
 import csv
 import sys
 import math
-
+import matplotlib.pyplot as plt
 import utils.helper as helper
-from utils import directories
-from utils.flags import FLAGS
 import os
 import shutil
 import tensorflow as tf
 import numpy as np
 
+from utils import directories
+from utils.flags import FLAGS
 from utils.performance import Performance
 
 
@@ -24,6 +24,7 @@ class summarizer():
     acc = {TRAIN: 0, VAL: 0, TEST: 0}
     loss = {TRAIN: 0, VAL: 0, TEST: 0}
     history = {TRAIN: [], VAL: [], TEST: []}
+    # todo and fix log load model...
     best_acc = {TRAIN: 0, VAL: 0, TEST: 0}
     best_loss = {TRAIN: math.inf, VAL: math.inf, TEST: math.inf}
     _new_best_acc = {TRAIN: False, VAL: False, TEST: False}
@@ -42,6 +43,7 @@ class summarizer():
     }
     # summary at the time of best performance
     speed = {
+        "best_epoch": 0,
         "epochs": 0,
         "total_time": 0,
     }
@@ -75,6 +77,10 @@ class summarizer():
             self.performance = helper.load_dict(directories.PERFORMANCE_FILE(self.model_name))
         if os.path.exists(directories.SPEED_FILE(self.model_name)):
             self.speed = helper.load_dict(directories.SPEED_FILE(self.model_name))
+        if os.path.exists(directories.BEST_ACC_FILE(self.model_name)):
+            self.best_acc = helper.load_dict(directories.BEST_ACC_FILE(self.model_name))
+        if os.path.exists(directories.BEST_LOSS_FILE(self.model_name)):
+            self.best_loss = helper.load_dict(directories.BEST_LOSS_FILE(self.model_name))
 
         for data_set in self.all_data_sets:
             self.history[data_set] = tmp[data_set].tolist()
@@ -129,12 +135,14 @@ class summarizer():
         if avg_acc > self.best_acc[data_set]:
             self.best_acc[data_set] = avg_acc
             self._new_best_acc[data_set] = True
+            helper.save_dict(self.best_acc, placement=directories.BEST_ACC_FILE(self.model_name))
         else:
             self._new_best_acc[data_set] = False
 
         if avg_loss < self.best_loss[data_set]:
             self.best_loss[data_set] = avg_loss
             self._new_best_loss[data_set] = True
+            helper.save_dict(self.best_loss, placement=directories.BEST_LOSS_FILE(self.model_name))
         else:
             self._new_best_loss[data_set] = False
 
@@ -148,7 +156,7 @@ class summarizer():
         self.writer[data_set].add_summary(summary, epoch)
 
     def compute(self, data_set, data, model, epoch, _print=False):
-        feed_dict = model.build_feed_dict(data)
+        feed_dict, _ = model.build_feed_dict(data)
         acc, loss = self.sess.run([model.acc, model.loss], feed_dict=feed_dict)
         self.add(data_set, acc, loss)
         self.write_and_reset(data_set, epoch, _print=_print)
@@ -187,8 +195,9 @@ class summarizer():
         with open(directories.SYS_ARG_FILE(self.model_name), "w") as text_file:
             text_file.write(str(sys.argv))
 
-    def save_speed(self, epochs, total_time):
+    def save_speed(self, best_epoch, epochs, total_time):
         self.speed = {
+            "best_epoch": best_epoch,
             "epochs": epochs,
             "total_time": total_time,
         }
@@ -206,4 +215,48 @@ class summarizer():
         self.writer[self.TEST].close()
 
     def plot_history(self):
-        pass
+        plt.clf()
+        epochs = len(self.history[self.TEST])
+        for data_set in self.all_data_sets:
+            acc = []
+            for i in range(epochs):
+                acc.append(self.history[data_set][i][1])
+            plt.plot(list(range(1, epochs + 1)), acc, label=data_set)
+        plt.legend()
+        plt.ylabel("Acc")
+        plt.xlabel("Epoch")
+        plt.savefig(directories.ACC_HISTORY_PLOT(self.model_name))
+
+        plt.clf()
+        epochs = len(self.history[self.TEST])
+        for data_set in self.all_data_sets:
+            acc = []
+            for i in range(epochs):
+                acc.append(self.history[data_set][i][2])
+            plt.plot(list(range(1, epochs + 1)), acc, label=data_set)
+        plt.legend()
+        plt.ylabel("Loss")
+        plt.xlabel("Epoch")
+        plt.savefig(directories.LOSS_HISTORY_PLOT(self.model_name))
+
+    def print_performance(self):
+        helper._print_header("Final stats for best model")
+
+        helper._print("Best epoch:", self.speed["best_epoch"])
+        helper._print("Total epochs:", self.speed["epochs"])
+        helper._print("Total running time:",
+                      str(int(self.speed["total_time"] / (60 * 60))) + "h",
+                      str((int(self.speed["total_time"] / 60) % 60)) + "m")
+
+        helper._print_subheader("Best model")
+        best_step = np.argmax(np.array(self.history[self.VAL])[:, 1])
+        helper._print_subheader("Accuracy")
+        helper._print("Test:", self.history[self.TEST][best_step][1])
+        helper._print("Validation:", self.history[self.VAL][best_step][1])
+        helper._print("Training:", self.history[self.TRAIN][best_step][1])
+        helper._print_subheader("Loss")
+        helper._print("Test:", self.history[self.TEST][best_step][2])
+        helper._print("Validation:", self.history[self.VAL][best_step][2])
+        helper._print("Training:", self.history[self.TRAIN][best_step][2])
+        helper._print_subheader("Stats")
+        helper._print(self.performance)

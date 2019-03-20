@@ -259,7 +259,7 @@ class treeRNN_tracker(treeModel):
         roots_size = [tree_util.size_of_tree(root) for root in roots]
         roots = helper.sort_by(roots, roots_size)
         roots_size = [tree_util.size_of_tree(root) for root in roots]
-        roots_list = helper.greedy_bin_packing(roots, roots_size, np.max(roots_size))
+        roots_list, permutation = helper.greedy_bin_packing(roots, roots_size, np.max(roots_size))
 
         node_list_list = []
         node_to_index_list = []
@@ -316,4 +316,4 @@ class treeRNN_tracker(treeModel):
                 for node_list in node_list_list], [0, 0])
         }
 
-        return feed_dict
+        return feed_dict, permutation

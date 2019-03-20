@@ -120,7 +120,7 @@ class treeModel:
         roots_size = [tree_util.size_of_tree(root) for root in roots]
         roots = helper.sort_by(roots, roots_size)
         roots_size = [tree_util.size_of_tree(root) for root in roots]
-        roots_list = helper.greedy_bin_packing(roots, roots_size, np.max(roots_size))
+        roots_list, permutation = helper.greedy_bin_packing(roots, roots_size, np.max(roots_size))
 
         node_list_list = []
         node_to_index_list = []
@@ -162,7 +162,7 @@ class treeModel:
                 for node_list in node_list_list], [0, 0])
         }
 
-        return feed_dict
+        return feed_dict, permutation
 
     # def construct_dir(self):
     #     if not os.path.exists(directories.TRAINED_MODELS_DIR):
@@ -185,17 +185,17 @@ class treeModel:
 
     def predict(self, data, sess):
         helper._print_subheader("Predicting")
-        feed_dict = self.build_feed_dict(data)
+        feed_dict, _ = self.build_feed_dict(data)
         return sess.run(self.p, feed_dict=feed_dict)
 
     def predict_and_label(self, data, sess):
         helper._print_subheader("Predicting")
-        feed_dict = self.build_feed_dict(data)
+        feed_dict, _ = self.build_feed_dict(data)
         return sess.run([self.p, self.labels], feed_dict=feed_dict)
 
     def accuracy(self, data, sess):
         helper._print_subheader("Computing accuracy")
-        feed_dict = self.build_feed_dict(data)
+        feed_dict, _ = self.build_feed_dict(data)
         return sess.run(self.acc, feed_dict=feed_dict)
 
     def load(self, sess, saver):

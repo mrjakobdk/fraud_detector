@@ -211,7 +211,7 @@ class deepRNN(treeModel):
         # print_op = tf.print("root:", self.root_array,
         #                     output_stream=sys.stdout)
         # with tf.control_dependencies([print_op]):
-        labels = tf.gather_nd(self.label_array, self.root_array)
+        labels = tf.gather_nd(self.label_array, self.loss_array)
         softmax_cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=self.logits, labels=labels)
         self.loss = tf.reduce_mean(softmax_cross_entropy)
 
