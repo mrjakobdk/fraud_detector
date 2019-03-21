@@ -26,6 +26,7 @@ flags.DEFINE_integer("conv_cond",       100,        "Number of epochs without fi
 flags.DEFINE_integer("epochs",          200,        "Number of epochs during training")
 flags.DEFINE_integer("lr_decay",        500,        "Implicit decay rate, if 0 no exp decay")
 flags.DEFINE_integer("batch_size",      4,          "Batch size for training")
+flags.DEFINE_integer("val_freq",        1,          "Frequency for validation")
 flags.DEFINE_float("learning_rate",     0.01,       "Learning rate for training")
 flags.DEFINE_float("learning_rate_end", 0.00001,    "End learning rate after the total number of epoches")
 flags.DEFINE_float("sensitive_weight",  1.,         "Weight on the sensitivity")
