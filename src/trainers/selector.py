@@ -68,4 +68,6 @@ class Selector:
     def mfo(self, cluster):
         cluster_labels = self.labels[self.cluster_predictions == cluster]
         bincount = np.bincount(cluster_labels)
+        if len(cluster_labels) == 0:
+            return 0
         return bincount.max() / len(cluster_labels)
