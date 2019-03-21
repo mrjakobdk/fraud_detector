@@ -97,12 +97,12 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
                         helper._print("Stepping back...")
                         model.load(sess, saver)
 
+                end_time = time.time()
                 epoch_time = end_time - start_time
                 epoch_times.append(epoch_time)
                 helper._print("Epoch time:", str(int(epoch_time / 60)) + "m " + str(int(epoch_time % 60)) + "s")
                 helper._print("Running time:", str(int(run_time / 60)) + "m " + str(int(run_time % 60)) + "s")
                 helper._print("Epochs to convergence:", conv_count, "of", conv_cond)
-                end_time = time.time()
                 run_times.append(run_time)
 
                 summary.save_history(epoch_times, run_times)
