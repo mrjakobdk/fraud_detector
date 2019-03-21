@@ -64,7 +64,7 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
             helper._print("Learning rate:", sess.run(model.lr))
             if main_training:
                 helper._print(
-                    f'Using {len(train_trees)}/{len(model.data.train_trees)} ({len(train_trees)/len(model.data.train_trees)*100}%)')
+                    f'Using {len(train_trees)}/{len(model.data.train_trees)} ({len(train_trees)/len(model.data.train_trees)*100}%) for training data.')
             start_time = time.time()
             run_time = 0
             # if epoch % FLAGS.select_freq == 0 and FLAGS.use_selective_training:
