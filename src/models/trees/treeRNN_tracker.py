@@ -193,7 +193,7 @@ class treeRNN_tracker(treeModel):
             word = tf.matmul(self.W, rep_word)
             tracker = tf.matmul(self.E, e)
 
-            return tf.nn.leaky_relu(word + left + right + tracker + self.b)
+            return self.activation_function(word + left + right + tracker + self.b)
 
         def tree_construction_body(rep_array, word_array, o_array, e_array, i):
             word_index = tf.gather(self.word_index_array, i, axis=1)

@@ -13,7 +13,7 @@ class treeModel:
                  learning_rate=FLAGS.learning_rate,
                  learning_rate_end=FLAGS.learning_rate_end,
                  lr_decay=FLAGS.lr_decay, use_root_loss=FLAGS.use_root_loss,
-                 batch_size=FLAGS.batch_size, optimizer=FLAGS.optimizer):
+                 batch_size=FLAGS.batch_size, optimizer=FLAGS.optimizer, act_fun=FLAGS.act_fun):
 
         # config
         self.data = data
@@ -26,6 +26,11 @@ class treeModel:
         self.batch_size = batch_size
         self.optimizer = optimizer
         self.use_root_loss = use_root_loss
+
+        # select activation function
+        activation_functions = {"relu": tf.nn.relu, "leaky_relu": tf.nn.leaky_relu, "softplus": tf.nn.softplus,
+                                "sigmoid": tf.nn.sigmoid, "tanh": tf.nn.tanh}
+        self.activation_function = activation_functions[act_fun]
 
         self.build_constants()
         self.build_placeholders()
@@ -79,7 +84,8 @@ class treeModel:
         # self.loss += reg_weight * tf.nn.l2_loss(self.V)
 
     def build_rep(self):
-        self.sentence_representations = tf.gather_nd(tf.transpose(self.rep_array.stack(), perm=[2, 0, 1]), self.root_array)
+        self.sentence_representations = tf.gather_nd(tf.transpose(self.rep_array.stack(), perm=[2, 0, 1]),
+                                                     self.root_array)
 
     def build_accuracy(self):
         logits = tf.gather_nd(tf.transpose(self.o_array.stack(), perm=[2, 0, 1]), self.root_array)
@@ -105,7 +111,7 @@ class treeModel:
             decay_steps = n
             decay_rate = (self.learning_rate_end / self.learning_rate) ** (decay_steps / total_steps)
             self.lr = tf.train.exponential_decay(self.learning_rate, self.global_step, decay_steps,
-                                                       decay_rate, name='learning_rate')
+                                                 decay_rate, name='learning_rate')
 
             helper._print_header("Using learning rate with exponential decay")
             helper._print("Decay for every step:", decay_rate)
@@ -149,7 +155,7 @@ class treeModel:
             node_to_index_list.append(node_to_index)
             for node in node_list:
                 if not node.is_leaf:
-                    internal_nodes_array.append([i, node_to_index[node]+1])
+                    internal_nodes_array.append([i, node_to_index[node] + 1])
 
         feed_dict = {
             self.root_array: root_indices,

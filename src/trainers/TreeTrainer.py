@@ -78,36 +78,38 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
             print()
 
             helper._print("Computing accuracies...")
-            summary.write_and_reset(summary.TRAIN, epoch, _print=True)
-            summary.compute(summary.VAL, data=model.data.val_trees, model=model, epoch=epoch, _print=True)
-            summary.compute(summary.TEST, data=model.data.test_trees, model=model, epoch=epoch, _print=True)
+            if summary.write_and_reset(summary.TRAIN, epoch, _print=True):  # training went okay
+                summary.compute(summary.VAL, data=model.data.val_trees, model=model, epoch=epoch, _print=True)
+                summary.compute(summary.TEST, data=model.data.test_trees, model=model, epoch=epoch, _print=True)
 
-            end_time = time.time()
-            epoch_time = end_time - start_time
+                if summary.new_best_loss(summary.VAL):  # todo make loss / acc flag
+                    helper._print("New best model found!!!")
+                    model.save(sess, saver)
+                    conv_count = conv_cond
+                    total_time_end = time.time()
+                    best_epoch = epoch
+                    total_time += total_time_end - total_time_start
+                    summary.save_speed(best_epoch, epoch, total_time)
+                else:
+                    helper._print("No new best model found!!! Prev best loss:", summary.best_loss[summary.VAL])
+                    conv_count -= 1
+                    if backoff_rate != 0 and conv_count % backoff_rate == 0:
+                        helper._print("Stepping back...")
+                        model.load(sess, saver)
 
-            # todo make loss / acc flag
-            if summary.new_best_loss(summary.VAL):
-                helper._print("New best model found!!!")
-                model.save(sess, saver)
-                conv_count = conv_cond
-                total_time_end = time.time()
-                best_epoch = epoch
-                total_time += total_time_end - total_time_start
-                summary.save_speed(best_epoch, epoch, total_time)
+                epoch_time = end_time - start_time
+                epoch_times.append(epoch_time)
+                helper._print("Epoch time:", str(int(epoch_time / 60)) + "m " + str(int(epoch_time % 60)) + "s")
+                helper._print("Running time:", str(int(run_time / 60)) + "m " + str(int(run_time % 60)) + "s")
+                helper._print("Epochs to convergence:", conv_count, "of", conv_cond)
+                end_time = time.time()
+                run_times.append(run_time)
+
+                summary.save_history(epoch_times, run_times)
             else:
-                helper._print("No new best model found!!! Prev best loss:", summary.best_loss[summary.VAL])
-                conv_count -= 1
-                if backoff_rate != 0 and conv_count % backoff_rate == 0:
-                    helper._print("Stepping back...")
-                    model.load(sess, saver)
-
-            helper._print("Epoch time:", str(int(epoch_time / 60)) + "m " + str(int(epoch_time % 60)) + "s")
-            helper._print("Running time:", str(int(run_time / 60)) + "m " + str(int(run_time % 60)) + "s")
-            helper._print("Epochs to convergence:", conv_count, "of", conv_cond)
-            epoch_times.append(epoch_time)
-            run_times.append(run_time)
-
-            summary.save_history(epoch_times, run_times)
+                helper._print("Nan loss was encountered, stepping back...")
+                model.load(sess, saver)
+                # todo maybe just one step back?
 
         summary.save_performance(model.data.test_trees, model)
         summary.print_performance()
@@ -132,4 +134,3 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
         helper._print(summary.performance)
 
         summary.close()
-

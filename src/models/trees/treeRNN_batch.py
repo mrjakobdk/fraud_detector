@@ -93,7 +93,7 @@ class treeRNN_batch(treeModel):
             right = tf.matmul(self.U_R, rep_r)
             word = tf.matmul(self.W, rep_word)
 
-            return tf.nn.leaky_relu(word + left + right + self.b)
+            return self.activation_function(word + left + right + self.b)
 
         def tree_construction_body(rep_array, word_array, o_array, i):
             word_index = tf.gather(self.word_index_array, i, axis=1)

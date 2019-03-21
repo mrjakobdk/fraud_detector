@@ -129,7 +129,8 @@ class summarizer():
         self.history[data_set].append((epoch,
                                        avg_acc,
                                        avg_loss))
-
+        if math.isnan(avg_loss):
+            return False
         self.write_to_summary(data_set, avg_acc, avg_loss, epoch)
 
         if avg_acc > self.best_acc[data_set]:
@@ -148,6 +149,7 @@ class summarizer():
 
         if _print:
             helper._print(data_set.capitalize(), "-", "acc:", avg_acc, "loss:", avg_loss)
+        return True
 
     def write_to_summary(self, data_set, acc, loss, epoch):
         summary = tf.Summary()

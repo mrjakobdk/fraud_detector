@@ -117,7 +117,7 @@ class deepRNN(treeModel):
             word_left = tf.matmul(self.W_L, rep_word_l)
             word_right = tf.matmul(self.W_R, rep_word_r)
 
-            return tf.nn.leaky_relu(word_left
+            return self.activation_function(word_left
                                     + word_right
                                     + phrase_left
                                     + phrase_right
@@ -155,7 +155,7 @@ class deepRNN(treeModel):
                 word_encode = tf.matmul(self.E_2Leaf, rep_word)
                 phrase_encode = tf.matmul(self.E[1], rep_prev)
 
-                return tf.nn.leaky_relu(phrase_left + phrase_right + word_encode + phrase_encode + self.b[1])
+                return self.activation_function(phrase_left + phrase_right + word_encode + phrase_encode + self.b[1])
 
             def tree_layer_1_construction_body(rep_array, rep_array_prev, word_array, i):
                 rep = build_node_layer_1(i, rep_array, rep_array_prev, word_array)
@@ -183,7 +183,7 @@ class deepRNN(treeModel):
                 phrase_right = tf.matmul(U_R, rep_r)
                 phrase_encode = tf.matmul(E, rep_prev)
 
-                return tf.nn.leaky_relu(phrase_left + phrase_right + phrase_encode + b)
+                return self.activation_function(phrase_left + phrase_right + phrase_encode + b)
 
             def tree_layer_n_construction_body(rep_array, rep_array_prev, U_L, U_R, E, b, i):
                 rep = build_node_layer_n(i, rep_array, rep_array_prev, U_L, U_R, E, b)

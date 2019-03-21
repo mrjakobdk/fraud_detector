@@ -111,7 +111,9 @@ class treeRNN_neerbek(treeModel):
             is_node = 1. - tf.squeeze(is_leaf)
             is_node_diag = tf.linalg.tensor_diag(is_node)
 
-            return tf.matmul(tf.nn.relu(word_left + phrase_left + word_right + phrase_right), is_node_diag)
+            return tf.matmul(self.activation_function(word_left + phrase_left + word_right + phrase_right), is_node_diag)
+        # todo make flag for selecting activation function
+        # todo would be nice to see embedding of the largest cluster
 
         def tree_construction_body(rep_array, word_array, o_array, i):
             word_index = tf.gather(self.word_index_array, i, axis=1)
