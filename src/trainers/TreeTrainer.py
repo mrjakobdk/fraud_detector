@@ -89,27 +89,34 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
                     if summary.new_best_acc(summary.TRAIN):
                         helper._print("New best model found!")
                         pretrain_count = 0
+                        model.save(sess, saver)
+                        best_epoch = epoch
                     else:
                         pretrain_count += 1
                         helper._print(f"No new best model found for {pretrain_count}/{FLAGS.pretrain_stop_count} epochs. Prev best acc: {summary.best_acc[summary.TRAIN]}")
                         if pretrain_count >= FLAGS.pretrain_stop_count:
                             helper._print_header(f'PRETRAINING ENDED! Clustering for MAIN TRAINING!')
+                            model.load(sess, saver)
                             train_trees = selector.select_data(model.data.train_trees, FLAGS.selection_cut_off)
                             main_training = True
+                            epoch = best_epoch
 
                 if epoch % FLAGS.val_freq == 0 and main_training:
                     summary.compute(summary.VAL, data=model.data.val_trees, model=model, epoch=epoch, _print=True)
                     # summary.compute(summary.TEST, data=model.data.test_trees, model=model, epoch=epoch, _print=True)
 
-                    if summary.new_best_loss(summary.VAL):  # todo make loss / acc flag
+                    if summary.new_best_acc(summary.VAL):
                         helper._print("New best model found!!!")
                         model.save(sess, saver)
-                        conv_count = conv_cond
-                        total_time_end = time.time()
                         best_epoch = epoch
+                        total_time_end = time.time()
                         total_time += total_time_end - total_time_start
                     else:
                         helper._print("No new best model found!!! Prev best loss:", summary.best_loss[summary.VAL])
+
+                    if summary.new_best_loss(summary.TRAIN):
+                        conv_count = conv_cond
+                    else:
                         conv_count -= 1
                         if backoff_rate != 0 and conv_count % backoff_rate == 0:
                             helper._print("Stepping back...")

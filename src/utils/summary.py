@@ -133,14 +133,14 @@ class summarizer():
             return False
         self.write_to_summary(data_set, avg_acc, avg_loss, epoch)
 
-        if avg_acc > self.best_acc[data_set]:
+        if avg_acc >= self.best_acc[data_set]:
             self.best_acc[data_set] = avg_acc
             self._new_best_acc[data_set] = True
             helper.save_dict(self.best_acc, placement=directories.BEST_ACC_FILE(self.model_name))
         else:
             self._new_best_acc[data_set] = False
 
-        if avg_loss < self.best_loss[data_set]:
+        if avg_loss <= self.best_loss[data_set]:
             self.best_loss[data_set] = avg_loss
             self._new_best_loss[data_set] = True
             helper.save_dict(self.best_loss, placement=directories.BEST_LOSS_FILE(self.model_name))
@@ -250,6 +250,8 @@ class summarizer():
                       str(int(self.speed["total_time"] / (60 * 60))) + "h",
                       str((int(self.speed["total_time"] / 60) % 60)) + "m")
 
+
+        #todo check if this workd????? best_step??? dont think it is correct if the models had been loaded
         helper._print_subheader("Best model")
         best_step = np.argmax(np.array(self.history[self.VAL])[:, 1])
         helper._print_subheader("Accuracy")
