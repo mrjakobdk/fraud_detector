@@ -62,6 +62,9 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
             epoch += 1
             helper._print_subheader(f'Epoch {epoch} ({"Pre-training" if not main_training else "Main training"})')
             helper._print("Learning rate:", sess.run(model.lr))
+            if main_training:
+                helper._print(
+                    f'Using {len(train_trees)}/{len(model.data.train_trees)} ({len(train_trees)/len(model.data.train_trees)*100}%)')
             start_time = time.time()
             run_time = 0
             # if epoch % FLAGS.select_freq == 0 and FLAGS.use_selective_training:
@@ -84,9 +87,11 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
             if summary.write_and_reset(summary.TRAIN, epoch, _print=True):  # training went okay
                 if not main_training:
                     if summary.new_best_acc(summary.TRAIN):
+                        helper._print("New best model found!")
                         pretrain_count = 0
                     else:
                         pretrain_count += 1
+                        helper._print(f"No new best model found for {pretrain_count}/{FLAGS.pretrain_stop_count} epochs. Prev best acc: {summary.best_acc[summary.TRAIN]}")
                         if pretrain_count >= FLAGS.pretrain_stop_count:
                             helper._print_header(f'PRETRAINING ENDED! Clustering for MAIN TRAINING!')
                             train_trees = selector.select_data(model.data.train_trees, FLAGS.selection_cut_off)
@@ -116,7 +121,8 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
                 epoch_times.append(epoch_time)
                 helper._print("Epoch time:", str(int(epoch_time / 60)) + "m " + str(int(epoch_time % 60)) + "s")
                 helper._print("Running time:", str(int(run_time / 60)) + "m " + str(int(run_time % 60)) + "s")
-                helper._print("Epochs to convergence:", conv_count, "of", conv_cond)
+                if main_training:
+                    helper._print("Epochs to convergence:", conv_count, "of", conv_cond)
                 run_times.append(run_time)
 
                 summary.save_history(epoch_times, run_times)
