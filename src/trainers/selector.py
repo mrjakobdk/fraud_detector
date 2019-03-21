@@ -28,32 +28,35 @@ class Selector:
             labels.extend(labs)
             permutations.extend(list(i * batch_size + np.array(permuts)))
 
-        representations = np.array(representations)[permutations]
+        self.representations = np.array(representations)[permutations]
         print(representations)
-        predictions = performance.get_prediction(np.array(predictions)[permutations])
-        labels = performance.get_prediction(np.array(labels)[permutations])
+        self.predictions = performance.get_prediction(np.array(predictions)[permutations])
+        self.labels = performance.get_prediction(np.array(labels)[permutations])
         # Get clusters
 
-        cluster_predictions = self.cluster_model.cluster(representations)
+        self.cluster_predictions = self.cluster_model.cluster(self.representations)
 
         # Get acc of clusters
         cluster_acc = []
         for i in range(self.num_clusters):
-            acc = performance.get_accuracy(labels[cluster_predictions == i], predictions[cluster_predictions == i])
+            if FLAGS.mfo:
+                acc = self.mfo(i)
+            else:
+                acc = performance.get_accuracy(self.labels[self.cluster_predictions == i], self.predictions[self.cluster_predictions == i])
             cluster_acc.append((i, acc))
 
         # Return data
         cluster_acc.sort(key=lambda el: el[1], reverse=True)
         helper._print('Cluster accuracies:')
         for k, acc in cluster_acc:
-            helper._print(f'\tCluster {k}: {acc}, size: {len(labels[cluster_predictions == k])}/{len(data)}')
+            helper._print(f'\tCluster {k}: {acc}, size: {len(self.labels[self.cluster_predictions == k])}/{len(data)}')
 
         removed_percent = 0
         data_to_use = []
         for cluster, acc in cluster_acc:
-            new_percent = removed_percent + len(predictions[cluster_predictions == cluster]) / len(predictions)
+            new_percent = removed_percent + len(self.predictions[self.cluster_predictions == cluster]) / len(self.predictions)
             if removed_percent > cut_off or (new_percent > cut_off and abs(new_percent - cut_off) > abs(removed_percent - cut_off)):
-                data_to_use.extend(data[cluster_predictions == cluster])
+                data_to_use.extend(data[self.cluster_predictions == cluster])
             removed_percent = new_percent
 
         helper._print(
@@ -61,3 +64,8 @@ class Selector:
         helper._print(
             f'Using {len(data_to_use)}/{len(data)} ({len(data_to_use)/len(data)*100}%) for the next {FLAGS.select_freq} epochs')
         return data_to_use
+
+    def mfo(self, cluster):
+        cluster_labels = self.labels[self.cluster_predictions == cluster]
+        bincount = np.bincount(cluster_labels)
+        return bincount.max() / len(cluster_labels)
