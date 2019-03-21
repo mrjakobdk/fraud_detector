@@ -47,7 +47,7 @@ class Selector:
 
         # Return data
         cluster_acc.sort(key=lambda el: el[1], reverse=True)
-        helper._print('Cluster accuracies:')
+        helper._print(f'Cluster accuracies(MFO={FLAGS.mfo}):')
         for k, acc in cluster_acc:
             helper._print(f'\tCluster {k}: {acc}, size: {len(self.labels[self.cluster_predictions == k])}/{len(data)}')
 
