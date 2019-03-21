@@ -46,6 +46,8 @@ flags.DEFINE_integer("deepRNN_depth",   3,          "Trees in the deepRNN")
 
 flags.DEFINE_integer("num_clusters",    10,          "Number of clusters to use (default: 10)")
 flags.DEFINE_integer("select_freq",     10,          "Number of epochs between each selection (default: 10)")
+flags.DEFINE_integer("pretrain_stop_count",
+                                        50,          "Stop pretraining when number of epochs without better training acc reaches this. (default: 50)")
 flags.DEFINE_float("selection_cut_off", 0.27,        "The expected percent to cut-off for selective training (default: 0.27)")
 flags.DEFINE_boolean("mfo",             True,        "Whether to use MFO analysis to rate clusters. If False use prediction accuracy (default: True)")
 flags.DEFINE_string("cluster_model",   'kmeans',    "Which clustering model to use. (default: kmeans)")

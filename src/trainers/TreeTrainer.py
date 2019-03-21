@@ -55,15 +55,18 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
         total_time = summary.speed["total_time"]
         total_time_start = time.time()
         train_trees = model.data.train_trees
+        pretrain_count = 0
+        main_training = not FLAGS.use_selective_training
+
         while conv_count > 0 and (epochs == 0 or epochs > epoch):
             epoch += 1
-            helper._print_subheader("Epoch " + str(epoch))
+            helper._print_subheader(f'Epoch {epoch} ({"Pre-training" if not main_training else "Main training"})')
             helper._print("Learning rate:", sess.run(model.lr))
             start_time = time.time()
             run_time = 0
-            if epoch % FLAGS.select_freq == 0 and FLAGS.use_selective_training:
-                helper._print_subheader(f'Selecting sentences to use for the next {FLAGS.select_freq} epochs')
-                train_trees = selector.select_data(model.data.train_trees, FLAGS.selection_cut_off)
+            # if epoch % FLAGS.select_freq == 0 and FLAGS.use_selective_training:
+            #     helper._print_header(f'PRETRAINING ENDED! Clustering for MAIN TRAINING!')
+            #     train_trees = selector.select_data(model.data.train_trees, FLAGS.selection_cut_off)
             batches = helper.batches(train_trees, batch_size, perm=True)
             pbar = tqdm(bar_format="{percentage:.0f}%|{bar}{r_bar}", total=len(batches))
             for step, batch in enumerate(batches):
@@ -79,9 +82,19 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
 
             helper._print("Computing accuracies...")
             if summary.write_and_reset(summary.TRAIN, epoch, _print=True):  # training went okay
-                if epoch % FLAGS.val_freq == 0:
+                if not main_training:
+                    if summary.new_best_acc(summary.TRAIN):
+                        pretrain_count = 0
+                    else:
+                        pretrain_count += 1
+                        if pretrain_count >= FLAGS.pretrain_stop_count:
+                            helper._print_header(f'PRETRAINING ENDED! Clustering for MAIN TRAINING!')
+                            train_trees = selector.select_data(model.data.train_trees, FLAGS.selection_cut_off)
+                            main_training = True
+
+                if epoch % FLAGS.val_freq == 0 and main_training:
                     summary.compute(summary.VAL, data=model.data.val_trees, model=model, epoch=epoch, _print=True)
-                    summary.compute(summary.TEST, data=model.data.test_trees, model=model, epoch=epoch, _print=True)
+                    # summary.compute(summary.TEST, data=model.data.test_trees, model=model, epoch=epoch, _print=True)
 
                     if summary.new_best_loss(summary.VAL):  # todo make loss / acc flag
                         helper._print("New best model found!!!")
