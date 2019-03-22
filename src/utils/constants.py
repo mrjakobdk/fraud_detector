@@ -23,3 +23,5 @@ TREE_LSTM = 'treeLSTM'
 
 ADAM_OPTIMIZER = 'adam'
 ADAGRAD_OPTIMIZER = 'adagrad'
+
+TREE_LABELS = {'ppay': '4', 'edence': '3', 'fas': '2', 'fcast': '1'}

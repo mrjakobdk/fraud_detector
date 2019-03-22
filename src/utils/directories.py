@@ -11,10 +11,18 @@ def LOGS_TEST_DIR(model_name): return TRAINED_MODELS_DIR + model_name + '/logs/t
 def HISTORIES_DIR(model_name): return TRAINED_MODELS_DIR + model_name + '/histories/'
 def PLOTS_DIR(model_name): return TRAINED_MODELS_DIR + model_name + '/plots/'
 def BEST_MODEL_DIR(model_name): return TRAINED_MODELS_DIR + model_name + '/best_model/'
+
 ENRON_DIR = DATA_DIR + 'enron/'
 GLOVE_DIR = DATA_DIR + 'glove/'
 WORD2VEC_DIR = DATA_DIR + 'word2vec/'
-TREES_DIR = DATA_DIR + 'trees/'
+
+SMALL_TREES_DIR = ENRON_DIR + 'SMALL/'
+ALL_LABELS_TREES_DIR = ENRON_DIR + 'BIG/'
+PPAY_TREES_DIR = ENRON_DIR + 'PPAY/'
+EDENCE_TREES_DIR = ENRON_DIR + 'EDENCE/'
+FAS_TREES_DIR = ENRON_DIR + 'FAS/'
+FCAST_TREES_DIR = ENRON_DIR + 'FCAST/'
+TREES_DIRS = {'ppay': PPAY_TREES_DIR, 'edence': EDENCE_TREES_DIR, 'fas': FAS_TREES_DIR, 'fcast': FCAST_TREES_DIR, 'all': ALL_LABELS_TREES_DIR, 'small': SMALL_TREES_DIR}
 
 
 # --------------------------- File Paths ---------------------------
@@ -29,16 +37,16 @@ def HISTORIES_FILE(model_name): return TRAINED_MODELS_DIR + model_name + '/histo
 def ROC_PLOT(model_name): return TRAINED_MODELS_DIR + model_name + '/plots/roc.png'
 def ACC_HISTORY_PLOT(model_name): return TRAINED_MODELS_DIR + model_name + '/plots/acc_history.png'
 def LOSS_HISTORY_PLOT(model_name): return TRAINED_MODELS_DIR + model_name + '/plots/loss_history.png'
-ENRON_EMAILS_CSV_PATH = ENRON_DIR + 'emails.csv'
-ENRON_EMAILS_TXT_PATH = ENRON_DIR + 'emails.txt'
-ENRON_EMAILS_ZIP_PATH = ENRON_DIR + 'enron-email-dataset.zip'
-ENRON_EMAILS_VOCAB_PATH = ENRON_DIR + 'vocab'
-ENRON_EMAILS_COOCCUR_PATH = ENRON_DIR + 'cooccur.npy'
-TREE_ALL_SENTENCES_TXT_PATH = TREES_DIR + 'all_sentences.txt'
-TREE_ALL_SENTENCES_VOCAB_PATH = TREES_DIR + 'all_vocab'
-TREE_SENTENCES_TXT_PATH = TREES_DIR + 'train_sentences.txt'
-TREE_SENTENCES_VOCAB_PATH = TREES_DIR + 'vocab'
-TREE_SENTENCES_COOCCUR_PATH = TREES_DIR + 'cooccur.npy'
+
+PPAY_TREES_ZIP_PATH = PPAY_TREES_DIR + 'PPAY.zip'
+EDENCE_TREES_ZIP_PATH = EDENCE_TREES_DIR + 'EDENCE.zip'
+FAS_TREES_ZIP_PATH = FAS_TREES_DIR + 'FAS.zip'
+FCAST_TREES_ZIP_PATH = FCAST_TREES_DIR + 'FCAST.zip'
+TREES_ZIP_PATHS = {'ppay': PPAY_TREES_ZIP_PATH, 'edence': EDENCE_TREES_ZIP_PATH, 'fas': FAS_TREES_ZIP_PATH, 'fcast': FCAST_TREES_ZIP_PATH}
+ENRON_TRAIN_SENTENCES_TXT_PATH = ENRON_DIR + 'train_sentences.txt'
+
+GLOVE_ENRON_VOCAB_PATH = ENRON_DIR + 'vocab'
+GLOVE_ENRON_COOCCUR_PATH = ENRON_DIR + 'cooccur.npy'
 GLOVE_EMBEDDING_FILE_NAME = 'glove.6B'
 GLOVE_EMBEDDING_FILE_PATH = GLOVE_DIR + GLOVE_EMBEDDING_FILE_NAME + '.' + str(FLAGS.word_embedding_size) + 'd.txt'
 GLOVE_EMBEDDING_ZIP_PATH = GLOVE_DIR + 'glove.zip'

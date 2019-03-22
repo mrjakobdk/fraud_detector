@@ -4,18 +4,20 @@ from utils import constants
 
 flags = tf.app.flags
 
+# --------------------------- Data ---------------------------
+
+flags.DEFINE_string("dataset",          'small',    "Which dataset to use. Choose between: ppay, edence, fas, fcast, all, small (default: small)")
+
+
 # --------------------------- Directories ---------------------------
 
 flags.DEFINE_string("root", '../', "path to root folder of the project.")
 
-
 # --------------------------- Training Parameters ---------------------------
 
-flags.DEFINE_string("model_name",       '', "Name for model")
-flags.DEFINE_string("model",            "treeRNN", "Selecting the model to be used")
-flags.DEFINE_string("act_fun",          "relu", "Select hidden activation function (default: relu")
-
-
+flags.DEFINE_string("model_name",       '',         "Name for model")
+flags.DEFINE_string("model",            "treeRNN",  "Selecting the model to be used")
+flags.DEFINE_string("act_fun",          "relu",     "Select hidden activation function (default: relu")
 flags.DEFINE_integer("sentence_embedding_size",
                                         300,        "Size of the sentence embedding")
 flags.DEFINE_integer("label_size",      2,          "Number of labels")
