@@ -67,9 +67,6 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
                     f'Using {len(train_trees)}/{len(model.data.train_trees)} ({len(train_trees)/len(model.data.train_trees)*100}%) for training data.')
             start_time = time.time()
             run_time = 0
-            # if epoch % FLAGS.select_freq == 0 and FLAGS.use_selective_training:
-            #     helper._print_header(f'PRETRAINING ENDED! Clustering for MAIN TRAINING!')
-            #     train_trees = selector.select_data(model.data.train_trees, FLAGS.selection_cut_off)
             batches = helper.batches(train_trees, batch_size, perm=True)
             pbar = tqdm(bar_format="{percentage:.0f}%|{bar}{r_bar}", total=len(batches))
             for step, batch in enumerate(batches):
