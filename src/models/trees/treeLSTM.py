@@ -180,8 +180,6 @@ class treeLSTM(treeModel):
     #     # self.loss += reg_weight * tf.nn.l2_loss(self.U_R)
     #     # self.loss += reg_weight * tf.nn.l2_loss(self.V)
     #
-    #     # todo is this reshaped in the correct way?
-    #     # todo fix loss - might drag the bias to zero??? tests and fix it
     #     # self.loss = tf.reduce_mean(
     #     #     tf.nn.softmax_cross_entropy_with_logits_v2(logits=tf.reshape(self.o_array.stack(), [-1, FLAGS.label_size]),
     #     #                                                # stacking o_array this way might be wrong

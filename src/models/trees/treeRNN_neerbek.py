@@ -42,6 +42,7 @@ class treeRNN_neerbek(treeModel):
                                    initializer=xavier_initializer)
 
         # bias
+        self.b = tf.get_variable(name='b', shape=[FLAGS.sentence_embedding_size, 1], initializer=xavier_initializer)
         self.b_W = tf.get_variable(name='b_W', shape=[FLAGS.sentence_embedding_size, 1], initializer=xavier_initializer)
         self.b_U = tf.get_variable(name='b_U', shape=[FLAGS.sentence_embedding_size, 1], initializer=xavier_initializer)
 
@@ -103,15 +104,21 @@ class treeRNN_neerbek(treeModel):
             rep_word_l = gather_rep(i, self.left_child_array, word_array)
             rep_word_r = gather_rep(i, self.right_child_array, word_array)
 
-            phrase_left = tf.matmul(self.U_L, rep_l) + tf.matmul(self.b_U, 1. - is_leaf_l)  # 1 - to negate is_leaf
-            phrase_right = tf.matmul(self.U_R, rep_r) + tf.matmul(self.b_U, 1. - is_leaf_r)
-            word_left = tf.matmul(self.W_L, rep_word_l) + tf.matmul(self.b_W, is_leaf_l)
-            word_right = tf.matmul(self.W_R, rep_word_r) + tf.matmul(self.b_W, is_leaf_r)
+            # phrase_left = tf.matmul(self.U_L, rep_l) + tf.matmul(self.b_U, 1. - is_leaf_l)  # 1 - to negate is_leaf
+            # phrase_right = tf.matmul(self.U_R, rep_r) + tf.matmul(self.b_U, 1. - is_leaf_r)
+            # word_left = tf.matmul(self.W_L, rep_word_l) + tf.matmul(self.b_W, is_leaf_l)
+            # word_right = tf.matmul(self.W_R, rep_word_r) + tf.matmul(self.b_W, is_leaf_r)
+
+            # todo multiple bias
+            phrase_left = tf.matmul(self.U_L, rep_l)  # 1 - to negate is_leaf
+            phrase_right = tf.matmul(self.U_R, rep_r)
+            word_left = tf.matmul(self.W_L, rep_word_l)
+            word_right = tf.matmul(self.W_R, rep_word_r)
 
             is_node = 1. - tf.squeeze(is_leaf)
             is_node_diag = tf.linalg.tensor_diag(is_node)
 
-            return tf.matmul(self.activation_function(word_left + phrase_left + word_right + phrase_right), is_node_diag)
+            return tf.matmul(self.activation_function(word_left + phrase_left + word_right + phrase_right + self.b), is_node_diag)
         # todo make flag for selecting activation function
         # todo would be nice to see embedding of the largest cluster
 
