@@ -1,5 +1,7 @@
 import zipfile
 
+from tqdm import tqdm
+
 from utils import directories, constants
 from utils.flags import FLAGS
 import numpy as np
@@ -129,8 +131,16 @@ def parse_trees(data_set="train", remove=False):  # todo maybe change input para
 
     helper._print("Loading %s trees.." % data_set)
     with open(file, 'r') as fid:
-        trees = [parse_tree(l) for l in fid.readlines()]
-    helper._print(len(trees), "loaded!")
+        trees = []
+        lines = fid.readlines()
+        pbar = tqdm(bar_format='{percentage:.0f}%|{bar}| Elapsed: {elapsed}, Remaining: {remaining} ({n_fmt}/{total_fmt}) ', total=len(lines))
+        for i, l in enumerate(lines):
+            if (i + 1) % 1000 == 0:
+                pbar.update(1000)
+            trees.append(parse_tree(l))
+        pbar.update(len(lines) % 1000)
+        pbar.close()
+        print()
     sentence_length = [count_leaf(tree) for tree in trees]
     sentence_length = np.array(sentence_length)
     helper._print("Avg length:", np.average(sentence_length))
