@@ -10,7 +10,7 @@ from models.trees.treeRNN_neerbek import treeRNN_neerbek
 from models.trees.treeRNN_tracker import treeRNN_tracker
 from models.words_embeddings.glove import GloVe
 from models.words_embeddings.word2vec import Word2Vec
-from utils import constants, directories
+from utils import constants, directories #directories is need to construct console file
 from utils.flags import FLAGS
 from experiments import SpeedTester
 
@@ -56,7 +56,10 @@ def main():
     else:
         model = treeRNN(data, word_embeddings, model_name)
 
-    trainer.train(model, load=FLAGS.load_model, gpu=FLAGS.use_gpu)
+    if FLAGS.use_selective_training:
+        trainer.selective_train(model, load=FLAGS.load_model, gpu=FLAGS.use_gpu)
+    else:
+        trainer.train(model, load=FLAGS.load_model, gpu=FLAGS.use_gpu)
 
 
 if __name__ == "__main__":

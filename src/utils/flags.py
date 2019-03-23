@@ -6,14 +6,16 @@ flags = tf.app.flags
 
 # --------------------------- Directories ---------------------------
 
-flags.DEFINE_string("root", '../', "path to root folder of the project.")
+flags.DEFINE_string("root",             '../',      "path to root folder of the project.")
 
 
 # --------------------------- Training Parameters ---------------------------
 
-flags.DEFINE_string("model_name",       '', "Name for model")
-flags.DEFINE_string("model",            "treeRNN", "Selecting the model to be used")
-flags.DEFINE_string("act_fun",          "relu", "Select hidden activation function (default: relu")
+flags.DEFINE_string("model_name",       '',         "Name for model")
+flags.DEFINE_string("model",            "treeRNN",  "Selecting the model to be used")
+flags.DEFINE_string("act_fun",          "relu",     "Select hidden activation function (default: relu")
+flags.DEFINE_float("acc_min_delta_drop",0.001,      "Mini increase in accuracy to count as increasing")
+flags.DEFINE_float("acc_min_delta_conv",0.001,      "Mini increase in accuracy to count as increasing")
 
 
 flags.DEFINE_integer("sentence_embedding_size",
@@ -27,12 +29,12 @@ flags.DEFINE_integer("epochs",          200,        "Number of epochs during tra
 flags.DEFINE_integer("lr_decay",        500,        "Implicit decay rate, if 0 no exp decay")
 flags.DEFINE_integer("batch_size",      4,          "Batch size for training")
 flags.DEFINE_integer("val_freq",        1,          "Frequency for validation")
-flags.DEFINE_float("learning_rate",     0.01,       "Learning rate for training")
-flags.DEFINE_float("learning_rate_end", 0.00001,    "End learning rate after the total number of epoches")
+flags.DEFINE_float("learning_rate",     0.1,        "Learning rate for training")
+flags.DEFINE_float("learning_rate_end", 0.001,      "End learning rate after the total number of epoches")
 flags.DEFINE_float("sensitive_weight",  1.,         "Weight on the sensitivity")
 flags.DEFINE_float("l2_strength",       0.0001,     "Strangth for l2 reg.")
 
-flags.DEFINE_string("optimizer",        'adagrad',     "Network optimizer")
+flags.DEFINE_string("optimizer",        'adagrad',  "Network optimizer")
 flags.DEFINE_boolean("load_model",      False,      "Load a old model")
 flags.DEFINE_boolean("use_root_loss",   False,      "use root or internal root loss")
 flags.DEFINE_boolean("use_selective_training",
@@ -49,9 +51,9 @@ flags.DEFINE_integer("pretrain_stop_count",
                                         50,          "Stop pretraining when number of epochs without better training acc reaches this. (default: 50)")
 flags.DEFINE_float("selection_cut_off", 0.27,        "The expected percent to cut-off for selective training (default: 0.27)")
 flags.DEFINE_boolean("mfo",             True,        "Whether to use MFO analysis to rate clusters. If False use prediction accuracy (default: True)")
-flags.DEFINE_string("cluster_model",   'kmeans',    "Which clustering model to use. (default: kmeans)")
+flags.DEFINE_string("cluster_model",   'kmeans',     "Which clustering model to use. (default: kmeans)")
 flags.DEFINE_string("cluster_initialization",
-                                       'k-means++',    "How to initialize clusters. (k-means++’, ‘random’ or an ndarray, default: k-means++)")
+                                       'k-means++',  "How to initialize clusters. (k-means++’, ‘random’ or an ndarray, default: k-means++)")
 
 
 # --------------------------- Word embeddings ---------------------------

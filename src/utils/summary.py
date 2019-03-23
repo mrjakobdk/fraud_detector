@@ -1,6 +1,8 @@
 import csv
 import sys
 import math
+from time import time
+
 import matplotlib.pyplot as plt
 import utils.helper as helper
 import os
@@ -24,11 +26,13 @@ class summarizer():
     acc = {TRAIN: 0, VAL: 0, TEST: 0}
     loss = {TRAIN: 0, VAL: 0, TEST: 0}
     history = {TRAIN: [], VAL: [], TEST: []}
-    # todo and fix log load model...
     best_acc = {TRAIN: 0, VAL: 0, TEST: 0}
+    pre_best_acc = {TRAIN: 0, VAL: 0, TEST: 0}
     best_loss = {TRAIN: math.inf, VAL: math.inf, TEST: math.inf}
     _new_best_acc = {TRAIN: False, VAL: False, TEST: False}
     _new_best_loss = {TRAIN: False, VAL: False, TEST: False}
+    delta_time = 0
+
 
     #########
     parameters = {
@@ -43,11 +47,43 @@ class summarizer():
     }
     # summary at the time of best performance
     speed = {
+        "batch": 0,
         "best_epoch": 0,
-        "epochs": 0,
+        "epoch": 0,
+        "best_time": 0,
         "total_time": 0,
+        "dropping_count": 0,
+        "converging_count": 0,
+        "dropping_acc": 0,
+        "converging_acc": 0,
+
     }
-    performance = {
+
+    performance_train = {
+        "accuracy": 0,
+        "auc": 0,
+        "tp": 0,
+        "fp": 0,
+        "tn": 0,
+        "fn": 0,
+        "precision": 0,
+        "recall": 0,
+        "f1": 0,
+    }
+
+    performance_val = {
+        "accuracy": 0,
+        "auc": 0,
+        "tp": 0,
+        "fp": 0,
+        "tn": 0,
+        "fn": 0,
+        "precision": 0,
+        "recall": 0,
+        "f1": 0,
+    }
+
+    performance_test = {
         "accuracy": 0,
         "auc": 0,
         "tp": 0,
@@ -62,6 +98,7 @@ class summarizer():
     def __init__(self, model_name, sess):
         self.model_name = model_name
         self.sess = sess
+        self.time_start = time()
 
     def construct_writers(self):
         self.writer[self.TRAIN] = tf.summary.FileWriter(directories.LOGS_TRAIN_DIR(self.model_name))
@@ -73,8 +110,12 @@ class summarizer():
 
         if os.path.exists(directories.PARAMETERS_FILE(self.model_name)):
             self.parameters = helper.load_dict(directories.PARAMETERS_FILE(self.model_name))
-        if os.path.exists(directories.PERFORMANCE_FILE(self.model_name)):
-            self.performance = helper.load_dict(directories.PERFORMANCE_FILE(self.model_name))
+        if os.path.exists(directories.PERFORMANCE_TEST_FILE(self.model_name)):
+            self.performance_test = helper.load_dict(directories.PERFORMANCE_TEST_FILE(self.model_name))
+        if os.path.exists(directories.PERFORMANCE_VAL_FILE(self.model_name)):
+            self.performance_val = helper.load_dict(directories.PERFORMANCE_VAL_FILE(self.model_name))
+        if os.path.exists(directories.PERFORMANCE_TRAIN_FILE(self.model_name)):
+            self.performance_train = helper.load_dict(directories.PERFORMANCE_TRAIN_FILE(self.model_name))
         if os.path.exists(directories.SPEED_FILE(self.model_name)):
             self.speed = helper.load_dict(directories.SPEED_FILE(self.model_name))
         if os.path.exists(directories.BEST_ACC_FILE(self.model_name)):
@@ -84,7 +125,6 @@ class summarizer():
 
         for data_set in self.all_data_sets:
             self.history[data_set] = tmp[data_set].tolist()
-            self.best_acc[data_set] = np.max([acc for epoch, acc, loss in self.history[data_set]])
         self.construct_writers()
 
     def initialize(self):
@@ -120,18 +160,18 @@ class summarizer():
         self.acc[data_set] += acc
         self.loss[data_set] += loss
 
-    def write_and_reset(self, data_set, epoch, _print=False):
+    def write_and_reset(self, data_set, _print=False):
         avg_loss = self.loss[data_set] / self.rounds[data_set]
         avg_acc = self.acc[data_set] / self.rounds[data_set]
         self.rounds[data_set] = 0
         self.acc[data_set] = 0
         self.loss[data_set] = 0
-        self.history[data_set].append((epoch,
+        self.history[data_set].append((self.speed["epoch"],
                                        avg_acc,
                                        avg_loss))
         if math.isnan(avg_loss):
             return False
-        self.write_to_summary(data_set, avg_acc, avg_loss, epoch)
+        self.write_to_summary(data_set, avg_acc, avg_loss, self.speed["epoch"])
 
         if avg_acc >= self.best_acc[data_set]:
             self.best_acc[data_set] = avg_acc
@@ -157,26 +197,35 @@ class summarizer():
         summary.value.add(tag='loss', simple_value=loss)
         self.writer[data_set].add_summary(summary, epoch)
 
-    def compute(self, data_set, data, model, epoch, _print=False):
+    def compute(self, data_set, data, model, _print=False):
         feed_dict, _ = model.build_feed_dict(data)
         acc, loss = self.sess.run([model.acc, model.loss], feed_dict=feed_dict)
         self.add(data_set, acc, loss)
-        self.write_and_reset(data_set, epoch, _print=_print)
+        self.write_and_reset(data_set, _print=_print)
 
-    def save_history(self, epoch_times, run_times):
+    def save_history(self):
         np.savez(directories.HISTORIES_FILE(self.model_name),
                  train=self.history[self.TRAIN],
                  test=self.history[self.TEST],
-                 validation=self.history[self.VAL],
-                 epoch_times=epoch_times,
-                 run_times=run_times)
+                 validation=self.history[self.VAL])
 
     def save_performance(self, data, model):
-        p = Performance(data, model, self.sess)
-        self.performance = p.get_performance()
-        p.plot_ROC(placement=directories.ROC_PLOT(self.model_name))
+        p = Performance(data.test_trees, model, self.sess)
+        self.performance_test = p.get_performance()
+        p.plot_ROC(placement=directories.ROC_TEST_PLOT(self.model_name))
+        helper.save_dict(self.performance_test, placement=directories.PERFORMANCE_TEST_FILE(self.model_name))
+
+        p = Performance(data.val_trees, model, self.sess)
+        self.performance_val = p.get_performance()
+        p.plot_ROC(placement=directories.ROC_VAL_PLOT(self.model_name))
+        helper.save_dict(self.performance_val, placement=directories.PERFORMANCE_VAL_FILE(self.model_name))
+
+        p = Performance(data.train_trees, model, self.sess)
+        self.performance_train = p.get_performance()
+        p.plot_ROC(placement=directories.ROC_TRAIN_PLOT(self.model_name))
+        helper.save_dict(self.performance_train, placement=directories.PERFORMANCE_TRAIN_FILE(self.model_name))
+
         self.plot_history()
-        helper.save_dict(self.performance, placement=directories.PERFORMANCE_FILE(self.model_name))
 
     def save_parameters(self, lr, lr_end, gpu, lr_decay, conv_cond, model, number_variables,
                         max_epochs, optimizer):
@@ -194,22 +243,23 @@ class summarizer():
         }
         helper.save_dict(self.parameters, placement=directories.PARAMETERS_FILE(self.model_name))
 
-        with open(directories.SYS_ARG_FILE(self.model_name), "w") as text_file:
-            text_file.write(str(sys.argv))
+        with open(directories.SYS_ARG_FILE(self.model_name), "a") as text_file:
+            text_file.write(str(sys.argv) + "\n")
+            text_file.write(str(FLAGS) + "\n")
 
-    def save_speed(self, best_epoch, epochs, total_time):
-        self.speed = {
-            "best_epoch": best_epoch,
-            "epochs": epochs,
-            "total_time": total_time,
-        }
+    def save_speed(self):
+        # todo keep track of total time
         helper.save_dict(self.speed, placement=directories.SPEED_FILE(self.model_name))
 
     def new_best_acc(self, data_set):
+        if self._new_best_acc[data_set]:
+            self.speed["best_epoch"] = self.speed["epoch"]
+            self.speed["best_time"] = self.speed["total_time"]
+
         return self._new_best_acc[data_set]
 
-    def new_best_loss(self, data_set):
-        return self._new_best_loss[data_set]
+    # def new_best_loss(self, data_set):
+    #     return self._new_best_loss[data_set]
 
     def close(self):
         self.writer[self.TRAIN].close()
@@ -245,22 +295,66 @@ class summarizer():
         helper._print_header("Final stats for best model")
 
         helper._print("Best epoch:", self.speed["best_epoch"])
-        helper._print("Total epochs:", self.speed["epochs"])
+        helper._print("Total running time:",
+                      str(int(self.speed["best_time"] / (60 * 60))) + "h",
+                      str((int(self.speed["best_time"] / 60) % 60)) + "m")
+        helper._print("Total epochs:", self.speed["epoch"])
         helper._print("Total running time:",
                       str(int(self.speed["total_time"] / (60 * 60))) + "h",
                       str((int(self.speed["total_time"] / 60) % 60)) + "m")
 
+        helper._print("Test:", self.performance_test)
+        helper._print("Val:", self.performance_val)
+        helper._print("train:", self.performance_train)
 
-        #todo check if this workd????? best_step??? dont think it is correct if the models had been loaded
-        helper._print_subheader("Best model")
-        best_step = np.argmax(np.array(self.history[self.VAL])[:, 1])
-        helper._print_subheader("Accuracy")
-        helper._print("Test:", self.history[self.TEST][best_step][1])
-        helper._print("Validation:", self.history[self.VAL][best_step][1])
-        helper._print("Training:", self.history[self.TRAIN][best_step][1])
-        helper._print_subheader("Loss")
-        helper._print("Test:", self.history[self.TEST][best_step][2])
-        helper._print("Validation:", self.history[self.VAL][best_step][2])
-        helper._print("Training:", self.history[self.TRAIN][best_step][2])
-        helper._print_subheader("Stats")
-        helper._print(self.performance)
+    def epoch_inc(self):
+        self.speed["epoch"] += 1
+
+    def batch_inc(self):
+        self.speed["batch"] += 1
+
+    def get_epoch(self):
+        return self.speed["epoch"]
+
+    def dropping(self):
+        return self.speed["dropping_count"] >= FLAGS.pretrain_stop_count
+
+    def dropping_tick(self):
+        if self.best_acc[self.TRAIN] - self.speed["dropping_acc"] > FLAGS.acc_min_delta_drop:
+            self.speed["dropping_acc"] = self.best_acc[self.TRAIN]
+            self.speed["dropping_count"] = 0
+        else:
+            self.speed["dropping_count"] += 1
+        helper._print(
+            f"Dropping for {self.speed['dropping_count']}/{FLAGS.pretrain_stop_count} epochs. Prev best train acc: {self.best_acc[self.TRAIN]}")
+
+    def converging(self):
+        return self.speed["converging_count"] >= FLAGS.conv_cond
+
+    def converging_tick(self):
+        if self.best_acc[self.VAL] - self.speed["converging_acc"] > FLAGS.acc_min_delta_conv:
+            self.speed["converging_acc"] = self.best_acc[self.VAL]
+            self.speed["converging_count"] = 0
+        else:
+            self.speed["converging_count"] += 1
+        helper._print(
+            f"Converging in {self.speed['converging_count']}/{FLAGS.conv_cond} epochs. Prev best val acc: {self.best_acc[self.VAL]}")
+
+    def time_tick(self, msg="Epoch time:"):
+        time_end = time()
+        self.delta_time = time_end - self.time_start
+        helper._print(msg, str(int(self.delta_time / 60)) + "m " + str(int(self.delta_time % 60)) + "s")
+        self.speed["total_time"] += self.delta_time
+        self.time_start = time_end
+
+    def at_max_epoch(self):
+        return self.parameters["max_epochs"] != 0 and self.speed["epoch"] > self.parameters["max_epochs"]
+
+    def get_time(self):
+        return self.delta_time
+
+    def interrupt(self):
+        stop = os.path.exists("stop.txt")
+        if stop:
+            helper._print("!!!INTERRUPT!!!")
+        return stop

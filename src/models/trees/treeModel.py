@@ -215,15 +215,25 @@ class treeModel:
         feed_dict, _ = self.build_feed_dict(data)
         return sess.run(self.acc, feed_dict=feed_dict)
 
-    def load(self, sess, saver):
-        helper._print("Restoring model...")
+    def load_best(self, sess, saver):
+        helper._print("Restoring best model...")
         saver.restore(sess, directories.BEST_MODEL_FILE(self.model_name))
-        helper._print("Model restored!")
+        helper._print("Model best restored!")
 
-    def save(self, sess, saver):
-        helper._print("Saving model...")
+    def load_tmp(self, sess, saver):
+        helper._print("Restoring tmp model...")
+        saver.restore(sess, directories.TMP_MODEL_FILE(self.model_name))
+        helper._print("Model tmp restored!")
+
+    def save_best(self, sess, saver):
+        helper._print("Saving best model...")
         saver.save(sess, directories.BEST_MODEL_FILE(self.model_name))
-        helper._print("Model saved!")
+        helper._print("Model best saved!")
+
+    def save_tmp(self, sess, saver):
+        helper._print("Saving tmp model...")
+        saver.save(sess, directories.TMP_MODEL_FILE(self.model_name))
+        helper._print("Model tmp saved!")
 
     def get_no_trainable_variables(self):
         # https://stackoverflow.com/questions/38160940/how-to-count-total-number-of-trainable-parameters-in-a-tensorflow-model

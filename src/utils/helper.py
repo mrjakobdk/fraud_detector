@@ -1,5 +1,7 @@
 import csv
 import os
+
+from utils import directories
 from utils.flags import FLAGS
 from tqdm import tqdm
 from functools import wraps
@@ -31,6 +33,8 @@ def download_from_kaggle(data_name, dest):
 def _print(*args):
     if FLAGS.verbose:
         print(*args)
+        with open(directories.CONCOLE_FILE(FLAGS.model_name), "a+") as file:
+            print(*args, file=file)
 
 
 def _print_header(text, total=80):
@@ -39,6 +43,8 @@ def _print_header(text, total=80):
     padding_left = "=" * padding_size
     padding_right = "=" * (padding_size + (1 if (n - total) % 2 == 1 else 0))
     print(padding_left, text, padding_right)
+    with open(directories.CONCOLE_FILE(FLAGS.model_name), "a+") as file:
+        print(padding_left, text, padding_right, file=file)
 
 
 def _print_subheader(text, total=80):
@@ -47,7 +53,8 @@ def _print_subheader(text, total=80):
     padding_left = "-" * padding_size
     padding_right = "-" * (padding_size + (1 if (n - total) % 2 == 1 else 0))
     print(padding_left, text, padding_right)
-
+    with open(directories.CONCOLE_FILE(FLAGS.model_name), "a+") as file:
+        print(padding_left, text, padding_right, file=file)
 
 def reverse_dict(l):
     n = len(l)
