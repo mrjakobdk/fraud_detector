@@ -67,3 +67,16 @@ if not os.path.exists(TRAINED_MODELS_DIR):
 
 if not os.path.exists(MODEL_DIR(FLAGS.model_name)):
     os.mkdir(MODEL_DIR(FLAGS.model_name))
+
+# todo til david - den vil ikke køre uden
+TREES_DIR = DATA_DIR + 'trees/'
+ENRON_EMAILS_CSV_PATH = ENRON_DIR + 'emails.csv'
+ENRON_EMAILS_TXT_PATH = ENRON_DIR + 'emails.txt'
+ENRON_EMAILS_ZIP_PATH = ENRON_DIR + 'enron-email-dataset.zip'
+ENRON_EMAILS_VOCAB_PATH = ENRON_DIR + 'vocab'
+ENRON_EMAILS_COOCCUR_PATH = ENRON_DIR + 'cooccur.npy'
+TREE_ALL_SENTENCES_TXT_PATH = TREES_DIR + 'all_sentences.txt'
+TREE_ALL_SENTENCES_VOCAB_PATH = TREES_DIR + 'all_vocab'
+TREE_SENTENCES_TXT_PATH = TREES_DIR + 'train_sentences.txt'
+TREE_SENTENCES_VOCAB_PATH = TREES_DIR + 'vocab'
+TREE_SENTENCES_COOCCUR_PATH = TREES_DIR + 'cooccur.npy'

@@ -209,7 +209,8 @@ class summarizer():
                  test=self.history[self.TEST],
                  validation=self.history[self.VAL])
 
-    def save_performance(self, data, model):
+    def save_performance(self, model):
+        data = model.data
         p = Performance(data.test_trees, model, self.sess)
         self.performance_test = p.get_performance()
         p.plot_ROC(placement=directories.ROC_TEST_PLOT(self.model_name))
