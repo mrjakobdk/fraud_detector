@@ -122,26 +122,26 @@ def selective_train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, ep
             train_data_selection = selector.select_data(model.data.train_trees, FLAGS.selection_cut_off)
             summary.time_tick("Selection time:")
 
-        # Main training
-        while not summary.converging() and not summary.interrupt():
-            summary.epoch_inc()
+            # Main training
+            while not summary.converging() and not summary.interrupt():
+                summary.epoch_inc()
 
-            helper._print_subheader(f'Epoch {summary.get_epoch()} (Main training)')
-            helper._print(
-                f'Using {len(train_data_selection)}/{len(train_data)} ({len(train_data_selection)/len(train_data)*100}%) for training data.')
+                helper._print_subheader(f'Epoch {summary.get_epoch()} (Main training)')
+                helper._print(
+                    f'Using {len(train_data_selection)}/{len(train_data)} ({len(train_data_selection)/len(train_data)*100}%) for training data.')
 
-            trainer.train(train_data_selection)
+                trainer.train(train_data_selection)
 
-            summary.compute(summary.VAL, data=model.data.val_trees, model=model, _print=True)
-            summary.save_history(epoch_times, run_times)
-            summary.time_tick()
-            if summary.new_best_acc(summary.VAL):
-                helper._print("New best model found!")
-                model.save_best(sess, saver)
-            else:
-                helper._print("No new best model found!!! Prev best validation acc:", summary.best_acc[summary.VAL])
-            summary.converging_tick()
-            summary.save_speed()
+                summary.compute(summary.VAL, data=model.data.val_trees, model=model, _print=True)
+                summary.save_history()
+                summary.time_tick()
+                if summary.new_best_acc(summary.VAL):
+                    helper._print("New best model found!")
+                    model.save_best(sess, saver)
+                else:
+                    helper._print("No new best model found!!! Prev best validation acc:", summary.best_acc[summary.VAL])
+                summary.converging_tick()
+                summary.save_speed()
 
         model.load_best(sess, saver)
     summary.save_performance(model)
