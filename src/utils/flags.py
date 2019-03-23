@@ -4,6 +4,11 @@ from utils import constants
 
 flags = tf.app.flags
 
+# --------------------------- Data ---------------------------
+
+flags.DEFINE_string("dataset",          'small',    "Which dataset to use. Choose between: ppay, edence, fas, fcast, all, small (default: small)")
+
+
 # --------------------------- Directories ---------------------------
 
 flags.DEFINE_string("root",             '../',      "path to root folder of the project.")

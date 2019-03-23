@@ -15,6 +15,7 @@ from matplotlib import pyplot
 
 
 class WordModel:
+    # TODO: Make bars for loading stuff!
     def __init__(self, mode=constants.PRETRAINED_MODE, dimensions=FLAGS.word_embedding_size):
         self.mode = mode
         self.dimensions = dimensions

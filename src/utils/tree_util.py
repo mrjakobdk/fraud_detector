@@ -1,4 +1,8 @@
-from utils import directories
+import zipfile
+
+from tqdm import tqdm
+
+from utils import directories, constants
 from utils.flags import FLAGS
 import numpy as np
 import utils.helper as helper
@@ -101,11 +105,42 @@ def parse_trees(data_set="train", remove=False):  # todo maybe change input para
     :param data_set: what dataset to use
     :return: a list of trees
     """
-    file = directories.TREES_DIR + '%s.txt' % data_set
+    file = directories.TREES_DIRS[FLAGS.dataset] + '%s.txt' % data_set
+    if not os.path.isfile(file):
+        if FLAGS.dataset == 'all':
+            helper._print(f'Creating new {file}...')
+            with open(file, 'w+') as f:
+                for l in directories.TREES_ZIP_PATHS:
+                    smaller_tree_file = directories.TREES_DIRS[l] + '%s.txt' % data_set
+                    helper._print(f'Merging from {smaller_tree_file}...')
+                    if not os.path.isfile(smaller_tree_file):
+                        helper._print(f'Extracting {directories.TREES_ZIP_PATHS[l]}...')
+                        with zipfile.ZipFile(directories.TREES_ZIP_PATHS[l], 'r') as zip:
+                            zip.extractall(path=directories.TREES_DIRS[l])
+                        correct_labels(constants.TREE_LABELS[l], l)
+                    with open(smaller_tree_file, 'r+') as sf:
+                        for tree in sf:
+                            f.write(tree)
+        elif FLAGS.dataset == 'small':
+            helper._print('No small dataset. Try pulling from Git...')
+        else:
+            helper._print(f'Extracting {directories.TREES_ZIP_PATHS[FLAGS.dataset]}...')
+            with zipfile.ZipFile(directories.TREES_ZIP_PATHS[FLAGS.dataset], 'r') as zip:
+                zip.extractall(path=directories.TREES_DIRS[FLAGS.dataset])
+            correct_labels(constants.TREE_LABELS[FLAGS.dataset], FLAGS.dataset)
+
     helper._print("Loading %s trees.." % data_set)
     with open(file, 'r') as fid:
-        trees = [parse_tree(l) for l in fid.readlines()]
-    helper._print(len(trees), "loaded!")
+        trees = []
+        lines = fid.readlines()
+        pbar = tqdm(bar_format='{percentage:.0f}%|{bar}| Elapsed: {elapsed}, Remaining: {remaining} ({n_fmt}/{total_fmt}) ', total=len(lines))
+        for i, l in enumerate(lines):
+            if (i + 1) % 1000 == 0:
+                pbar.update(1000)
+            trees.append(parse_tree(l))
+        pbar.update(len(lines) % 1000)
+        pbar.close()
+        print()
     sentence_length = [count_leaf(tree) for tree in trees]
     sentence_length = np.array(sentence_length)
     helper._print("Avg length:", np.average(sentence_length))
@@ -118,6 +153,16 @@ def parse_trees(data_set="train", remove=False):  # todo maybe change input para
             helper.sort_by(trees[np.array(sentence_length) <= 90], sentence_length[np.array(sentence_length) <= 90]))
     return trees
 
+def correct_labels(label, type):
+    for d in ['train', 'val', 'test']:
+        file = directories.TREES_DIRS[type] + '%s.txt' % d
+        f = open(file, 'r')
+        filedata = f.read()
+        f.close()
+        newdata = filedata.replace('(4', '(' + label)
+        f = open(file, 'w')
+        f.write(newdata)
+        f.close()
 
 def ratio_of_labels(trees):
     label_count = 0
