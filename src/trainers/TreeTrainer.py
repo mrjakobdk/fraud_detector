@@ -144,8 +144,8 @@ def selective_train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, ep
                 summary.save_speed()
 
         model.load_best(sess, saver)
-    summary.save_performance(model)
-    summary.print_performance()
+        summary.save_performance(model)
+        summary.print_performance()
 
 
 def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS.epochs, run_times=[],

@@ -56,7 +56,6 @@ class summarizer():
         "converging_count": 0,
         "dropping_acc": 0,
         "converging_acc": 0,
-
     }
 
     performance_train = {

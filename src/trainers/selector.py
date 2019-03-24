@@ -29,7 +29,7 @@ class Selector:
             permutations.extend(list(i * batch_size + np.array(permuts)))
 
         self.representations = np.array(representations)[permutations]
-        print(representations)
+        #print(representations)
         self.predictions = performance.get_prediction(np.array(predictions)[permutations])
         self.labels = performance.get_prediction(np.array(labels)[permutations])
         # Get clusters
