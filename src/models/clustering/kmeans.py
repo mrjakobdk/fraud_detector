@@ -1,7 +1,7 @@
 import numpy as np
 
 from time import time
-from  sklearn.cluster import KMeans as KM
+from sklearn.cluster import KMeans as KM
 from models.clustering.clusterModel import ClusterModel
 from utils import helper
 

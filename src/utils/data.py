@@ -17,5 +17,8 @@ class Data:
     def make_tree_text_file(self):
         if not os.path.isfile(directories.ENRON_TRAIN_SENTENCES_TXT_PATH):
             helper._print(f'Create .txt file for sentences in {directories.ENRON_TRAIN_SENTENCES_TXT_PATH}')
-            all_train_trees = tree_util.parse_trees(dataset='all', type='train')
+            if FLAGS.dataset == 'all':
+                all_train_trees = self.train_trees
+            else:
+                all_train_trees = tree_util.parse_trees(dataset='all', type='train')
             tree_util.trees_to_textfile(list(all_train_trees), directories.ENRON_TRAIN_SENTENCES_TXT_PATH)

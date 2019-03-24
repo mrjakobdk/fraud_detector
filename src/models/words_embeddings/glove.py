@@ -170,8 +170,11 @@ class GloVe(WordModel):
             pretrained_embeddings = self.glove2dict(directories.GLOVE_EMBEDDING_FILE_PATH)
             helper._print(f'{len([v for v in vocab.keys() if v in pretrained_embeddings.keys()])} words in common with the pretrained set')
             helper._print_subheader('Building model...')
-            mittens_model = Mittens(n=self.dimensions, max_iter=50000, display_progress=10,
-                                    log_dir=directories.GLOVE_DIR + 'mittens/')
+            mittens_model = Mittens(
+                n=self.dimensions,
+                max_iter=7500,
+                display_progress=1,
+                log_dir=directories.GLOVE_DIR + 'mittens/')
             helper._print_subheader('Training Mittens model...')
             finetuned_embeddings = mittens_model.fit(
                 cooccur,
@@ -191,7 +194,11 @@ class GloVe(WordModel):
             vocab = self.build_vocab(sentences)
             cooccur = self.build_cooccur(vocab, sentences)
             helper._print_subheader('Building model...')
-            glove_model = mittens_glove(n=300, max_iter=50000)
+            glove_model = mittens_glove(
+                n=300,
+                max_iter=25000,
+                display_progress=1,
+                log_dir=directories.GLOVE_DIR + 'mittens/')
             helper._print_subheader('Training GloVE model...')
             trained_embeddings = glove_model.fit(cooccur)
             resulting_embeddings = {}
@@ -210,12 +217,12 @@ class GloVe(WordModel):
                 bar_format='{percentage:.0f}%|{bar}| Elapsed: {elapsed}, Remaining: {remaining} ({n_fmt}/{total_fmt}) ',
                 total=len(embeddings_dict))
             for index, (word, weights) in enumerate(embeddings_dict.items()):
-                if index % 100000 == 0 and index != 0:
-                    pbar.update(100000)
+                if index % 1000 == 0 and index != 0:
+                    pbar.update(1000)
                 embeddings_string = word
                 for weight in weights:
                     embeddings_string += ' ' + str(weight)
                 file.write(embeddings_string+ '\n')
-            pbar.update(len(embeddings_dict) % 100000)
+            pbar.update(len(embeddings_dict) % 1000)
             pbar.close()
             print()
