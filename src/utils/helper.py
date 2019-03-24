@@ -6,7 +6,6 @@ from utils.flags import FLAGS
 from tqdm import tqdm
 from functools import wraps
 import urllib
-from kaggle.api.kaggle_api_extended import KaggleApi
 import msgpack
 import numpy as np
 
@@ -24,10 +23,10 @@ def download(url, output_path):
         urllib.request.urlretrieve(url, filename=output_path, reporthook=t.update_to)
 
 
-def download_from_kaggle(data_name, dest):
-    api = KaggleApi()
-    api.authenticate()
-    return api.dataset_download_files(data_name, dest)
+#def download_from_kaggle(data_name, dest):
+#    api = KaggleApi()
+#    api.authenticate()
+#    return api.dataset_download_files(data_name, dest)
 
 
 def _print(*args):

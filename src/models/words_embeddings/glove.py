@@ -4,6 +4,8 @@ import numpy as np
 
 from collections import Counter
 from mittens import Mittens
+from mittens import GloVe as mittens_glove
+from tqdm import tqdm
 from models.words_embeddings.wordModel import WordModel
 from utils import helper, constants, directories
 from utils.flags import FLAGS
@@ -13,30 +15,29 @@ class GloVe(WordModel):
 
     def build_pretrained_embeddings(self):
         helper._print_header('Getting pretrained GloVe embeddings')
-        self.embedding_file = directories.GLOVE_EMBEDDING_FILE_NAME
         self.word_embed_file_path = directories.GLOVE_EMBEDDING_FILE_PATH
         self.glove_download_pretrained_model()
-        return self.glove_generate_indexes()
+        sentences = self.get_enron_sentences()
+        vocab = self.build_vocab(sentences)
+        return self.glove_generate_indexes(vocab)
 
     def build_finetuned_embeddings(self):
         helper._print_header('Getting fine-tuned GloVe embeddings')
         self.glove_download_pretrained_model()
-        self.train_and_save_finetuned_embeddings()
-        self.embedding_file = directories.FINETUNED_GLOVE_EMBEDDING_FILE_PATH
+        vocab, _, _ = self.train_and_save_finetuned_embeddings()
         self.word_embed_file_path = directories.FINETUNED_GLOVE_EMBEDDING_FILE_PATH
-        return self.glove_generate_indexes()
+        return self.glove_generate_indexes(vocab)
 
 
     def build_trained_embeddings(self):
-        raise NotImplementedError("Trained model for GloVe has not been implemented yet. :-(")
+        helper._print_header('Getting trained GloVe embeddings')
+        vocab, _, _ = self.train_and_save_embeddings()
+        self.word_embed_file_path = directories.TRAINED_GLOVE_EMBEDDING_FILE_PATH
+        return self.glove_generate_indexes(vocab)
 
     ################## HELPER FUNCTIONS ##################
 
-    def glove_generate_indexes(self):
-
-        all_sentences = self.get_enron_sentences(kaggle=False)
-        all_vocab = helper.get_or_build(directories.TREE_ALL_SENTENCES_VOCAB_PATH, self.build_vocab, all_sentences, 1)
-
+    def glove_generate_indexes(self, vocab):
         helper._print_subheader('Generating indexes for embeddings')
         weights = [np.zeros(self.dimensions)]
         ZERO_TOKEN = 0
@@ -44,19 +45,24 @@ class GloVe(WordModel):
         idx2word = {ZERO_TOKEN: 'ZERO'}
 
         with open(self.word_embed_file_path, 'r', encoding="utf8") as file:
-            for index, line in enumerate(file):
+            lines = file.readlines()
+            pbar = tqdm(
+                bar_format='{percentage:.0f}%|{bar}| Elapsed: {elapsed}, Remaining: {remaining} ({n_fmt}/{total_fmt}) ',
+                total=len(lines))
+            for index, line in enumerate(lines):
                 values = line.split()  # Word and weights separated by space
                 word = values[0]  # Word is first symbol on each line
-                if word in all_vocab.keys():
+                if word in vocab.keys():
                     word_weights = np.asarray(values[1:], dtype=np.float32)  # Remainder of line is weights for word
-                    i = all_vocab[word]
+                    i = vocab[word]
                     word2idx[word] = i + 1  # ZERO is our zeroth index so shift by one weights.append(word_weights)
                     idx2word[i + 1] = word
                     weights.append(word_weights)
-                if index % FLAGS.word_embed_subset_size == 0 and index != 0:
-                    helper._print(f'{index} words indexed')
-                    if FLAGS.word_embed_subset:
-                        break
+                if (index + 1) % 1000 == 0 and index != 0:
+                    pbar.update(1000)
+            pbar.update(1000)
+            pbar.close()
+            print()
             UNKNOWN_TOKEN = len(weights)
             word2idx['UNK'] = UNKNOWN_TOKEN
             np.random.seed(240993)
@@ -83,50 +89,53 @@ class GloVe(WordModel):
         helper._print_subheader('Generating dict from pretrained GloVe embeddings')
         with open(glove_filename, 'r', encoding="utf8") as file:
             embed = {}
-            for index, line in enumerate(file):
-                if index % 100000 == 0 and index != 0:
-                    helper._print(f'{index} words indexed')
+            lines = file.readlines()
+            pbar = tqdm(
+                bar_format='{percentage:.0f}%|{bar}| Elapsed: {elapsed}, Remaining: {remaining} ({n_fmt}/{total_fmt}) ',
+                total=len(lines))
+            for index, line in enumerate(lines):
+                if index % 10000 == 0 and index != 0:
+                    pbar.update(10000)
                 values = line.split()
                 embed[values[0]] = np.asarray(values[1:], dtype=np.float32)
+            pbar.update(len(lines) % 10000)
+            pbar.close()
+            print()
         return embed
 
     def build_vocab(self, corpus, min_count=FLAGS.glove_min_count):
-        """
-        Credit to https://github.com/hans/glove.py/blob/master/glove.py
-
-        Returns a dictionary `w -> (i, f)`, mapping word strings to pairs of
-        word ID and word corpus frequency.
-        """
         helper._print_subheader('Building vocabulary from corpus')
         vocab = Counter()
+        pbar = tqdm(
+            bar_format='{percentage:.0f}%|{bar}| Elapsed: {elapsed}, Remaining: {remaining} ({n_fmt}/{total_fmt}) ',
+            total=len(corpus))
         for i, doc in enumerate(corpus):
-            if i % FLAGS.word_embed_subset_size == 0 and i != 0:
-                helper._print(f"{i}/{len(corpus)} sentences processed")
-                if FLAGS.word_embed_subset:
-                    break
+            if (i + 1) % 1000 == 0 and i != 0:
+                pbar.update(1000)
             vocab.update(doc)
-        helper._print_subheader('Done building vocabulary')
+        pbar.update(len(corpus) % 1000)
+        pbar.close()
+        print()
         i = 0
         word2index = {}
         for word, freq in vocab.items():
             if freq >= min_count:
                 word2index[word] = i
                 i += 1
+
+        helper._print(f'Done building vocabulary. Length: {len(word2index)}')
         return word2index
 
     def build_cooccur(self, vocab, corpus, window=10):
         helper._print_subheader("Building cooccurrence matrix")
-
         vocab_size = len(vocab)
-        idx2word = {i: word for word, i in vocab.items()}
-
         cooccurrences = np.zeros((vocab_size, vocab_size), dtype=np.float64)
-        helper._print('Enumerating through the corpus...')
+        pbar = tqdm(
+            bar_format='{percentage:.0f}%|{bar}| Elapsed: {elapsed}, Remaining: {remaining} ({n_fmt}/{total_fmt}) ',
+            total=len(corpus))
         for i, sent in enumerate(corpus):
-            if i % FLAGS.word_embed_subset_size/10 == 0 and i != 0:
-                helper._print(f"{i}/{len(corpus)} sentences processed")
-                if FLAGS.word_embed_subset:
-                    break
+            if (i + 1) % 10000 == 0 and i != 0:
+                pbar.update(10000)
             token_ids = [vocab[word] for word in sent if word in vocab.keys()]
 
             for center_i, center_id in enumerate(token_ids):
@@ -145,41 +154,68 @@ class GloVe(WordModel):
                     # are calculating right contexts as well)
                     cooccurrences[center_id, left_id] += increment
                     cooccurrences[left_id, center_id] += increment
+
+        pbar.update(len(corpus) % 10000)
+        pbar.close()
+        print()
+        helper._print(f'Done building cooccurrence matrix. Shape: {np.shape(cooccurrences)}')
         return cooccurrences
 
     def train_and_save_finetuned_embeddings(self):
         if not os.path.isfile(directories.FINETUNED_GLOVE_EMBEDDING_FILE_PATH):
-            helper._print_subheader('Finetuning GloVe embeddings using the Enron dataset.')
-            sentences = self.get_enron_sentences(kaggle=False, all=False)
-            vocab = helper.get_or_build(directories.TREE_SENTENCES_VOCAB_PATH, self.build_vocab, sentences)
+            sentences = self.get_enron_sentences()
+            vocab = self.build_vocab(sentences)
             # idx2word = {i: word for word, i in word2idx.items()}
-            helper._print(f'Done building vocabulary. Length: {len(vocab)}')
-            cooccur = helper.get_or_build(directories.TREE_SENTENCES_COOCCUR_PATH, self.build_cooccur, vocab, sentences,
-                                          type='numpy')
+            cooccur = self.build_cooccur(vocab, sentences)
             pretrained_embeddings = self.glove2dict(directories.GLOVE_EMBEDDING_FILE_PATH)
-            print(f'{len([v for v in vocab.keys() if v in pretrained_embeddings.keys()])} words in common with the pretrained set')
-            helper._print_subheader('Done with cooccurrence matrix. Starting Mittens model...')
-            mittens_model = Mittens(n=self.dimensions, max_iter=1000, display_progress=10,
+            helper._print(f'{len([v for v in vocab.keys() if v in pretrained_embeddings.keys()])} words in common with the pretrained set')
+            helper._print_subheader('Building model...')
+            mittens_model = Mittens(n=self.dimensions, max_iter=500, display_progress=10,
                                     log_dir=directories.GLOVE_DIR + 'mittens/')
+            helper._print_subheader('Training Mittens model...')
             finetuned_embeddings = mittens_model.fit(
                 cooccur,
                 vocab=vocab,
                 initial_embedding_dict=pretrained_embeddings)
+            print()
             helper._print_subheader('Done training finetuned embeddings! Merging with pre-trained embeddings...')
             resulting_embeddings = pretrained_embeddings
             for word, weights in zip(vocab.keys(), finetuned_embeddings):
                 resulting_embeddings[word] = weights
-            self.dict2glove(resulting_embeddings)
+            self.dict2glove(resulting_embeddings, directories.FINETUNED_GLOVE_EMBEDDING_FILE_PATH)
+            return vocab, cooccur, resulting_embeddings
+
+    def train_and_save_embeddings(self):
+        if not os.path.isfile(directories.TRAINED_GLOVE_EMBEDDING_FILE_PATH):
+            sentences = self.get_enron_sentences()
+            vocab = self.build_vocab(sentences)
+            cooccur = self.build_cooccur(vocab, sentences)
+            helper._print_subheader('Building model...')
+            glove_model = mittens_glove(n=300, max_iter=500)
+            helper._print_subheader('Training GloVE model...')
+            trained_embeddings = glove_model.fit(cooccur)
+            resulting_embeddings = {}
+            for word, weights in zip(vocab.keys(), trained_embeddings):
+                resulting_embeddings[word] = weights
+            self.dict2glove(resulting_embeddings, directories.TRAINED_GLOVE_EMBEDDING_FILE_PATH)
+            return vocab, cooccur, resulting_embeddings
 
 
 
-    def dict2glove(self, embeddings_dict):
+    def dict2glove(self, embeddings_dict, path):
         helper._print_subheader('Saving to glove format...')
-        with open(directories.FINETUNED_GLOVE_EMBEDDING_FILE_PATH, 'w', encoding="utf8") as file:
+        with open(path, 'w', encoding="utf8") as file:
+
+            pbar = tqdm(
+                bar_format='{percentage:.0f}%|{bar}| Elapsed: {elapsed}, Remaining: {remaining} ({n_fmt}/{total_fmt}) ',
+                total=len(embeddings_dict))
             for index, (word, weights) in enumerate(embeddings_dict.items()):
                 if index % 100000 == 0 and index != 0:
-                    helper._print(f'{index} embeddings saved!')
+                    pbar.update(100000)
                 embeddings_string = word
                 for weight in weights:
                     embeddings_string += ' ' + str(weight)
                 file.write(embeddings_string+ '\n')
+            pbar.update(len(embeddings_dict) % 100000)
+            pbar.close()
+            print()

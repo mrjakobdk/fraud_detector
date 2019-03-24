@@ -68,12 +68,8 @@ flags.DEFINE_integer("word_embedding_size",
 
 flags.DEFINE_string("word_embed_mode",  'pretrained',"Flag to switch between word embeddings modes")
 flags.DEFINE_string("word_embed_model", 'glove',     "Flag to switch between word embeddings modes")
-flags.DEFINE_boolean("word_embed_subset",
-                                        False,       "Flag whether to use a subset of the word embeddings")
-flags.DEFINE_integer("word_embed_subset_size",
-                                        100000,      "Flag for the size of the subset of the word embeddings to use")
 
-flags.DEFINE_integer("glove_min_count", 2,           "How many times does a word need to be present in the corpus")
+flags.DEFINE_integer("glove_min_count", 50,           "How many times does a word need to be present in the corpus")
 flags.DEFINE_integer("glove_window",    10,          "How many times does a word need to be present in the corpus")
 
 flags.DEFINE_integer("word2vec_min_count",

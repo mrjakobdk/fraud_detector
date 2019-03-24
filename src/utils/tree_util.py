@@ -99,19 +99,19 @@ def parse_tree(line):
     return root
 
 
-def parse_trees(data_set="train", remove=False):  # todo maybe change input param
+def parse_trees(dataset="small", type='train', remove=False):  # todo maybe change input param
     """
     https://github.com/erickrf/treernn/blob/master/tree.py
-    :param data_set: what dataset to use
+    :param type: what dataset to use
     :return: a list of trees
     """
-    file = directories.TREES_DIRS[FLAGS.dataset] + '%s.txt' % data_set
+    file = directories.TREES_DIRS[dataset] + '%s.txt' % type
     if not os.path.isfile(file):
-        if FLAGS.dataset == 'all':
+        if dataset == 'all':
             helper._print(f'Creating new {file}...')
             with open(file, 'w+') as f:
                 for l in directories.TREES_ZIP_PATHS:
-                    smaller_tree_file = directories.TREES_DIRS[l] + '%s.txt' % data_set
+                    smaller_tree_file = directories.TREES_DIRS[l] + '%s.txt' % type
                     helper._print(f'Merging from {smaller_tree_file}...')
                     if not os.path.isfile(smaller_tree_file):
                         helper._print(f'Extracting {directories.TREES_ZIP_PATHS[l]}...')
@@ -121,15 +121,15 @@ def parse_trees(data_set="train", remove=False):  # todo maybe change input para
                     with open(smaller_tree_file, 'r+') as sf:
                         for tree in sf:
                             f.write(tree)
-        elif FLAGS.dataset == 'small':
+        elif dataset == 'small':
             helper._print('No small dataset. Try pulling from Git...')
         else:
-            helper._print(f'Extracting {directories.TREES_ZIP_PATHS[FLAGS.dataset]}...')
-            with zipfile.ZipFile(directories.TREES_ZIP_PATHS[FLAGS.dataset], 'r') as zip:
-                zip.extractall(path=directories.TREES_DIRS[FLAGS.dataset])
-            correct_labels(constants.TREE_LABELS[FLAGS.dataset], FLAGS.dataset)
+            helper._print(f'Extracting {directories.TREES_ZIP_PATHS[dataset]}...')
+            with zipfile.ZipFile(directories.TREES_ZIP_PATHS[dataset], 'r') as zip:
+                zip.extractall(path=directories.TREES_DIRS[dataset])
+            correct_labels(constants.TREE_LABELS[dataset], dataset)
 
-    helper._print("Loading %s trees.." % data_set)
+    helper._print("Loading %s trees.." % type)
     with open(file, 'r') as fid:
         trees = []
         lines = fid.readlines()
