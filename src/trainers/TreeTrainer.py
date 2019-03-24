@@ -199,9 +199,9 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
             summary.converging_tick()
             summary.save_speed()
 
-        model.load_best(sess, saver)
-    summary.save_performance(model)
-    summary.print_performance()
+            model.load_best(sess, saver)
+            summary.save_performance(model)
+            summary.print_performance()
 
 # def train_old(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS.epochs, run_times=[],
 #               epoch_times=[], conv_cond=FLAGS.conv_cond, backoff_rate=FLAGS.backoff_rate,
