@@ -14,7 +14,6 @@ class Data:
 
         self.make_tree_text_file()
 
-
     def make_tree_text_file(self):
         if not os.path.isfile(directories.ENRON_TRAIN_SENTENCES_TXT_PATH):
             helper._print(f'Create .txt file for sentences in {directories.ENRON_TRAIN_SENTENCES_TXT_PATH}')

@@ -60,7 +60,7 @@ class GloVe(WordModel):
                     weights.append(word_weights)
                 if (index + 1) % 1000 == 0 and index != 0:
                     pbar.update(1000)
-            pbar.update(1000)
+            pbar.update(len(lines) % 1000)
             pbar.close()
             print()
             UNKNOWN_TOKEN = len(weights)
@@ -170,7 +170,7 @@ class GloVe(WordModel):
             pretrained_embeddings = self.glove2dict(directories.GLOVE_EMBEDDING_FILE_PATH)
             helper._print(f'{len([v for v in vocab.keys() if v in pretrained_embeddings.keys()])} words in common with the pretrained set')
             helper._print_subheader('Building model...')
-            mittens_model = Mittens(n=self.dimensions, max_iter=500, display_progress=10,
+            mittens_model = Mittens(n=self.dimensions, max_iter=50000, display_progress=10,
                                     log_dir=directories.GLOVE_DIR + 'mittens/')
             helper._print_subheader('Training Mittens model...')
             finetuned_embeddings = mittens_model.fit(
@@ -191,7 +191,7 @@ class GloVe(WordModel):
             vocab = self.build_vocab(sentences)
             cooccur = self.build_cooccur(vocab, sentences)
             helper._print_subheader('Building model...')
-            glove_model = mittens_glove(n=300, max_iter=500)
+            glove_model = mittens_glove(n=300, max_iter=50000)
             helper._print_subheader('Training GloVE model...')
             trained_embeddings = glove_model.fit(cooccur)
             resulting_embeddings = {}

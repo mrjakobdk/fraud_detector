@@ -69,11 +69,11 @@ flags.DEFINE_integer("word_embedding_size",
 flags.DEFINE_string("word_embed_mode",  'pretrained',"Flag to switch between word embeddings modes")
 flags.DEFINE_string("word_embed_model", 'glove',     "Flag to switch between word embeddings modes")
 
-flags.DEFINE_integer("glove_min_count", 50,           "How many times does a word need to be present in the corpus")
+flags.DEFINE_integer("glove_min_count", 100,           "How many times does a word need to be present in the corpus")
 flags.DEFINE_integer("glove_window",    10,          "How many times does a word need to be present in the corpus")
 
 flags.DEFINE_integer("word2vec_min_count",
-                                        50,          "How many times does a word need to be present in the corpus")
+                                        100,          "How many times does a word need to be present in the corpus")
 flags.DEFINE_integer("word2vec_window", 10,          "How many times does a word need to be present in the corpus")
 flags.DEFINE_integer("word2vec_epochs", 20,          "Number of epochs to train word2vec models.")
 
