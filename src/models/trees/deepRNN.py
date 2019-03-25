@@ -203,17 +203,26 @@ class deepRNN(treeModel):
 
         # softmax layer
         last_tree_layer = rep_arrays[self.layers - 1]
-        root_rep = tf.gather_nd(tf.transpose(last_tree_layer.stack(), perm=[2, 0, 1]), self.root_array)
+        root_rep = tf.gather_nd(tf.transpose(last_tree_layer.stack(), perm=[2, 0, 1]), self.root_array) #
         self.logits = tf.transpose(tf.matmul(self.V, tf.transpose(root_rep)) + self.b_p)
+        self.rep_arrays = rep_arrays
 
     def build_loss(self):
         # todo make it work for internal nodes
         # print_op = tf.print("root:", self.root_array,
         #                     output_stream=sys.stdout)
         # with tf.control_dependencies([print_op]):
+        last_tree_layer = self.rep_arrays[self.layers - 1]
+        root_rep = tf.gather_nd(tf.transpose(last_tree_layer.stack(), perm=[2, 0, 1]), self.loss_array)  #
+        logits = tf.transpose(tf.matmul(self.V, tf.transpose(root_rep)) + self.b_p)
         labels = tf.gather_nd(self.label_array, self.loss_array)
-        softmax_cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=self.logits, labels=labels)
+        softmax_cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=labels)
         self.loss = tf.reduce_mean(softmax_cross_entropy)
+
+    def build_rep(self):
+
+        last_tree_layer = self.rep_arrays[self.layers - 1]
+        self.sentence_representations = tf.gather_nd(tf.transpose(last_tree_layer.stack(), perm=[2, 0, 1]), self.root_array)
 
     def build_accuracy(self):
         labels = tf.gather_nd(self.label_array, self.root_array)

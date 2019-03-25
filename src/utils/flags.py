@@ -13,11 +13,11 @@ flags.DEFINE_string("root", '../', "path to root folder of the project.")
 
 # --------------------------- Training Parameters ---------------------------
 
-flags.DEFINE_string("model_name", '', "Name for model")
-flags.DEFINE_string("model", "treeRNN", "Selecting the model to be used")
-flags.DEFINE_string("act_fun", "relu", "Select hidden activation function (default: relu")
-flags.DEFINE_float("acc_min_delta_drop", 0.001, "Mini increase in accuracy to count as increasing")
-flags.DEFINE_float("acc_min_delta_conv", 0.001, "Mini increase in accuracy to count as increasing")
+flags.DEFINE_string("model_name",       '',         "Name for model")
+flags.DEFINE_string("model",            "treeRNN_neerbek",  "Selecting the model to be used")
+flags.DEFINE_string("act_fun",          "relu",     "Select hidden activation function (default: relu")
+flags.DEFINE_float("acc_min_delta_drop",0.001,      "Mini increase in accuracy to count as increasing")
+flags.DEFINE_float("acc_min_delta_conv",0.001,      "Mini increase in accuracy to count as increasing")
 
 flags.DEFINE_integer("sentence_embedding_size", 300, "Size of the sentence embedding")
 flags.DEFINE_integer("label_size", 2, "Number of labels")
@@ -71,7 +71,7 @@ flags.DEFINE_integer("word2vec_epochs", 20, "Number of epochs to train word2vec 
 flags.DEFINE_boolean('verbose', True, "Global flag for 'verbose'")
 flags.DEFINE_integer('print_step_interval', 1000, "Interval to print in training")
 flags.DEFINE_boolean('run_tensorboard', False, "Flag")
-flags.DEFINE_boolean('use_gpu', False, "Use the gpu friendly version")
+flags.DEFINE_boolean('use_gpu', True, "Use the gpu friendly version")
 flags.DEFINE_integer('num_threads', 1, "Number of threads to be use on the CPU")
 
 # --------------------------- Experiments ---------------------------

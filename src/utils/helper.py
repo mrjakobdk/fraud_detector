@@ -32,7 +32,7 @@ def download(url, output_path):
 def _print(*args):
     if FLAGS.verbose:
         print(*args)
-        with open(directories.CONCOLE_FILE(FLAGS.model_name), "a+") as file:
+        with open(directories.CONCOLE_FILE(FLAGS.model_name), "a") as file:
             print(*args, file=file)
 
 
@@ -42,7 +42,7 @@ def _print_header(text, total=80):
     padding_left = "=" * padding_size
     padding_right = "=" * (padding_size + (1 if (n - total) % 2 == 1 else 0))
     print(padding_left, text, padding_right)
-    with open(directories.CONCOLE_FILE(FLAGS.model_name), "a+") as file:
+    with open(directories.CONCOLE_FILE(FLAGS.model_name), "a") as file:
         print(padding_left, text, padding_right, file=file)
 
 
@@ -52,7 +52,7 @@ def _print_subheader(text, total=80):
     padding_left = "-" * padding_size
     padding_right = "-" * (padding_size + (1 if (n - total) % 2 == 1 else 0))
     print(padding_left, text, padding_right)
-    with open(directories.CONCOLE_FILE(FLAGS.model_name), "a+") as file:
+    with open(directories.CONCOLE_FILE(FLAGS.model_name), "a") as file:
         print(padding_left, text, padding_right, file=file)
 
 def reverse_dict(l):

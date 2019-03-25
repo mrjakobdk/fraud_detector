@@ -96,8 +96,8 @@ class treeRNN_neerbek(treeModel):
                                    axis=1)
 
             is_leaf = tf.reshape(tf.gather(self.is_leaf_array, i, axis=1), shape=(1, -1))
-            is_leaf_l = tf.reshape(tf.gather_nd(self.is_leaf_array, left_child), shape=(1, -1))
-            is_leaf_r = tf.reshape(tf.gather_nd(self.is_leaf_array, right_child), shape=(1, -1))
+            # is_leaf_l = tf.reshape(tf.gather_nd(self.is_leaf_array, left_child), shape=(1, -1))
+            # is_leaf_r = tf.reshape(tf.gather_nd(self.is_leaf_array, right_child), shape=(1, -1))
 
             rep_l = gather_rep(i, self.left_child_array, rep_array)
             rep_r = gather_rep(i, self.right_child_array, rep_array)
