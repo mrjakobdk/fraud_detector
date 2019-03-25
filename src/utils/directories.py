@@ -44,7 +44,7 @@ def ROC_TRAIN_PLOT(model_name): return TRAINED_MODELS_DIR + model_name + '/plots
 def ROC_VAL_PLOT(model_name): return TRAINED_MODELS_DIR + model_name + '/plots/roc_val.png'
 def ACC_HISTORY_PLOT(model_name): return TRAINED_MODELS_DIR + model_name + '/plots/acc_history.png'
 def LOSS_HISTORY_PLOT(model_name): return TRAINED_MODELS_DIR + model_name + '/plots/loss_history.png'
-def CONCOLE_FILE(model_name): return TRAINED_MODELS_DIR + model_name + 'concole.txt'
+def CONSOLE_FILE(model_name): return TRAINED_MODELS_DIR + model_name + '/console.txt'
 
 PPAY_TREES_ZIP_PATH = PPAY_TREES_DIR + 'PPAY.zip'
 EDENCE_TREES_ZIP_PATH = EDENCE_TREES_DIR + 'EDENCE.zip'

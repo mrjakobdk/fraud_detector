@@ -106,6 +106,8 @@ def parse_trees(dataset="small", type='train', remove=False):  # todo maybe chan
     :return: a list of trees
     """
     file = directories.TREES_DIRS[dataset] + '%s.txt' % type
+    if not os.path.isdir(directories.TREES_DIRS[dataset]):
+        os.makedirs(file)
     if not os.path.isfile(file):
         if dataset == 'all':
             helper._print(f'Creating new {file}...')
@@ -122,7 +124,7 @@ def parse_trees(dataset="small", type='train', remove=False):  # todo maybe chan
                         for tree in sf:
                             f.write(tree)
         elif dataset == 'small':
-            helper._print('No small dataset. Try pulling from Git...')
+            helper._print('No small dataset. Try pulling from Git... Or make your own you lazy bastard!')
         else:
             helper._print(f'Extracting {directories.TREES_ZIP_PATHS[dataset]}...')
             with zipfile.ZipFile(directories.TREES_ZIP_PATHS[dataset], 'r') as zip:

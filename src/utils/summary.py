@@ -354,7 +354,7 @@ class summarizer():
         return self.delta_time
 
     def interrupt(self):
-        stop = os.path.exists("stop.txt")
+        stop = os.path.exists("stop.please")
         if stop:
             helper._print("!!!INTERRUPT!!!")
         return stop

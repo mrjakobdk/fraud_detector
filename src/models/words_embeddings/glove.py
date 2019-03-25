@@ -162,19 +162,22 @@ class GloVe(WordModel):
         return cooccurrences
 
     def train_and_save_finetuned_embeddings(self):
+        sentences = self.get_enron_sentences()
+        vocab = self.build_vocab(sentences)
         if not os.path.isfile(directories.FINETUNED_GLOVE_EMBEDDING_FILE_PATH):
-            sentences = self.get_enron_sentences()
-            vocab = self.build_vocab(sentences)
             # idx2word = {i: word for word, i in word2idx.items()}
             cooccur = self.build_cooccur(vocab, sentences)
             pretrained_embeddings = self.glove2dict(directories.GLOVE_EMBEDDING_FILE_PATH)
             helper._print(f'{len([v for v in vocab.keys() if v in pretrained_embeddings.keys()])} words in common with the pretrained set')
             helper._print_subheader('Building model...')
+            mittens_dir = directories.GLOVE_DIR + 'mittens/'
+            if not os.path.isdir(mittens_dir):
+                os.makedirs(mittens_dir)
             mittens_model = Mittens(
                 n=self.dimensions,
                 max_iter=7500,
                 display_progress=1,
-                log_dir=directories.GLOVE_DIR + 'mittens/')
+                log_dir=mittens_dir)
             helper._print_subheader('Training Mittens model...')
             finetuned_embeddings = mittens_model.fit(
                 cooccur,
@@ -187,8 +190,11 @@ class GloVe(WordModel):
                 resulting_embeddings[word] = weights
             self.dict2glove(resulting_embeddings, directories.FINETUNED_GLOVE_EMBEDDING_FILE_PATH)
             return vocab, cooccur, resulting_embeddings
+        return vocab, None, None
 
     def train_and_save_embeddings(self):
+        sentences = self.get_enron_sentences()
+        vocab = self.build_vocab(sentences)
         if not os.path.isfile(directories.TRAINED_GLOVE_EMBEDDING_FILE_PATH):
             sentences = self.get_enron_sentences()
             vocab = self.build_vocab(sentences)
@@ -206,6 +212,7 @@ class GloVe(WordModel):
                 resulting_embeddings[word] = weights
             self.dict2glove(resulting_embeddings, directories.TRAINED_GLOVE_EMBEDDING_FILE_PATH)
             return vocab, cooccur, resulting_embeddings
+        return vocab, None, None
 
 
 
