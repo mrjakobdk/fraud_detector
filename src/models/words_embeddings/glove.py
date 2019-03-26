@@ -28,7 +28,6 @@ class GloVe(WordModel):
         self.word_embed_file_path = directories.FINETUNED_GLOVE_EMBEDDING_FILE_PATH
         return self.glove_generate_indexes(vocab)
 
-
     def build_trained_embeddings(self):
         helper._print_header('Getting trained GloVe embeddings')
         vocab, _, _ = self.train_and_save_embeddings()
@@ -42,8 +41,9 @@ class GloVe(WordModel):
         weights = [np.zeros(self.dimensions)]
         ZERO_TOKEN = 0
         word2idx = {'ZERO': ZERO_TOKEN}
-        idx2word = {ZERO_TOKEN: 'ZERO'}
+        idx2word = {ZERO_TOKEN: 'ZERO'}#todo david - why dict and not just array?
 
+        i = 0
         with open(self.word_embed_file_path, 'r', encoding="utf8") as file:
             lines = file.readlines()
             pbar = tqdm(
@@ -53,10 +53,14 @@ class GloVe(WordModel):
                 values = line.split()  # Word and weights separated by space
                 word = values[0]  # Word is first symbol on each line
                 if word in vocab.keys():
+                    i += 1
                     word_weights = np.asarray(values[1:], dtype=np.float32)  # Remainder of line is weights for word
-                    i = vocab[word]
-                    word2idx[word] = i + 1  # ZERO is our zeroth index so shift by one weights.append(word_weights)
-                    idx2word[i + 1] = word
+                    # todo david - seems to be a mistake in the indexing
+                    # i = vocab[word]
+                    # word2idx[word] = i + 1  # ZERO is our zeroth index so shift by one weights.append(word_weights)
+                    # idx2word[i + 1] = word
+                    word2idx[word] = i
+                    idx2word[i] = word
                     weights.append(word_weights)
                 if (index + 1) % 1000 == 0 and index != 0:
                     pbar.update(1000)
@@ -168,7 +172,8 @@ class GloVe(WordModel):
             # idx2word = {i: word for word, i in word2idx.items()}
             cooccur = self.build_cooccur(vocab, sentences)
             pretrained_embeddings = self.glove2dict(directories.GLOVE_EMBEDDING_FILE_PATH)
-            helper._print(f'{len([v for v in vocab.keys() if v in pretrained_embeddings.keys()])} words in common with the pretrained set')
+            helper._print(
+                f'{len([v for v in vocab.keys() if v in pretrained_embeddings.keys()])} words in common with the pretrained set')
             helper._print_subheader('Building model...')
             mittens_dir = directories.GLOVE_DIR + 'mittens/'
             if not os.path.isdir(mittens_dir):
@@ -214,8 +219,6 @@ class GloVe(WordModel):
             return vocab, cooccur, resulting_embeddings
         return vocab, None, None
 
-
-
     def dict2glove(self, embeddings_dict, path):
         helper._print_subheader('Saving to glove format...')
         with open(path, 'w', encoding="utf8") as file:
@@ -229,7 +232,7 @@ class GloVe(WordModel):
                 embeddings_string = word
                 for weight in weights:
                     embeddings_string += ' ' + str(weight)
-                file.write(embeddings_string+ '\n')
+                file.write(embeddings_string + '\n')
             pbar.update(len(embeddings_dict) % 1000)
             pbar.close()
             print()
