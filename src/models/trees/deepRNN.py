@@ -48,24 +48,24 @@ class deepRNN(treeModel):
         for i in range(self.layers):
             self.b.append(
                 tf.get_variable(name='b-' + str(i), shape=[FLAGS.sentence_embedding_size, 1],
-                                initializer=bias_initializer))
+                                initializer=xavier_initializer))
             self.E.append(
                 tf.get_variable(name='E-' + str(i),
                                 shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
-                                initializer=weight_initializer))
+                                initializer=xavier_initializer))
             self.U_L.append(
                 tf.get_variable(name='U_L-' + str(i),
                                 shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
-                                initializer=weight_initializer))
+                                initializer=xavier_initializer))
             self.U_R.append(
                 tf.get_variable(name='U_R-' + str(i),
                                 shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
-                                initializer=weight_initializer))
+                                initializer=xavier_initializer))
 
         # classifier weights
         self.V = tf.get_variable(name='V', shape=[FLAGS.label_size, FLAGS.sentence_embedding_size],
                                  initializer=xavier_initializer)
-        self.b_p = tf.get_variable(name='b_p', shape=[FLAGS.label_size, 1], initializer=bias_initializer)
+        self.b_p = tf.get_variable(name='b_p', shape=[FLAGS.label_size, 1], initializer=xavier_initializer)
 
     def build_model(self):
         rep_arrays = []
