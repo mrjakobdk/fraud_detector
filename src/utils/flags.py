@@ -51,8 +51,8 @@ flags.DEFINE_integer("num_clusters", 10, "Number of clusters to use (default: 10
 flags.DEFINE_integer("pretrain_max_epoch",  200, "Stop pretraining when number of epochs without better training acc reaches this. (default: 50)")
 flags.DEFINE_float("selection_cut_off", 0.85, "The expected MFO to cut-off for selective training (default: 0.90)")
 flags.DEFINE_boolean("mfo", True, "Whether to use MFO analysis to rate clusters. If False use prediction accuracy (default: True)")
-flags.DEFINE_string("cluster_model", 'kmeans', "Which clustering model to use. (default: kmeans)")
-flags.DEFINE_string("cluster_initialization", 'random', "How to initialize clusters. (k-means++’, ‘random’ or an ndarray, default: random)")
+flags.DEFINE_string("cluster_model", 'kmeans', "Which clustering model to use. Choose between 'kmeans', 'dbscan', 'agglo' (default: kmeans)")
+flags.DEFINE_string("cluster_initialization", 'random', "How to initialize clusters. (k-means++’, ‘random’ or an ndarray, default: k-means++)")
 
 # --------------------------- Word embeddings ---------------------------
 
