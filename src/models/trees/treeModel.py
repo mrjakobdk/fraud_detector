@@ -106,18 +106,13 @@ class treeModel:
         self.global_step = tf.train.create_global_step()
 
         if self.lr_decay > 0:
-            n = int(len(self.data.train_trees) / self.batch_size)
-            total_steps = self.lr_decay * n
-            decay_steps = n
-            decay_rate = (self.learning_rate_end / self.learning_rate) ** (decay_steps / total_steps)
+            decay_steps = int(len(self.data.train_trees) / self.batch_size)
             self.lr = tf.train.exponential_decay(self.learning_rate, self.global_step, decay_steps,
-                                                 decay_rate, name='learning_rate')
+                                                 self.lr_decay, name='learning_rate')
 
             helper._print_header("Using learning rate with exponential decay")
-            helper._print("Decay for every step:", decay_rate)
+            helper._print("Decay for every step:", self.lr_decay)
             helper._print("Learning rate start:", self.learning_rate)
-            helper._print("Learning rate end:", self.learning_rate_end)
-            helper._print("Reach End lr after:", self.lr_decay)
         else:
             self.lr = tf.constant(self.learning_rate)
 
@@ -220,25 +215,32 @@ class treeModel:
         feed_dict, _ = self.build_feed_dict(data)
         return sess.run(self.acc, feed_dict=feed_dict)
 
-    def load_best(self, sess, saver):
-        helper._print("Restoring best model...")
-        saver.restore(sess, directories.BEST_MODEL_FILE(self.model_name))
-        helper._print("Model best restored!")
+
+
+
+    def load_best(self, sess, saver, data_set):
+        helper._print(f"Restoring best {data_set} model...")
+        saver.restore(sess, directories.BEST_MODEL_FILE(self.model_name, data_set))
+        helper._print(f"Model best {data_set} restored!")
 
     def load_tmp(self, sess, saver):
         helper._print("Restoring tmp model...")
         saver.restore(sess, directories.TMP_MODEL_FILE(self.model_name))
         helper._print("Model tmp restored!")
 
-    def save_best(self, sess, saver):
-        helper._print("Saving best model...")
-        saver.save(sess, directories.BEST_MODEL_FILE(self.model_name))
-        helper._print("Model best saved!")
+    def save_best(self, sess, saver, data_set):
+        helper._print(f"Saving best {data_set} model...")
+        saver.save(sess, directories.BEST_MODEL_FILE(self.model_name, data_set))
+        helper._print(f"Model best {data_set} saved!")
 
     def save_tmp(self, sess, saver):
         helper._print("Saving tmp model...")
         saver.save(sess, directories.TMP_MODEL_FILE(self.model_name))
         helper._print("Model tmp saved!")
+
+
+
+
 
     def get_no_trainable_variables(self):
         # https://stackoverflow.com/questions/38160940/how-to-count-total-number-of-trainable-parameters-in-a-tensorflow-model

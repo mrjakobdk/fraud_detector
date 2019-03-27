@@ -2,7 +2,7 @@ import tensorflow as tf
 import time
 
 from trainers.selector import Selector
-from utils import tree_util
+from utils import tree_util, constants
 from utils.flags import FLAGS
 import utils.helper as helper
 import numpy as np
@@ -24,7 +24,7 @@ class Trainer():
         helper._print("Batch size:", batch_size)
         helper._print("Max epochs:", epochs)
         helper._print("Convergence epochs:", FLAGS.conv_cond)
-        helper._print("Drop epochs:", FLAGS.pretrain_stop_count)
+        helper._print("Drop epochs:", FLAGS.pretrain_max_epoch)
 
         self.model = model
         self.batch_size = batch_size
@@ -103,47 +103,59 @@ def selective_train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, ep
 
             trainer.train(train_data)
 
+            summary.compute(summary.VAL, data=model.data.val_trees, model=model, _print=True)
+
             summary.save_history()
             summary.time_tick()
+
+            if summary.new_best_acc(summary.VAL):
+                helper._print("New best val model found!")
+                model.save_best(sess, saver, summary.VAL)
+
             if summary.new_best_acc(summary.TRAIN):
-                helper._print("New best model found!")
-                model.save_best(sess, saver)
+                helper._print("New best train model found!")
+                model.save_best(sess, saver, summary.TRAIN)
             else:
                 helper._print("No new best model found!!! Prev best training acc:", summary.speed["dropping_acc"])
-            summary.dropping_tick()
+            #summary.dropping_tick()
             summary.save_speed()
+            summary.pre_tick()
 
         # todo maybe allow multiple repeat selective training
         # Selecting
         helper._print_header('PRETRAINING ENDED!')
-        if not summary.interrupt():
-            helper._print_header(f'Clustering for MAIN TRAINING!')
-            model.load_best(sess, saver)
-            train_data_selection = selector.select_data(model.data.train_trees, FLAGS.selection_cut_off)
-            summary.time_tick("Selection time:")
+        model.load_best(sess, saver, summary.TRAIN)
 
-            # Main training
-            while not summary.converging() and not summary.interrupt():
-                summary.epoch_inc()
+        # Main training
+        main_count = 0
+        while not summary.converging() and not summary.interrupt():
+            main_count += 1
+            if main_count == 1 or (FLAGS.use_multi_cluster and main_count % int(FLAGS.pretrain_max_epoch/4)==0):
+                helper._print_header(f'Clustering for MAIN TRAINING!')
+                train_data_selection = selector.select_data(model.data.train_trees, FLAGS.selection_cut_off)
+                summary.time_tick("Selection time:")
 
-                helper._print_subheader(f'Epoch {summary.get_epoch()} (Main training)')
-                helper._print(
-                    f'Using {len(train_data_selection)}/{len(train_data)} ({len(train_data_selection)/len(train_data)*100}%) for training data.')
+            summary.epoch_inc()
 
-                trainer.train(train_data_selection)
+            helper._print_subheader(f'Epoch {summary.get_epoch()} (Main training)')
+            helper._print(
+                f'Using {len(train_data_selection)}/{len(train_data)} ({len(train_data_selection)/len(train_data)*100}%) for training data.')
 
-                summary.compute(summary.VAL, data=model.data.val_trees, model=model, _print=True)
-                summary.save_history()
-                summary.time_tick()
-                if summary.new_best_acc(summary.VAL):
-                    helper._print("New best model found!")
-                    model.save_best(sess, saver)
-                else:
-                    helper._print("No new best model found!!! Prev best validation acc:", summary.speed["converging_acc"])
-                summary.converging_tick()
-                summary.save_speed()
+            trainer.train(train_data_selection)
 
-        model.load_best(sess, saver)
+            summary.compute(summary.VAL, data=model.data.val_trees, model=model, _print=True)
+            summary.save_history()
+            summary.time_tick()
+
+            if summary.new_best_acc(summary.VAL):
+                helper._print("New best model found!")
+                model.save_best(sess, saver, summary.VAL)
+            else:
+                helper._print("No new best model found!!! Prev best validation acc:", summary.speed["converging_acc"])
+            summary.converging_tick()
+            summary.save_speed()
+
+        model.load_best(sess, saver, summary.VAL)
         summary.save_performance(model)
         summary.print_performance()
 

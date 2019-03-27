@@ -10,7 +10,7 @@ import shutil
 import tensorflow as tf
 import numpy as np
 
-from utils import directories
+from utils import directories, constants
 from utils.flags import FLAGS
 from utils.performance import Performance
 
@@ -32,7 +32,6 @@ class summarizer():
     _new_best_acc = {TRAIN: False, VAL: False, TEST: False}
     _new_best_loss = {TRAIN: False, VAL: False, TEST: False}
     delta_time = 0
-
 
     #########
     parameters = {
@@ -56,6 +55,8 @@ class summarizer():
         "converging_count": 0,
         "dropping_acc": 0,
         "converging_acc": 0,
+        "pre_epoch": 0,
+        "pre_batch": 0,
     }
 
     performance_train = {
@@ -150,6 +151,8 @@ class summarizer():
             os.mkdir(directories.LOGS_TEST_DIR(model_name))
             os.mkdir(directories.HISTORIES_DIR(model_name))
             os.mkdir(directories.BEST_MODEL_DIR(model_name))
+            for data_set in self.all_data_sets:
+                os.mkdir(directories.BEST_MODEL_DIR(model_name, data_set))
             os.mkdir(directories.PLOTS_DIR(model_name))
 
         helper._print("Directories constructed!")
@@ -317,16 +320,16 @@ class summarizer():
         return self.speed["epoch"]
 
     def dropping(self):
-        return self.speed["dropping_count"] >= FLAGS.pretrain_stop_count
+        return self.speed["dropping_acc"] >= constants.pre_train_max_acc or self.speed["epoch"] >= FLAGS.pretrain_max_epoch
 
-    def dropping_tick(self):
-        if self.best_acc[self.TRAIN] - self.speed["dropping_acc"] > FLAGS.acc_min_delta_drop:
-            self.speed["dropping_acc"] = self.best_acc[self.TRAIN]
-            self.speed["dropping_count"] = 0
-        else:
-            self.speed["dropping_count"] += 1
-        helper._print(
-            f"Dropping for {self.speed['dropping_count']}/{FLAGS.pretrain_stop_count} epochs. Prev best train acc: {self.best_acc[self.TRAIN]}")
+    # def dropping_tick(self):
+    #     if self.best_acc[self.TRAIN] - self.speed["dropping_acc"] > FLAGS.acc_min_delta_drop:
+    #         self.speed["dropping_acc"] = self.best_acc[self.TRAIN]
+    #         self.speed["dropping_count"] = 0
+    #     else:
+    #         self.speed["dropping_count"] += 1
+    #     helper._print(
+    #         f"Dropping for {self.speed['dropping_count']}/{FLAGS.pretrain_stop_count} epochs. Prev best train acc: {self.best_acc[self.TRAIN]}")
 
     def converging(self):
         return self.speed["converging_count"] >= FLAGS.conv_cond
@@ -358,3 +361,7 @@ class summarizer():
         if stop:
             helper._print("!!!INTERRUPT!!!")
         return stop
+
+    def pre_tick(self):
+        self.speed["pre_epoch"] = self.speed["epoch"]
+        self.speed["pre_batch"] = self.speed["batch"]

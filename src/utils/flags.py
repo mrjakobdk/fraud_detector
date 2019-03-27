@@ -26,7 +26,7 @@ flags.DEFINE_integer("deepRNN_layers", 3, "Number of layers in DeepRNN")
 flags.DEFINE_integer("backoff_rate", 0, "Max number of steps in wrong direction before going back")
 flags.DEFINE_integer("conv_cond", 100, "Number of epochs without find a better model(convergence condition)")
 flags.DEFINE_integer("epochs", 200, "Number of epochs during training")
-flags.DEFINE_integer("lr_decay", 500, "Implicit decay rate, if 0 no exp decay")
+flags.DEFINE_float("lr_decay", 0.995, "Exp decay")
 flags.DEFINE_integer("batch_size", 4, "Batch size for training")
 flags.DEFINE_integer("val_freq", 1, "Frequency for validation")
 flags.DEFINE_float("learning_rate", 0.1, "Learning rate for training")
@@ -46,12 +46,13 @@ flags.DEFINE_integer("deepRNN_depth", 3, "Trees in the deepRNN")
 
 # ---------------------------- Selective Training ----------------------------
 
+flags.DEFINE_boolean("use_multi_cluster", False, "...")
 flags.DEFINE_integer("num_clusters", 10, "Number of clusters to use (default: 10)")
-flags.DEFINE_integer("pretrain_stop_count",  50, "Stop pretraining when number of epochs without better training acc reaches this. (default: 50)")
-flags.DEFINE_float("selection_cut_off", 0.27, "The expected percent to cut-off for selective training (default: 0.27)")
+flags.DEFINE_integer("pretrain_max_epoch",  200, "Stop pretraining when number of epochs without better training acc reaches this. (default: 50)")
+flags.DEFINE_float("selection_cut_off", 0.85, "The expected MFO to cut-off for selective training (default: 0.90)")
 flags.DEFINE_boolean("mfo", True, "Whether to use MFO analysis to rate clusters. If False use prediction accuracy (default: True)")
 flags.DEFINE_string("cluster_model", 'kmeans', "Which clustering model to use. (default: kmeans)")
-flags.DEFINE_string("cluster_initialization", 'k-means++', "How to initialize clusters. (k-means++’, ‘random’ or an ndarray, default: k-means++)")
+flags.DEFINE_string("cluster_initialization", 'random', "How to initialize clusters. (k-means++’, ‘random’ or an ndarray, default: random)")
 
 # --------------------------- Word embeddings ---------------------------
 

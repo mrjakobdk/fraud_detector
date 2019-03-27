@@ -29,12 +29,18 @@ class Selector:
             permutations.extend(list(i * batch_size + np.array(permuts)))
 
         self.representations = np.array(representations)[permutations]
-        #print(representations)
+        # print(representations)
         self.predictions = performance.get_prediction(np.array(predictions)[permutations])
         self.labels = performance.get_prediction(np.array(labels)[permutations])
         # Get clusters
 
-        self.cluster_predictions = self.cluster_model.cluster(self.representations)
+        try_cluster = True
+        tries = 10
+        while try_cluster:
+            tries -= 1
+            self.cluster_predictions = self.cluster_model.cluster(self.representations)
+            if np.bincount(self.cluster_predictions).max() <= 0.8 * len(self.representations) and tries >=0:
+                try_cluster = False
 
         # Get acc of clusters
         cluster_acc = []
@@ -42,7 +48,8 @@ class Selector:
             if FLAGS.mfo:
                 acc = self.mfo(i)
             else:
-                acc = performance.get_accuracy(self.labels[self.cluster_predictions == i], self.predictions[self.cluster_predictions == i])
+                acc = performance.get_accuracy(self.labels[self.cluster_predictions == i],
+                                               self.predictions[self.cluster_predictions == i])
             cluster_acc.append((i, acc))
 
         # Return data
@@ -54,10 +61,11 @@ class Selector:
         removed_percent = 0
         data_to_use = []
         for cluster, acc in cluster_acc:
-            new_percent = removed_percent + len(self.predictions[self.cluster_predictions == cluster]) / len(self.predictions)
-            if removed_percent > cut_off or (new_percent > cut_off and abs(new_percent - cut_off) > abs(removed_percent - cut_off)):
-                data_to_use.extend(data[self.cluster_predictions == cluster])
+            new_percent = removed_percent + len(self.predictions[self.cluster_predictions == cluster]) / len(
+                self.predictions)
             removed_percent = new_percent
+            if acc < cut_off:
+                data_to_use.extend(data[self.cluster_predictions == cluster])
 
         helper._print(
             f'Done selecting data for training. Overall time used for selection is {int((time() - t)/60)} minutes and {int((time() - t) % 60)} seconds')

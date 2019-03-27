@@ -70,17 +70,17 @@ class treeRNN_tracker(treeModel):
 
         # phrase weights
         self.U_L = tf.get_variable(name='U_L', shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
-                                   initializer=weight_initializer)
+                                   initializer=xavier_initializer)
         self.U_R = tf.get_variable(name='U_R', shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
-                                   initializer=weight_initializer)
+                                   initializer=xavier_initializer)
 
         # bias
-        self.b = tf.get_variable(name='b', shape=[FLAGS.sentence_embedding_size, 1], initializer=bias_initializer)
+        self.b = tf.get_variable(name='b', shape=[FLAGS.sentence_embedding_size, 1], initializer=xavier_initializer)
 
         # classifier weights
         self.V = tf.get_variable(name='V', shape=[FLAGS.label_size, FLAGS.sentence_embedding_size],
                                  initializer=xavier_initializer)
-        self.b_p = tf.get_variable(name='b_p', shape=[FLAGS.label_size, 1], initializer=bias_initializer)
+        self.b_p = tf.get_variable(name='b_p', shape=[FLAGS.label_size, 1], initializer=xavier_initializer)
 
     def build_model(self):
         e_array = tf.TensorArray(
