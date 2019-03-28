@@ -151,7 +151,7 @@ def selective_train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, ep
                 helper._print("New best model found!")
                 model.save_best(sess, saver, summary.VAL)
             else:
-                helper._print("No new best model found!!! Prev best validation acc:", summary.speed["converging_acc"])
+                helper._print("No new best model found!!! Prev best validation acc:", summary.best_acc[summary.VAL])
             summary.converging_tick()
             summary.save_speed()
 

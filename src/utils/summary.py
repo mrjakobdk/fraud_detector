@@ -341,7 +341,7 @@ class summarizer():
         else:
             self.speed["converging_count"] += 1
         helper._print(
-            f"Converging in {self.speed['converging_count']}/{FLAGS.conv_cond} epochs. Prev best val acc: {self.best_acc[self.VAL]}")
+            f"Converging in {self.speed['converging_count']}/{FLAGS.conv_cond} epochs. Prev best val acc: {self.speed['converging_acc']}")
 
     def time_tick(self, msg="Epoch time:"):
         time_end = time()
