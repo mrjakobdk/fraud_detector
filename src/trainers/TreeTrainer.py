@@ -116,7 +116,7 @@ def selective_train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, ep
                 helper._print("New best train model found!")
                 model.save_best(sess, saver, summary.TRAIN)
             else:
-                helper._print("No new best model found!!! Prev best training acc:", summary.speed["dropping_acc"])
+                helper._print("No new best model found!!! Prev best training acc:", summary.best_acc[summary.TRAIN])
             #summary.dropping_tick()
             summary.save_speed()
             summary.pre_tick()
