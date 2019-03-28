@@ -1,5 +1,6 @@
 import tensorflow as tf
 import time
+import os
 
 from trainers.selector import Selector
 from utils import tree_util, constants
@@ -67,11 +68,10 @@ def selective_train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, ep
                     epoch_times=[], conv_cond=FLAGS.conv_cond,
                     num_threads=FLAGS.num_threads):
     if gpu:
-        config = tf.ConfigProto(intra_op_parallelism_threads=num_threads)
+        config = None
     else:
         config = tf.ConfigProto(
-            device_count={'GPU': 0},
-            intra_op_parallelism_threads=num_threads
+            device_count={'GPU': 0}
         )
 
     with tf.Session(config=config) as sess:
@@ -117,7 +117,7 @@ def selective_train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, ep
                 model.save_best(sess, saver, summary.TRAIN)
             else:
                 helper._print("No new best model found!!! Prev best training acc:", summary.best_acc[summary.TRAIN])
-            #summary.dropping_tick()
+            # summary.dropping_tick()
             summary.save_speed()
             summary.pre_tick()
 
@@ -127,12 +127,22 @@ def selective_train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, ep
         model.load_best(sess, saver, summary.TRAIN)
 
         # Main training
-        main_count = 0
+        first = True
         while not summary.converging() and not summary.interrupt():
-            main_count += 1
-            if main_count == 1 or (FLAGS.use_multi_cluster and main_count % int(FLAGS.pretrain_max_epoch/4)==0):
+            summary.main_count_tick()
+            if first and FLAGS.load_model:
+                cluster_predictions = summary.load_cluster_predictions()
+                train_data_selection, cluster_predictions = selector.select_data(model.data.train_trees,
+                                                                                 FLAGS.selection_cut_off,
+                                                                                 cluster_predictions=cluster_predictions)
+                first = False
+
+            if summary.re_cluster():
+                # if main_count == 1 or (FLAGS.use_multi_cluster and main_count % int(FLAGS.pretrain_max_epoch/4)==0):
                 helper._print_header(f'Clustering for MAIN TRAINING!')
-                train_data_selection = selector.select_data(model.data.train_trees, FLAGS.selection_cut_off)
+                train_data_selection, cluster_predictions = selector.select_data(model.data.train_trees,
+                                                                                 FLAGS.selection_cut_off)
+                summary.save_cluster_predictions(cluster_predictions)
                 summary.time_tick("Selection time:")
 
             summary.epoch_inc()

@@ -194,3 +194,7 @@ def trees_to_textfile(trees, path):
             for tree in trees:
                 line = tree.to_sentence()
                 text_file.write(line + '\n')
+
+
+def get_labels(trees):
+    return [np.argmax(tree.label) for tree in trees]

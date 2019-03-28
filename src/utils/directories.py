@@ -51,6 +51,8 @@ TREES_DIRS = {'ppay': PPAY_TREES_DIR, 'edence': EDENCE_TREES_DIR, 'fas': FAS_TRE
 
 
 # --------------------------- File Paths ---------------------------
+def CLUSTER_FILE(model_name): return TRAINED_MODELS_DIR + model_name + '/clustering.npy'
+
 def BEST_MODEL_FILE(model_name, data_set): return BEST_MODEL_DIR(model_name, data_set) + "model.ckpt"
 
 
@@ -127,3 +129,5 @@ if not os.path.exists(TRAINED_MODELS_DIR):
 
 if not os.path.exists(MODEL_DIR(FLAGS.model_name)):
     os.mkdir(MODEL_DIR(FLAGS.model_name))
+
+

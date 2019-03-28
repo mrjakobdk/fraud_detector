@@ -57,6 +57,7 @@ class summarizer():
         "converging_acc": 0,
         "pre_epoch": 0,
         "pre_batch": 0,
+        "main_count": 0,
     }
 
     performance_train = {
@@ -320,7 +321,8 @@ class summarizer():
         return self.speed["epoch"]
 
     def dropping(self):
-        return self.best_acc[self.TRAIN] >= constants.pre_train_max_acc or self.speed["epoch"] >= FLAGS.pretrain_max_epoch
+        return self.best_acc[self.TRAIN] >= constants.pre_train_max_acc or self.speed[
+            "epoch"] >= FLAGS.pretrain_max_epoch
 
     # def dropping_tick(self):
     #     if self.best_acc[self.TRAIN] - self.speed["dropping_acc"] > FLAGS.acc_min_delta_drop:
@@ -365,3 +367,15 @@ class summarizer():
     def pre_tick(self):
         self.speed["pre_epoch"] = self.speed["epoch"]
         self.speed["pre_batch"] = self.speed["batch"]
+
+    def main_count_tick(self):
+        self.speed["main_count"] += 1
+
+    def re_cluster(self):
+        return self.speed["main_count"] == 1 or (FLAGS.use_multi_cluster and self.speed["main_count"] % int(FLAGS.pretrain_max_epoch/4)==0)
+
+    def load_cluster_predictions(self):
+        return np.load(directories.CLUSTER_FILE(self.model_name))
+
+    def save_cluster_predictions(self, cluster_predictions):
+        np.save(directories.CLUSTER_FILE(self.model_name), cluster_predictions)
