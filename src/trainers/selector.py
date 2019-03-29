@@ -92,7 +92,6 @@ class Selector:
 
     def mfo(self, cluster):
         cluster_labels = self.labels[self.cluster_predictions == cluster]
-        print(cluster_labels)
         bincount = np.bincount(cluster_labels)
         if len(cluster_labels) == 0:
             return 0
