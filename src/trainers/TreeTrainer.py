@@ -128,12 +128,6 @@ def selective_train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, ep
         first = True
         while not summary.converging() and not summary.interrupt():
             summary.main_count_tick()
-            if first and FLAGS.load_model:
-                cluster_predictions = summary.load_cluster_predictions()
-                train_data_selection, cluster_predictions = selector.select_data(model.data.train_trees,
-                                                                                 FLAGS.selection_cut_off,
-                                                                                 cluster_predictions=cluster_predictions)
-                first = False
 
             if summary.re_cluster():
                 # if main_count == 1 or (FLAGS.use_multi_cluster and main_count % int(FLAGS.pretrain_max_epoch/4)==0):
@@ -142,6 +136,13 @@ def selective_train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, ep
                                                                                  FLAGS.selection_cut_off)
                 summary.save_cluster_predictions(cluster_predictions)
                 summary.time_tick("Selection time:")
+
+            elif first and FLAGS.load_model:
+                cluster_predictions = summary.load_cluster_predictions()
+                train_data_selection, cluster_predictions = selector.select_data(model.data.train_trees,
+                                                                                 FLAGS.selection_cut_off,
+                                                                                 cluster_predictions=cluster_predictions)
+                first = False
 
             summary.epoch_inc()
 
