@@ -23,7 +23,7 @@ def download(url, output_path):
         urllib.request.urlretrieve(url, filename=output_path, reporthook=t.update_to)
 
 
-#def download_from_kaggle(data_name, dest):
+# def download_from_kaggle(data_name, dest):
 #    api = KaggleApi()
 #    api.authenticate()
 #    return api.dataset_download_files(data_name, dest)
@@ -54,6 +54,7 @@ def _print_subheader(text, total=80):
     print(padding_left, text, padding_right)
     with open(directories.CONSOLE_FILE(FLAGS.model_name), "a+") as file:
         print(padding_left, text, padding_right, file=file)
+
 
 def reverse_dict(l):
     n = len(l)

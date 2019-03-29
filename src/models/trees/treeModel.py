@@ -125,9 +125,10 @@ class treeModel:
         # todo construct model folder
         sess.run(tf.global_variables_initializer())
 
-    def build_feed_dict(self, roots):
-        roots_size = [tree_util.size_of_tree(root) for root in roots]
-        roots = helper.sort_by(roots, roots_size)
+    def build_feed_dict(self, roots, sort=True):
+        if sort:
+            roots_size = [tree_util.size_of_tree(root) for root in roots]
+            roots = helper.sort_by(roots, roots_size)
         roots_size = [tree_util.size_of_tree(root) for root in roots]
         roots_list, permutation = helper.greedy_bin_packing(roots, roots_size, np.max(roots_size))
 

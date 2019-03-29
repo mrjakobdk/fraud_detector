@@ -24,19 +24,22 @@ class Selector:
             self.cluster_model = KMeans(self.num_clusters)
 
     def select_data(self, data, cut_off, cluster_predictions=None):
+        roots_size = [tree_util.size_of_tree(root) for root in data]
+        data = np.array(helper.sort_by(data, roots_size))
 
         t = time()
         if cluster_predictions is None:
 
             # Get representations
             representations, predictions, labels, permutations = [], [], [], []
-            batch_size = 3000
+            batch_size = 500
             batches = helper.batches(data, batch_size, perm=False)
             pbar = tqdm(
                 bar_format='{percentage:.0f}%|{bar}| Elapsed: {elapsed}, Remaining: {remaining} (batches: {n_fmt}/{total_fmt}) ',
                 total=len(batches))
+
             for i, batch in enumerate(batches):
-                feed_dict, permuts = self.model.build_feed_dict(batch)
+                feed_dict, permuts = self.model.build_feed_dict(batch, sort=True)
                 reps, labs = self.session.run(
                     [self.model.sentence_representations, self.model.labels], feed_dict=feed_dict)
                 representations.extend(reps)
@@ -47,7 +50,7 @@ class Selector:
             print()
 
             self.representations = np.array(representations)[permutations]
-            self.labels = performance.get_prediction(np.array(labels)[permutations])
+            self.labels = np.array(performance.get_prediction(np.array(labels)))[permutations]
 
             # Get clusters
 
@@ -78,8 +81,7 @@ class Selector:
         removed_percent = 0
         data_to_use = []
         for cluster, acc in cluster_mfo:
-            new_percent = removed_percent + len(data[self.cluster_predictions == cluster]) / len(
-                data)
+            new_percent = removed_percent + len(data[self.cluster_predictions == cluster]) / len(data)
             removed_percent = new_percent
             if acc < cut_off:
                 data_to_use.extend(data[self.cluster_predictions == cluster])
@@ -90,6 +92,7 @@ class Selector:
 
     def mfo(self, cluster):
         cluster_labels = self.labels[self.cluster_predictions == cluster]
+        print(cluster_labels)
         bincount = np.bincount(cluster_labels)
         if len(cluster_labels) == 0:
             return 0

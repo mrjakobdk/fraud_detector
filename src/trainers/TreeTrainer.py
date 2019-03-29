@@ -25,7 +25,7 @@ class Trainer():
         helper._print("Batch size:", batch_size)
         helper._print("Max epochs:", epochs)
         helper._print("Convergence epochs:", FLAGS.conv_cond)
-        helper._print("Drop epochs:", FLAGS.pretrain_max_epoch)
+        helper._print("Max pre-training epochs:", FLAGS.pretrain_max_epoch)
 
         self.model = model
         self.batch_size = batch_size
@@ -132,6 +132,7 @@ def selective_train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, ep
             summary.main_count_tick()
             if first and FLAGS.load_model:
                 cluster_predictions = summary.load_cluster_predictions()
+                print(cluster_predictions)
                 train_data_selection, cluster_predictions = selector.select_data(model.data.train_trees,
                                                                                  FLAGS.selection_cut_off,
                                                                                  cluster_predictions=cluster_predictions)

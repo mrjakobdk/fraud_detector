@@ -197,4 +197,4 @@ def trees_to_textfile(trees, path):
 
 
 def get_labels(trees):
-    return [np.argmax(tree.label) for tree in trees]
+    return np.argmax(np.array([np.array(tree.label) for tree in trees]), axis=1)

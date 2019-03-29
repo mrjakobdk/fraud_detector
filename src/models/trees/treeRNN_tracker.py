@@ -255,9 +255,10 @@ class treeRNN_tracker(treeModel):
     #     self.acc = tf.reduce_mean(tf.cast(acc, tf.float32))
 
 
-    def build_feed_dict(self, roots):
-        roots_size = [tree_util.size_of_tree(root) for root in roots]
-        roots = helper.sort_by(roots, roots_size)
+    def build_feed_dict(self, roots, sort=True):
+        if sort:
+            roots_size = [tree_util.size_of_tree(root) for root in roots]
+            roots = helper.sort_by(roots, roots_size)
         roots_size = [tree_util.size_of_tree(root) for root in roots]
         roots_list, permutation = helper.greedy_bin_packing(roots, roots_size, np.max(roots_size))
 
