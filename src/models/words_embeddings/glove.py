@@ -207,7 +207,7 @@ class GloVe(WordModel):
             helper._print_subheader('Building model...')
             glove_model = mittens_glove(
                 n=300,
-                max_iter=25000,
+                max_iter=50000,
                 display_progress=1,
                 log_dir=directories.GLOVE_DIR + 'mittens/')
             helper._print_subheader('Training GloVE model...')
