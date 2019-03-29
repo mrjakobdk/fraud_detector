@@ -1,16 +1,12 @@
 import tensorflow as tf
 import time
-import os
+import utils.helper as helper
 
 from trainers.selector import Selector
-from utils import tree_util, constants
+from utils import tree_util
 from utils.flags import FLAGS
-import utils.helper as helper
-import numpy as np
 from utils.summary import summarizer
 from tqdm import tqdm
-import math
-
 
 class Trainer():
     def __init__(self, model, sess, saver, summary, load=False, gpu=True, batch_size=FLAGS.batch_size,
@@ -39,7 +35,9 @@ class Trainer():
         while not done:
             run_time = 0
             batches = helper.batches(train_data, self.batch_size, perm=True)
-            pbar = tqdm(bar_format="{percentage:.0f}%|{bar}{r_bar}", total=len(batches))
+            pbar = tqdm(
+                bar_format="{percentage:.0f}%|{bar}| Elapsed: {elapsed}, Remaining: {remaining} ({n_fmt}/{total_fmt})",
+                total=len(batches))
             for step, batch in enumerate(batches):
                 self.summary.batch_inc()
                 feed_dict, _ = self.model.build_feed_dict(batch)
@@ -132,7 +130,6 @@ def selective_train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, ep
             summary.main_count_tick()
             if first and FLAGS.load_model:
                 cluster_predictions = summary.load_cluster_predictions()
-                print(cluster_predictions)
                 train_data_selection, cluster_predictions = selector.select_data(model.data.train_trees,
                                                                                  FLAGS.selection_cut_off,
                                                                                  cluster_predictions=cluster_predictions)

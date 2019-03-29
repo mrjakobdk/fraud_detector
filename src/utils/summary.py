@@ -321,7 +321,7 @@ class summarizer():
         return self.speed["epoch"]
 
     def dropping(self):
-        return self.best_acc[self.TRAIN] >= constants.pre_train_max_acc or self.speed[
+        return self.best_acc[self.TRAIN] >= FLAGS.pretrain_max_acc or self.speed[
             "epoch"] >= FLAGS.pretrain_max_epoch
 
     # def dropping_tick(self):

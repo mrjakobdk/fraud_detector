@@ -26,7 +26,3 @@ ADAGRAD_OPTIMIZER = 'adagrad'
 
 TREE_LABELS = {'ppay': '4', 'edence': '3', 'fas': '2', 'fcast': '1'}
 
-
-# ------------------------------ training -------------------------------
-pre_train_max_epoch = 200
-pre_train_max_acc = 0.75
