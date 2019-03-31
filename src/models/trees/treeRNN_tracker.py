@@ -61,7 +61,7 @@ class treeRNN_tracker(treeModel):
         self.bo = tf.get_variable(name='bo', shape=[FLAGS.sentence_embedding_size, 1], initializer=bias_initializer)
 
         # tracker encoding variable
-        self.E = tf.get_variable(name='E', shape=[FLAGS.sentence_embedding_size, FLAGS.word_embedding_size],
+        self.E = tf.get_variable(name='E', shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
                                  initializer=xavier_initializer)
 
         # word variables
