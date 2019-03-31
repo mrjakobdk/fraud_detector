@@ -59,7 +59,7 @@ class Selector:
             while try_cluster:
                 tries -= 1
                 self.cluster_predictions = self.cluster_model.cluster(self.representations)
-                if np.bincount(self.cluster_predictions).max() <= 0.8 * len(self.representations) and tries >=0:
+                if np.bincount(self.cluster_predictions).max() <= 0.8 * len(self.representations) or tries >=0:
                     try_cluster = False
 
         else:
