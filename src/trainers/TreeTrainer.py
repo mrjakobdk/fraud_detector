@@ -214,12 +214,12 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
             epoch_times.append(summary.get_time())
             if summary.new_best_acc(summary.VAL):
                 helper._print("New best model found!")
-                model.save_best(sess, saver)
+                model.save_best(sess, saver, summary.VAL)
             else:
                 helper._print("No new best model found!!! Prev best validation acc:", summary.best_acc[summary.VAL])
             summary.converging_tick()
             summary.save_speed()
 
-            model.load_best(sess, saver)
-            summary.save_performance(model)
-            summary.print_performance()
+        model.load_best(sess, saver, summary.VAL)
+        summary.save_performance(model)
+        summary.print_performance()
