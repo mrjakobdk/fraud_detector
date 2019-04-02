@@ -37,6 +37,7 @@ flags.DEFINE_float("l2_strength", 0.0001, "Strangth for l2 reg.")
 flags.DEFINE_string("optimizer", 'adagrad', "Network optimizer")
 flags.DEFINE_boolean("load_model", False, "Load a old model")
 flags.DEFINE_boolean("use_root_loss", False, "use root or internal root loss")
+flags.DEFINE_boolean("use_leaf_loss", False, "use all or only internal root loss")
 flags.DEFINE_boolean("use_selective_training",
                      True, "Use selective training (default: True)")
 

@@ -201,10 +201,18 @@ class summarizer():
         self.writer[data_set].add_summary(summary, epoch)
 
     def compute(self, data_set, data, model, _print=False):
-        feed_dict, _ = model.build_feed_dict(data)
-        acc, loss = self.sess.run([model.acc, model.loss], feed_dict=feed_dict)
-        self.add(data_set, acc, loss)
-        self.write_and_reset(data_set, _print=_print)
+        if FLAGS.use_gpu:
+            feed_dict, _ = model.build_feed_dict(data)
+            acc, loss = self.sess.run([model.acc, model.loss], feed_dict=feed_dict)
+            self.add(data_set, acc, loss)
+            self.write_and_reset(data_set, _print=_print)
+        else:
+            for batch in helper.batches(data, 2):
+                feed_dict, _ = model.build_feed_dict(batch)
+                acc, loss = self.sess.run([model.acc, model.loss], feed_dict=feed_dict)
+                self.add(data_set, acc, loss)
+            self.write_and_reset(data_set, _print=_print)
+
 
     def save_history(self):
         np.savez(directories.HISTORIES_FILE(self.model_name),

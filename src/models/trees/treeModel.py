@@ -150,7 +150,7 @@ class treeModel:
             node_to_index = helper.reverse_dict(node_list)
             node_to_index_list.append(node_to_index)
             for node in node_list:
-                if not node.is_leaf:
+                if not node.is_leaf or FLAGS.use_leaf_loss:
                     internal_nodes_array.append([i, node_to_index[node] + 1])
 
         feed_dict = {
