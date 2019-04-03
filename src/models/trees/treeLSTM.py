@@ -135,7 +135,7 @@ class treeLSTM(treeModel):
             u_n = tf.tanh(
                 tf.matmul(self.Wc, rep_word) + tf.matmul(self.Uc_L, rep_l) + tf.matmul(self.Uc_R, rep_r) + self.bc)
 
-            c_n = tf.math.multiply(i_n, u_n) + tf.math.multiply(f_l, c_l) + tf.math.multiply(f_r, c_r)
+            c_n = tf.math.multiply(i_n, u_n) + tf.math.multiply(f_r, c_l) + tf.math.multiply(f_l, c_r)
             h_n = tf.math.multiply(o_n, tf.tanh(c_n))
 
             return h_n, c_n
