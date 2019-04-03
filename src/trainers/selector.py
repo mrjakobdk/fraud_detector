@@ -68,15 +68,17 @@ class Selector:
 
         # Get acc of clusters
         cluster_mfo = []
+        cluster_mfo_labels = []
         for i in range(self.num_clusters):
-            mfo = self.mfo(i)
+            mfo, l = self.mfo(i)
             cluster_mfo.append((i, mfo))
+            cluster_mfo_labels.append((i, l))
 
         # Return data
         cluster_mfo.sort(key=lambda el: el[1], reverse=True)
         helper._print(f'Cluster MFO scores:')
-        for k, mfo in cluster_mfo:
-            helper._print(f'\tCluster {k}: {mfo}, size: {len(self.labels[self.cluster_predictions == k])}/{len(data)}')
+        for (k, mfo), (_, l) in zip(cluster_mfo, cluster_mfo_labels):
+            helper._print(f'\tCluster {k}: {mfo}, highest label: {l}, size: {len(self.labels[self.cluster_predictions == k])}/{len(data)}')
 
         removed_percent = 0
         data_to_use = []
@@ -95,4 +97,4 @@ class Selector:
         bincount = np.bincount(cluster_labels)
         if len(cluster_labels) == 0:
             return 0
-        return bincount.max() / len(cluster_labels)
+        return bincount.max() / len(cluster_labels), bincount.argmax()
