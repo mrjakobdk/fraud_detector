@@ -32,7 +32,7 @@ class Selector:
 
             # Get representations
             representations, predictions, labels, permutations = [], [], [], []
-            batch_size = 500 if FLAGS.use_gpu else 2
+            batch_size = 500
             batches = helper.batches(data, batch_size, perm=False)
             pbar = tqdm(
                 bar_format='{percentage:.0f}%|{bar}| Elapsed: {elapsed}, Remaining: {remaining} (batches: {n_fmt}/{total_fmt}) ',
