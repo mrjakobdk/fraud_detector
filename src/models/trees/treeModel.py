@@ -240,6 +240,10 @@ class treeModel:
         saver.save(sess, directories.TMP_MODEL_FILE(self.model_name))
         helper._print("Model tmp saved!")
 
+    def save_pre_end(self, sess, saver, data_set):
+        helper._print(f"Saving pre {data_set} model...")
+        saver.save(sess, directories.PRE_MODEL_FILE(self.model_name, data_set))
+        helper._print(f"Model pre {data_set} saved!")
 
 
 

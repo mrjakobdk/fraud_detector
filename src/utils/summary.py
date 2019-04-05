@@ -47,6 +47,7 @@ class summarizer():
     # summary at the time of best performance
     speed = {
         "batch": 0,
+        "best_batch": 0,
         "best_epoch": 0,
         "epoch": 0,
         "best_time": 0,
@@ -266,6 +267,7 @@ class summarizer():
     def new_best_acc(self, data_set):
         if self._new_best_acc[data_set]:
             self.speed["best_epoch"] = self.speed["epoch"]
+            self.speed["best_batch"] = self.speed["batch"]
             self.speed["best_time"] = self.speed["total_time"]
 
         return self._new_best_acc[data_set]

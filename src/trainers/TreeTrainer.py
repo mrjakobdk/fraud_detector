@@ -123,6 +123,7 @@ def selective_train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, ep
         # Selecting
         helper._print_header('PRETRAINING ENDED!')
         model.load_best(sess, saver, summary.TRAIN)
+        model.save_pre_end(sess, saver, summary.TRAIN)
 
         # Main training
         first = True

@@ -32,6 +32,10 @@ def BEST_MODEL_DIR(model_name,
                    data_set=""): return TRAINED_MODELS_DIR + model_name + '/best_model/' if data_set == "" \
     else TRAINED_MODELS_DIR + model_name + '/best_model/' + data_set + "/"
 
+def PRE_MODEL_DIR(model_name,
+                   data_set=""): return TRAINED_MODELS_DIR + model_name + '/pre_model/' if data_set == "" \
+    else TRAINED_MODELS_DIR + model_name + '/pre_model/' + data_set + "/"
+
 
 def TMP_MODEL_DIR(model_name): return TRAINED_MODELS_DIR + model_name + '/tmp_model/'
 
@@ -54,6 +58,7 @@ TREES_DIRS = {'ppay': PPAY_TREES_DIR, 'edence': EDENCE_TREES_DIR, 'fas': FAS_TRE
 def CLUSTER_FILE(model_name): return TRAINED_MODELS_DIR + model_name + '/clustering.npy'
 
 def BEST_MODEL_FILE(model_name, data_set): return BEST_MODEL_DIR(model_name, data_set) + "model.ckpt"
+def PRE_MODEL_FILE(model_name, data_set): return PRE_MODEL_DIR(model_name, data_set) + "model.ckpt"
 
 
 def TMP_MODEL_FILE(model_name): return TMP_MODEL_DIR(model_name) + "model.ckpt"
