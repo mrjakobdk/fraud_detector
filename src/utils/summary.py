@@ -108,7 +108,6 @@ class summarizer():
         self.writer[self.TEST] = tf.summary.FileWriter(directories.LOGS_TEST_DIR(self.model_name))
 
     def load(self):
-        tmp = np.load(directories.HISTORIES_FILE(self.model_name))
 
         if os.path.exists(directories.PARAMETERS_FILE(self.model_name)):
             self.parameters = helper.load_dict(directories.PARAMETERS_FILE(self.model_name))
@@ -125,8 +124,10 @@ class summarizer():
         if os.path.exists(directories.BEST_LOSS_FILE(self.model_name)):
             self.best_loss = helper.load_dict(directories.BEST_LOSS_FILE(self.model_name))
 
-        for data_set in self.all_data_sets:
-            self.history[data_set] = tmp[data_set].tolist()
+        if os.path.exists(directories.HISTORIES_FILE(self.model_name)):
+            tmp = np.load(directories.HISTORIES_FILE(self.model_name))
+            for data_set in self.all_data_sets:
+                self.history[data_set] = tmp[data_set].tolist()
         self.construct_writers()
 
     def initialize(self):
@@ -140,24 +141,27 @@ class summarizer():
             os.mkdir(directories.TRAINED_MODELS_DIR)
 
         if FLAGS.load_model:
-            if not os.path.exists(directories.MODEL_DIR(model_name)):
-                helper._print("!!! No model named:", model_name, "!!!")
-                sys.exit()
+            if not os.path.exists(directories.TMP_MODEL_DIR(model_name)):
+                self.make_model_dirs(model_name)
         else:
             if os.path.exists(directories.MODEL_DIR(model_name)):
                 shutil.rmtree(directories.MODEL_DIR(model_name))
-            os.mkdir(directories.MODEL_DIR(model_name))
-            os.mkdir(directories.LOGS_DIR(model_name))
-            os.mkdir(directories.LOGS_TRAIN_DIR(model_name))
-            os.mkdir(directories.LOGS_VAL_DIR(model_name))
-            os.mkdir(directories.LOGS_TEST_DIR(model_name))
-            os.mkdir(directories.HISTORIES_DIR(model_name))
-            os.mkdir(directories.BEST_MODEL_DIR(model_name))
-            for data_set in self.all_data_sets:
-                os.mkdir(directories.BEST_MODEL_DIR(model_name, data_set))
-            os.mkdir(directories.PLOTS_DIR(model_name))
+            self.make_model_dirs(model_name)
 
         helper._print("Directories constructed!")
+
+    def make_model_dirs(self, model_name):
+        if not os.path.exists(directories.MODEL_DIR(model_name)):
+            os.mkdir(directories.MODEL_DIR(model_name))
+        os.mkdir(directories.LOGS_DIR(model_name))
+        os.mkdir(directories.LOGS_TRAIN_DIR(model_name))
+        os.mkdir(directories.LOGS_VAL_DIR(model_name))
+        os.mkdir(directories.LOGS_TEST_DIR(model_name))
+        os.mkdir(directories.HISTORIES_DIR(model_name))
+        os.mkdir(directories.BEST_MODEL_DIR(model_name))
+        for data_set in self.all_data_sets:
+            os.mkdir(directories.BEST_MODEL_DIR(model_name, data_set))
+        os.mkdir(directories.PLOTS_DIR(model_name))
 
     def add(self, data_set, acc, loss):
         self.rounds[data_set] += 1

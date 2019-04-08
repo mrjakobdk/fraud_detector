@@ -1,3 +1,5 @@
+import os
+
 import tensorflow as tf
 import utils.data_util as data_util
 import trainers.TreeTrainer as trainer
@@ -55,11 +57,12 @@ def main():
         model = treeRNN_tracker(data, word_embeddings, model_name)
     else:
         model = treeRNN(data, word_embeddings, model_name)
-
+    # TODO: Check if MODEL_DIR is made prematurely
+    load = FLAGS.load_model and os.path.exists(directories.TMP_MODEL_DIR(model_name))
     if FLAGS.use_selective_training:
-        trainer.selective_train(model, load=FLAGS.load_model, gpu=FLAGS.use_gpu)
+        trainer.selective_train(model, load=load, gpu=FLAGS.use_gpu)
     else:
-        trainer.train(model, load=FLAGS.load_model, gpu=FLAGS.use_gpu)
+        trainer.train(model, load=load, gpu=FLAGS.use_gpu)
 
 
 if __name__ == "__main__":
