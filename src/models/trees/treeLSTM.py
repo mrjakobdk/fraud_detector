@@ -39,27 +39,27 @@ class treeLSTM(treeModel):
 
         # phrase weights
         self.Ui_L = tf.get_variable(name='Ui_L', shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
-                                    initializer=weight_initializer)
+                                    initializer=xavier_initializer)
         self.Ui_R = tf.get_variable(name='Ui_R', shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
-                                    initializer=weight_initializer)
+                                    initializer=xavier_initializer)
         self.Uf_L = tf.get_variable(name='Uf_L', shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
-                                    initializer=weight_initializer)
+                                    initializer=xavier_initializer)
         self.Uf_R = tf.get_variable(name='Uf_R', shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
-                                    initializer=weight_initializer)
+                                    initializer=xavier_initializer)
         self.Uo_L = tf.get_variable(name='Uo_L', shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
-                                    initializer=weight_initializer)
+                                    initializer=xavier_initializer)
         self.Uo_R = tf.get_variable(name='Uo_R', shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
-                                    initializer=weight_initializer)
+                                    initializer=xavier_initializer)
         self.Uc_L = tf.get_variable(name='Uc_L', shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
-                                    initializer=weight_initializer)
+                                    initializer=xavier_initializer)
         self.Uc_R = tf.get_variable(name='Uc_R', shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
-                                    initializer=weight_initializer)
+                                    initializer=xavier_initializer)
 
         # bias
-        self.bi = tf.get_variable(name='bi', shape=[FLAGS.sentence_embedding_size, 1], initializer=bias_initializer)
-        self.bf = tf.get_variable(name='bf', shape=[FLAGS.sentence_embedding_size, 1], initializer=bias_initializer)
-        self.bo = tf.get_variable(name='bo', shape=[FLAGS.sentence_embedding_size, 1], initializer=bias_initializer)
-        self.bc = tf.get_variable(name='bc', shape=[FLAGS.sentence_embedding_size, 1], initializer=bias_initializer)
+        self.bi = tf.get_variable(name='bi', shape=[FLAGS.sentence_embedding_size, 1], initializer=xavier_initializer)
+        self.bf = tf.get_variable(name='bf', shape=[FLAGS.sentence_embedding_size, 1], initializer=xavier_initializer)
+        self.bo = tf.get_variable(name='bo', shape=[FLAGS.sentence_embedding_size, 1], initializer=xavier_initializer)
+        self.bc = tf.get_variable(name='bc', shape=[FLAGS.sentence_embedding_size, 1], initializer=xavier_initializer)
 
         # classifier weights
         self.V = tf.get_variable(name='V', shape=[FLAGS.label_size, FLAGS.sentence_embedding_size],

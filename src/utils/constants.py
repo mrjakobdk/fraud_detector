@@ -18,6 +18,7 @@ TREE_RNN ='treeRNN'
 BATCH_TREE_RNN = 'treeRNN_batch'
 NEERBEK_TREE_RNN = 'treeRNN_neerbek'
 TRACKER_TREE_RNN = 'treeRNN_tracker'
+TRACKER_TREE_LSTM = 'treeLSTM_tracker'
 DEEP_RNN = 'deepRNN'
 TREE_LSTM = 'treeLSTM'
 

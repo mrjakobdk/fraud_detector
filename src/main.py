@@ -5,6 +5,7 @@ import utils.data_util as data_util
 import trainers.TreeTrainer as trainer
 
 from models.trees.treeLSTM import treeLSTM
+from models.trees.treeLSTM_tracker import treeLSTM_tracker
 from models.trees.treeRNN import treeRNN
 from models.trees.treeRNN_batch import treeRNN_batch
 from models.trees.deepRNN import deepRNN
@@ -55,6 +56,8 @@ def main():
         model = treeLSTM(data, word_embeddings, model_name)
     elif FLAGS.model == constants.TRACKER_TREE_RNN:
         model = treeRNN_tracker(data, word_embeddings, model_name)
+    elif FLAGS.model == constants.TRACKER_TREE_LSTM:
+        model = treeLSTM_tracker(data, word_embeddings, model_name)
     else:
         model = treeRNN(data, word_embeddings, model_name)
     # TODO: Check if MODEL_DIR is made prematurely
