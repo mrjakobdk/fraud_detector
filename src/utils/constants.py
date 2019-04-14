@@ -21,6 +21,7 @@ TRACKER_TREE_RNN = 'treeRNN_tracker'
 TRACKER_TREE_LSTM = 'treeLSTM_tracker'
 DEEP_RNN = 'deepRNN'
 TREE_LSTM = 'treeLSTM'
+LSTM = 'LSTM'
 
 ADAM_OPTIMIZER = 'adam'
 ADAGRAD_OPTIMIZER = 'adagrad'

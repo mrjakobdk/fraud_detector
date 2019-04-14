@@ -3,6 +3,7 @@ import os
 import tensorflow as tf
 import utils.data_util as data_util
 import trainers.TreeTrainer as trainer
+from models.sequential.LSTM import LSTM
 
 from models.trees.treeLSTM import treeLSTM
 from models.trees.treeLSTM_tracker import treeLSTM_tracker
@@ -58,8 +59,9 @@ def main():
         model = treeRNN_tracker(data, word_embeddings, model_name)
     elif FLAGS.model == constants.TRACKER_TREE_LSTM:
         model = treeLSTM_tracker(data, word_embeddings, model_name)
-    else:
-        model = treeRNN(data, word_embeddings, model_name)
+    elif FLAGS.model == constants.LSTM:
+        model = LSTM(data, word_embeddings, model_name)
+
     # TODO: Check if MODEL_DIR is made prematurely
     load = FLAGS.load_model and os.path.exists(directories.TMP_MODEL_DIR(model_name))
     if FLAGS.use_selective_training:

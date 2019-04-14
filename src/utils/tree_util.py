@@ -187,6 +187,11 @@ def size_of_tree(node):
     else:
         return size_of_tree(node.left_child) + size_of_tree(node.right_child) + 1
 
+def leafs_in_tree(node):
+    if node.is_leaf:
+        return 1
+    else:
+        return leafs_in_tree(node.left_child) + leafs_in_tree(node.right_child)
 
 def trees_to_textfile(trees, path):
     if not os.path.exists(path):
@@ -198,3 +203,5 @@ def trees_to_textfile(trees, path):
 
 def get_labels(trees):
     return np.argmax(np.array([np.array(tree.label) for tree in trees]), axis=1)
+
+

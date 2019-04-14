@@ -218,8 +218,6 @@ class treeModel:
         return sess.run(self.acc, feed_dict=feed_dict)
 
 
-
-
     def load_best(self, sess, saver, data_set):
         helper._print(f"Restoring best {data_set} model...")
         saver.restore(sess, directories.BEST_MODEL_FILE(self.model_name, data_set))
