@@ -55,8 +55,8 @@ class Performance:
 
         probs, labels = model.predict_and_label(data, sess)
         labels = get_prediction(labels)
-
         predictions = get_prediction(probs)
+
         self.acc = get_accuracy(labels, predictions)
 
         self.TP, self.FP, self.TN, self.FN = get_confusion_matrix(labels, predictions)
