@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn import metrics
 
+from utils import tree_util, helper
+
 
 def get_labels(data):
     labels = []
@@ -43,8 +45,6 @@ def get_roc_values(labels, probs):
     return TPR_list, FPR_list
 
 
-
-
 class Performance:
     def __init__(self, data, model, sess):
         """
@@ -53,11 +53,16 @@ class Performance:
         :return:
         """
 
+        roots_size = [tree_util.size_of_tree(root) for root in data]
+        data = helper.sort_by(data, roots_size)
+
         probs, labels = model.predict_and_label(data, sess)
         labels = get_prediction(labels)
         predictions = get_prediction(probs)
 
         self.acc = get_accuracy(labels, predictions)
+        if len(data) < 3000:
+            print(model.accuracy(data, sess))
 
         self.TP, self.FP, self.TN, self.FN = get_confusion_matrix(labels, predictions)
 
@@ -67,7 +72,6 @@ class Performance:
 
         self.TPR_list, self.FPR_list = get_roc_values(labels, probs)
         self.auc = metrics.auc(self.FPR_list, self.TPR_list)
-
 
     def get_performance(self):
         performance = {

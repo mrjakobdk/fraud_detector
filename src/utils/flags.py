@@ -76,6 +76,7 @@ flags.DEFINE_integer('print_step_interval', 1000, "Interval to print in training
 flags.DEFINE_boolean('run_tensorboard', False, "Flag")
 flags.DEFINE_boolean('use_gpu', True, "Use the gpu friendly version")
 flags.DEFINE_integer('num_threads', 1, "Number of threads to be use on the CPU")
+flags.DEFINE_boolean('evaluate', False, "Recompute performance")
 
 # --------------------------- Experiments ---------------------------
 

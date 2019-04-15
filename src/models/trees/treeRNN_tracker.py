@@ -14,7 +14,7 @@ class treeRNN_tracker(treeModel):
         self.embeddings = tf.constant(self.word_embed.embeddings)
         ## dummi values
         self.rep_zero = tf.constant(0., shape=[FLAGS.sentence_embedding_size])
-        self.word_zero = tf.constant(0., shape=[FLAGS.word_embedding_size]) #todo changed from 1d
+        self.word_zero = tf.constant(0., shape=[FLAGS.word_embedding_size])  # todo changed from 1d
         self.label_zero = tf.constant(0., shape=[FLAGS.label_size])
 
     def build_placeholders(self):
@@ -38,7 +38,7 @@ class treeRNN_tracker(treeModel):
 
         # lstm variables
         self.Wc = tf.get_variable(name='Wc', shape=[FLAGS.sentence_embedding_size, FLAGS.word_embedding_size],
-                                 initializer=xavier_initializer)
+                                  initializer=xavier_initializer)
         self.Wi = tf.get_variable(name='Wi', shape=[FLAGS.sentence_embedding_size, FLAGS.word_embedding_size],
                                   initializer=xavier_initializer)
         self.Wf = tf.get_variable(name='Wf', shape=[FLAGS.sentence_embedding_size, FLAGS.word_embedding_size],
@@ -254,7 +254,6 @@ class treeRNN_tracker(treeModel):
     #     acc = tf.equal(logits_max, labels_max)
     #     self.acc = tf.reduce_mean(tf.cast(acc, tf.float32))
 
-
     def build_feed_dict(self, roots, sort=True):
         if sort:
             roots_size = [tree_util.size_of_tree(root) for root in roots]
@@ -277,7 +276,6 @@ class treeRNN_tracker(treeModel):
 
                 _, start = tree_util.get_preceding_lstm_index(root, start, start, lstm_idx)
 
-
                 root_index += tree_util.size_of_tree(root)
                 root_indices.append([i, root_index])
             node_list_list.append(node_list)
@@ -286,16 +284,18 @@ class treeRNN_tracker(treeModel):
             lstm_idx_list.append(lstm_idx)
             for node in node_list:
                 if not node.is_leaf:
-                    internal_nodes_array.append([i, node_to_index[node]+1])
+                    internal_nodes_array.append([i, node_to_index[node] + 1])
+
+        internal_nodes_array = internal_nodes_array if len(internal_nodes_array) > 0 else [[0, 0]]
 
         feed_dict = {
             self.leaf_word_array: helper.lists_pad(
                 [[0] + [self.word_embed.get_idx(node.value) for node in node_list if node.is_leaf]
-                for node_list in node_list_list]
-            ,0),
+                 for node_list in node_list_list]
+                , 0),
             self.lstm_index_array: helper.lists_pad(
                 lstm_idx_list
-            ,0),
+                , 0),
             self.loss_array: root_indices if self.use_root_loss else internal_nodes_array,
             self.root_array: root_indices,
             self.is_leaf_array: helper.lists_pad([

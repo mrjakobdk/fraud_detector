@@ -224,3 +224,20 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
         model.load_best(sess, saver, summary.VAL)
         summary.save_performance(model)
         summary.print_performance()
+
+
+def evaluate(model, gpu=True):
+    if gpu:
+        config = None
+    else:
+        config = tf.ConfigProto(
+            device_count={'GPU': 0}
+        )
+
+    with tf.Session(config=config) as sess:
+        # initialization
+        saver = tf.train.Saver()
+        summary = summarizer(model.model_name, sess)
+        model.load_best(sess, saver, summary.VAL)
+        summary.save_performance(model)
+        summary.print_performance()

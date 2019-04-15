@@ -14,13 +14,14 @@ class treeLSTM_tracker(treeModel):
         self.embeddings = tf.constant(self.word_embed.embeddings)
         ## dummi values
         self.rep_zero = tf.constant(0., shape=[FLAGS.sentence_embedding_size])
-        self.word_zero = tf.constant(0., shape=[FLAGS.word_embedding_size]) #todo changed from 1d
+        self.word_zero = tf.constant(0., shape=[FLAGS.word_embedding_size])  # todo changed from 1d
         self.label_zero = tf.constant(0., shape=[FLAGS.label_size])
 
     def build_placeholders(self):
         # tracker
         self.leaf_word_array = tf.placeholder(tf.int32, (None, None), name='word_index_sentence')
         self.lstm_index_array = tf.placeholder(tf.int32, (None, None), name='preceding_lstm_index')
+        self.lstm_prev_array = tf.placeholder(tf.int32, (None, None), name='lstm_prev')
 
         # tree structure placeholders
         self.loss_array = tf.placeholder(tf.int32, (None, None), name='loss_array')
@@ -37,40 +38,52 @@ class treeLSTM_tracker(treeModel):
         xavier_initializer, weight_initializer, bias_initializer = self.get_initializers()
 
         # lstm tracker variables
-        self.Wc_tracker = tf.get_variable(name='Wc_tracker', shape=[FLAGS.sentence_embedding_size, FLAGS.word_embedding_size],
-                                 initializer=xavier_initializer)
-        self.Wi_tracker = tf.get_variable(name='Wi_tracker', shape=[FLAGS.sentence_embedding_size, FLAGS.word_embedding_size],
-                                  initializer=xavier_initializer)
-        self.Wf_tracker = tf.get_variable(name='Wf_tracker', shape=[FLAGS.sentence_embedding_size, FLAGS.word_embedding_size],
-                                  initializer=xavier_initializer)
-        self.Wo_tracker = tf.get_variable(name='Wo_tracker', shape=[FLAGS.sentence_embedding_size, FLAGS.word_embedding_size],
-                                  initializer=xavier_initializer)
+        self.Wc_tracker = tf.get_variable(name='Wc_tracker',
+                                          shape=[FLAGS.sentence_embedding_size, FLAGS.word_embedding_size],
+                                          initializer=xavier_initializer)
+        self.Wi_tracker = tf.get_variable(name='Wi_tracker',
+                                          shape=[FLAGS.sentence_embedding_size, FLAGS.word_embedding_size],
+                                          initializer=xavier_initializer)
+        self.Wf_tracker = tf.get_variable(name='Wf_tracker',
+                                          shape=[FLAGS.sentence_embedding_size, FLAGS.word_embedding_size],
+                                          initializer=xavier_initializer)
+        self.Wo_tracker = tf.get_variable(name='Wo_tracker',
+                                          shape=[FLAGS.sentence_embedding_size, FLAGS.word_embedding_size],
+                                          initializer=xavier_initializer)
 
-        self.Uc_tracker = tf.get_variable(name='Uc_tracker', shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
-                                  initializer=xavier_initializer)
-        self.Ui_tracker = tf.get_variable(name='Ui_tracker', shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
-                                  initializer=xavier_initializer)
-        self.Uf_tracker = tf.get_variable(name='Uf_tracker', shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
-                                  initializer=xavier_initializer)
-        self.Uo_tracker = tf.get_variable(name='Uo_tracker', shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
-                                  initializer=xavier_initializer)
+        self.Uc_tracker = tf.get_variable(name='Uc_tracker',
+                                          shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
+                                          initializer=xavier_initializer)
+        self.Ui_tracker = tf.get_variable(name='Ui_tracker',
+                                          shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
+                                          initializer=xavier_initializer)
+        self.Uf_tracker = tf.get_variable(name='Uf_tracker',
+                                          shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
+                                          initializer=xavier_initializer)
+        self.Uo_tracker = tf.get_variable(name='Uo_tracker',
+                                          shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
+                                          initializer=xavier_initializer)
 
-        self.bc_tracker = tf.get_variable(name='bc_tracker', shape=[FLAGS.sentence_embedding_size, 1], initializer=xavier_initializer)
-        self.bi_tracker = tf.get_variable(name='bi_tracker', shape=[FLAGS.sentence_embedding_size, 1], initializer=xavier_initializer)
-        self.bf_tracker = tf.get_variable(name='bf_tracker', shape=[FLAGS.sentence_embedding_size, 1], initializer=xavier_initializer)
-        self.bo_tracker = tf.get_variable(name='bo_tracker', shape=[FLAGS.sentence_embedding_size, 1], initializer=xavier_initializer)
+        self.bc_tracker = tf.get_variable(name='bc_tracker', shape=[FLAGS.sentence_embedding_size, 1],
+                                          initializer=xavier_initializer)
+        self.bi_tracker = tf.get_variable(name='bi_tracker', shape=[FLAGS.sentence_embedding_size, 1],
+                                          initializer=xavier_initializer)
+        self.bf_tracker = tf.get_variable(name='bf_tracker', shape=[FLAGS.sentence_embedding_size, 1],
+                                          initializer=xavier_initializer)
+        self.bo_tracker = tf.get_variable(name='bo_tracker', shape=[FLAGS.sentence_embedding_size, 1],
+                                          initializer=xavier_initializer)
 
         # tracker encoding variable
         self.Ec = tf.get_variable(name='Ec', shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
-                                 initializer=xavier_initializer)
+                                  initializer=xavier_initializer)
         self.Ei = tf.get_variable(name='Ei', shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
-                                 initializer=xavier_initializer)
+                                  initializer=xavier_initializer)
         self.Ef_l = tf.get_variable(name='Ef_l', shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
-                                 initializer=xavier_initializer)
+                                    initializer=xavier_initializer)
         self.Ef_r = tf.get_variable(name='Ef_r', shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
-                                 initializer=xavier_initializer)
+                                    initializer=xavier_initializer)
         self.Eo = tf.get_variable(name='Eo', shape=[FLAGS.sentence_embedding_size, FLAGS.sentence_embedding_size],
-                                 initializer=xavier_initializer)
+                                  initializer=xavier_initializer)
 
         # TreeLSTM
         self.Wi = tf.get_variable(name='Wi', shape=[FLAGS.sentence_embedding_size, FLAGS.word_embedding_size],
@@ -186,8 +199,9 @@ class treeLSTM_tracker(treeModel):
             return tf.transpose(tf.gather_nd(t_rep_entries, batch_indices))
 
         def build_lstm_cell(t, e_array, c_array, w_array):
-            e_prev = e_array.read(t - 1)
-            c_prev = c_array.read(t - 1)
+            t_prev = tf.gather(self.lstm_prev_array, t, axis=1)
+            e_prev = e_array.read(t_prev)
+            c_prev = c_array.read(t_prev)
             w_t = w_array.read(t)
 
             u_t = tf.tanh(tf.matmul(self.Wc_tracker, w_t) + tf.matmul(self.Uc_tracker, e_prev) + self.bc_tracker)
@@ -235,7 +249,8 @@ class treeLSTM_tracker(treeModel):
             tracker_c = tf.matmul(self.Ec, e)
 
             i_n = tf.sigmoid(
-                tf.matmul(self.Wi, rep_word) + tf.matmul(self.Ui_L, rep_l) + tf.matmul(self.Ui_R, rep_r) + tracker_i + self.bi)
+                tf.matmul(self.Wi, rep_word) + tf.matmul(self.Ui_L, rep_l) + tf.matmul(self.Ui_R,
+                                                                                       rep_r) + tracker_i + self.bi)
 
             f_l = tf.sigmoid(
                 tf.matmul(self.Wf, rep_word) + tf.matmul(self.Uf_R, rep_l) + tracker_f_l + self.bf)
@@ -244,10 +259,12 @@ class treeLSTM_tracker(treeModel):
                 tf.matmul(self.Wf, rep_word) + tf.matmul(self.Uf_L, rep_r) + tracker_f_r + self.bf)
 
             o_n = tf.sigmoid(
-                tf.matmul(self.Wo, rep_word) + tf.matmul(self.Uo_L, rep_l) + tf.matmul(self.Uo_R, rep_r) + tracker_o + self.bo)
+                tf.matmul(self.Wo, rep_word) + tf.matmul(self.Uo_L, rep_l) + tf.matmul(self.Uo_R,
+                                                                                       rep_r) + tracker_o + self.bo)
 
             u_n = tf.tanh(
-                tf.matmul(self.Wc, rep_word) + tf.matmul(self.Uc_L, rep_l) + tf.matmul(self.Uc_R, rep_r) + tracker_c + self.bc)
+                tf.matmul(self.Wc, rep_word) + tf.matmul(self.Uc_L, rep_l) + tf.matmul(self.Uc_R,
+                                                                                       rep_r) + tracker_c + self.bc)
 
             c_n = tf.math.multiply(i_n, u_n) + tf.math.multiply(f_r, c_l) + tf.math.multiply(f_l, c_r)
             h_n = tf.math.multiply(o_n, tf.tanh(c_n))
@@ -272,7 +289,8 @@ class treeLSTM_tracker(treeModel):
             i = tf.add(i, 1)
             return rep_array, word_array, o_array, mem_array, e_array, i
 
-        termination_cond = lambda rep_a, word_a, o_a, m_a, e_a, i: tf.less(i, tf.gather(tf.shape(self.left_child_array), 1))
+        termination_cond = lambda rep_a, word_a, o_a, m_a, e_a, i: tf.less(i, tf.gather(tf.shape(self.left_child_array),
+                                                                                        1))
 
         self.rep_array, self.word_array, self.o_array, self.mem_array, self.e_array, _ = tf.while_loop(
             cond=termination_cond,
@@ -280,7 +298,6 @@ class treeLSTM_tracker(treeModel):
             loop_vars=(rep_array, word_array, o_array, mem_array, self.e_array, 1),
             parallel_iterations=1
         )
-
 
     def build_feed_dict(self, roots, sort=True):
         if sort:
@@ -293,10 +310,13 @@ class treeLSTM_tracker(treeModel):
         node_to_index_list = []
         root_indices = []
         lstm_idx_list = []
+        lstm_prev_list = []
         internal_nodes_array = []
         for i, roots in enumerate(roots_list):
             node_list = []
             lstm_idx = [0]
+            lstm_prev = [0]
+            lstm_prev_count = 0
             root_index = 0
             start = 0
             for root in roots:
@@ -304,6 +324,13 @@ class treeLSTM_tracker(treeModel):
 
                 _, start = tree_util.get_preceding_lstm_index(root, start, start, lstm_idx)
 
+                leaf_count = tree_util.leafs_in_tree(root)
+                for i in range(0, leaf_count):
+                    lstm_prev_count += 1
+                    if i == 0:
+                        lstm_prev.append(0)
+                    else:
+                        lstm_prev.append(lstm_prev_count)
 
                 root_index += tree_util.size_of_tree(root)
                 root_indices.append([i, root_index])
@@ -311,18 +338,22 @@ class treeLSTM_tracker(treeModel):
             node_to_index = helper.reverse_dict(node_list)
             node_to_index_list.append(node_to_index)
             lstm_idx_list.append(lstm_idx)
+            lstm_prev_list.append(lstm_prev)
             for node in node_list:
                 if not node.is_leaf:
-                    internal_nodes_array.append([i, node_to_index[node]+1])
+                    internal_nodes_array.append([i, node_to_index[node] + 1])
+
+        internal_nodes_array = internal_nodes_array if len(internal_nodes_array) > 0 else [[0, 0]]
 
         feed_dict = {
+            self.lstm_prev_array: helper.lists_pad(lstm_prev_list, 0),
             self.leaf_word_array: helper.lists_pad(
                 [[0] + [self.word_embed.get_idx(node.value) for node in node_list if node.is_leaf]
-                for node_list in node_list_list]
-            ,0),
+                 for node_list in node_list_list]
+                , 0),
             self.lstm_index_array: helper.lists_pad(
                 lstm_idx_list
-            ,0),
+                , 0),
             self.loss_array: root_indices if self.use_root_loss else internal_nodes_array,
             self.root_array: root_indices,
             self.is_leaf_array: helper.lists_pad([

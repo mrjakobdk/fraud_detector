@@ -153,6 +153,8 @@ class treeModel:
                 if not node.is_leaf or FLAGS.use_leaf_loss:
                     internal_nodes_array.append([i, node_to_index[node] + 1])
 
+        internal_nodes_array = internal_nodes_array if len(internal_nodes_array)>0 else [[0, 0]] #hack to fix case where all length a 1
+
         feed_dict = {
             self.root_array: root_indices,
             self.loss_array: root_indices if self.use_root_loss else internal_nodes_array,
@@ -204,7 +206,8 @@ class treeModel:
     def predict_and_label(self, data, sess):
         helper._print_subheader("Predicting")
         prob, labels = [], []
-        for batch in helper.batches(data, batch_size=3000 if FLAGS.use_gpu else 2, use_tail=True, perm=False):
+        batches = helper.batches(data, batch_size=1000 if FLAGS.use_gpu else 2, use_tail=True, perm=False)
+        for batch in batches:
             feed_dict, _ = self.build_feed_dict(batch)
             p, l = sess.run([self.p, self.labels], feed_dict=feed_dict)
             prob.extend(p)
@@ -214,6 +217,7 @@ class treeModel:
     def accuracy(self, data, sess):
         helper._print_subheader("Computing accuracy")
         feed_dict, _ = self.build_feed_dict(data)
+        print("roots", len(feed_dict[self.root_array]))
         return sess.run(self.acc, feed_dict=feed_dict)
 
 
