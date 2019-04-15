@@ -17,6 +17,7 @@ class LSTM(treeModel):
         self.label_zero = tf.constant(0., shape=[FLAGS.label_size])
 
     def build_placeholders(self):
+        self.lstm_prev_array = tf.placeholder(tf.int32, (None, None), name='lstm_prev')
         self.leaf_word_array = tf.placeholder(tf.int32, (None, None), name='word_index_sentence')
         self.loss_array = tf.placeholder(tf.int32, (None, None), name='loss_array')
         self.root_array = tf.placeholder(tf.int32, (None, None), name='root_array')
@@ -105,8 +106,8 @@ class LSTM(treeModel):
             return tf.transpose(tf.gather_nd(t_rep_entries, batch_indices))
 
         def build_lstm_cell(t, e_array, c_array, w_array):
-            e_prev = e_array.read(t - 1)
-            c_prev = c_array.read(t - 1)
+            e_prev = gather_rep(t, self.lstm_prev_array, e_array)
+            c_prev = gather_rep(t, self.lstm_prev_array, c_array)
             w_t = w_array.read(t)
 
             u_t = tf.tanh(tf.matmul(self.Wc, w_t) + tf.matmul(self.Uc, e_prev) + self.bc)
@@ -152,10 +153,13 @@ class LSTM(treeModel):
         node_list_list = []
         root_indices = []
         internal_nodes_array = []
+        lstm_prev_list = []
         for i, roots in enumerate(roots_list):
             node_list = []
             root_index = 0
             leaf_index = 0
+            lstm_prev = [0]
+            lstm_prev_count = 0
             for root in roots:
                 tree_util.depth_first_traverse(root, node_list, lambda node, node_list: node_list.append(node))
                 leaf_count = tree_util.leafs_in_tree(root)
@@ -164,9 +168,20 @@ class LSTM(treeModel):
                 for j in range(0,leaf_count):
                     leaf_index += 1
                     internal_nodes_array.append([i, leaf_index])
+
+                leaf_count = tree_util.leafs_in_tree(root)
+                for x in range(0, leaf_count):
+                    if x == 0:
+                        lstm_prev.append(0)
+                    else:
+                        lstm_prev.append(lstm_prev_count)
+                    lstm_prev_count += 1
+
             node_list_list.append(node_list)
+            lstm_prev_list.append(lstm_prev)
 
         feed_dict = {
+            self.lstm_prev_array: helper.lists_pad(lstm_prev_list, 0),
             self.leaf_word_array: helper.lists_pad(
                 [[0] + [self.word_embed.get_idx(node.value) for node in node_list if node.is_leaf]
                 for node_list in node_list_list]
