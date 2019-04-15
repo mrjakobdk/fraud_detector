@@ -199,9 +199,11 @@ class treeLSTM_tracker(treeModel):
             return tf.transpose(tf.gather_nd(t_rep_entries, batch_indices))
 
         def build_lstm_cell(t, e_array, c_array, w_array):
-            t_prev = tf.gather(self.lstm_prev_array, t, axis=1)
-            e_prev = e_array.read(t_prev)
-            c_prev = c_array.read(t_prev)
+            # t_prev = tf.gather(self.lstm_prev_array, t, axis=1)
+            e_prev = gather_rep(t, self.lstm_prev_array, e_array)
+            c_prev = gather_rep(t, self.lstm_prev_array, c_array)
+            # e_prev = e_array.read(t_prev)
+            # c_prev = c_array.read(t_prev)
             w_t = w_array.read(t)
 
             u_t = tf.tanh(tf.matmul(self.Wc_tracker, w_t) + tf.matmul(self.Uc_tracker, e_prev) + self.bc_tracker)
@@ -325,12 +327,12 @@ class treeLSTM_tracker(treeModel):
                 _, start = tree_util.get_preceding_lstm_index(root, start, start, lstm_idx)
 
                 leaf_count = tree_util.leafs_in_tree(root)
-                for i in range(0, leaf_count):
-                    lstm_prev_count += 1
-                    if i == 0:
+                for x in range(0, leaf_count):
+                    if x == 0:
                         lstm_prev.append(0)
                     else:
                         lstm_prev.append(lstm_prev_count)
+                    lstm_prev_count += 1
 
                 root_index += tree_util.size_of_tree(root)
                 root_indices.append([i, root_index])
@@ -344,7 +346,7 @@ class treeLSTM_tracker(treeModel):
                     internal_nodes_array.append([i, node_to_index[node] + 1])
 
         internal_nodes_array = internal_nodes_array if len(internal_nodes_array) > 0 else [[0, 0]]
-
+        # print(lstm_prev_list)
         feed_dict = {
             self.lstm_prev_array: helper.lists_pad(lstm_prev_list, 0),
             self.leaf_word_array: helper.lists_pad(
