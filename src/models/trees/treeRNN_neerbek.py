@@ -134,6 +134,8 @@ class treeRNN_neerbek(treeModel):
             word_array = word_array.write(i, word_emb)
 
             rep = build_node(i, rep_array, word_array)
+            if FLAGS.dropout_prob > 0:
+                rep = tf.nn.dropout(rep, rate=self.dropout_rate)
             rep_array = rep_array.write(i, rep)
 
             o = tf.matmul(self.V, rep) + self.b_p

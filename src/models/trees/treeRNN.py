@@ -128,6 +128,8 @@ class treeRNN(treeModel):
                 lambda: embed_word(word_index),
                 lambda: build_node(left_child, right_child, rep_array)
             )
+            if FLAGS.dropout_prob > 0:
+                rep = tf.nn.dropout(rep, rate=self.dropout_rate)
             rep_array = rep_array.write(i, rep)
 
             # o_none = (label_size, 1)

@@ -57,6 +57,10 @@ class LSTM(treeModel):
                                  initializer=xavier_initializer)
         self.b_p = tf.get_variable(name='b_p', shape=[FLAGS.label_size, 1], initializer=xavier_initializer)
 
+        self.reg_weights = [self.Wi, self.Wf, self.Wo, self.Wc,
+                            self.Ui, self.Uf, self.Uc, self.Uo,
+                            self.V]
+
     def build_model(self):
         e_array = tf.TensorArray(
             tf.float32,
@@ -126,6 +130,8 @@ class LSTM(treeModel):
             w_array = w_array.write(t, word_emb)
 
             e, c = build_lstm_cell(t, e_array, c_array, w_array)
+            if FLAGS.dropout_prob > 0:
+                e = tf.nn.dropout(e, rate=self.dropout_rate)
             e_array = e_array.write(t, e)
             c_array = c_array.write(t, c)
 
@@ -143,7 +149,7 @@ class LSTM(treeModel):
             parallel_iterations=1
         )
 
-    def build_feed_dict(self, roots, sort=True):
+    def build_feed_dict(self, roots, sort=True, train=False):
         if sort:
             roots_size = [tree_util.size_of_tree(root) for root in roots]
             roots = helper.sort_by(roots, roots_size)
@@ -181,6 +187,7 @@ class LSTM(treeModel):
             lstm_prev_list.append(lstm_prev)
 
         feed_dict = {
+            self.dropout_rate: FLAGS.dropout_prob if train else 0,
             self.lstm_prev_array: helper.lists_pad(lstm_prev_list, 0),
             self.leaf_word_array: helper.lists_pad(
                 [[0] + [self.word_embed.get_idx(node.value) for node in node_list if node.is_leaf]

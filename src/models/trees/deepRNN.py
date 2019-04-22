@@ -131,6 +131,8 @@ class deepRNN(treeModel):
             word_array = word_array.write(i, word_emb)
 
             rep = build_node_layer_0(i, rep_array, word_array)
+            if FLAGS.dropout_prob > 0:
+                rep = tf.nn.dropout(rep, rate=self.dropout_rate)
             rep_array = rep_array.write(i, rep)
 
             i = tf.add(i, 1)
@@ -161,6 +163,8 @@ class deepRNN(treeModel):
 
             def tree_layer_1_construction_body(rep_array, rep_array_prev, word_array, i):
                 rep = build_node_layer_1(i, rep_array, rep_array_prev, word_array)
+                if FLAGS.dropout_prob > 0:
+                    rep = tf.nn.dropout(rep, rate=self.dropout_rate)
                 rep_array = rep_array.write(i, rep)
 
                 i = tf.add(i, 1)
@@ -189,6 +193,8 @@ class deepRNN(treeModel):
 
             def tree_layer_n_construction_body(rep_array, rep_array_prev, U_L, U_R, E, b, i):
                 rep = build_node_layer_n(i, rep_array, rep_array_prev, U_L, U_R, E, b)
+                if FLAGS.dropout_prob > 0:
+                    rep = tf.nn.dropout(rep, rate=self.dropout_rate)
                 rep_array = rep_array.write(i, rep)
 
                 i = tf.add(i, 1)

@@ -51,6 +51,7 @@ class treeModel:
 
     def build_placeholders(self):
         # tree structure placeholders
+        self.dropout_rate = tf.placeholder(tf.float32, None, name='dropout_rate')
         self.loss_array = tf.placeholder(tf.int32, (None, None), name='loss_array')
         self.root_array = tf.placeholder(tf.int32, (None, None), name='root_array')
         self.is_leaf_array = tf.placeholder(tf.float32, (None, None), name='is_leaf_array')
@@ -116,9 +117,6 @@ class treeModel:
             self.lr = tf.train.exponential_decay(self.learning_rate, self.global_step, decay_steps,
                                                  self.lr_decay, name='learning_rate')
 
-            helper._print_header("Using learning rate with exponential decay")
-            helper._print("Decay for every step:", self.lr_decay)
-            helper._print("Learning rate start:", self.learning_rate)
         else:
             self.lr = tf.constant(self.learning_rate)
 
@@ -131,7 +129,7 @@ class treeModel:
         # todo construct model folder
         sess.run(tf.global_variables_initializer())
 
-    def build_feed_dict(self, roots, sort=True):
+    def build_feed_dict(self, roots, sort=True, train=False):
         if sort:
             roots_size = [tree_util.size_of_tree(root) for root in roots]
             roots = helper.sort_by(roots, roots_size)
@@ -162,6 +160,7 @@ class treeModel:
         internal_nodes_array = internal_nodes_array if len(internal_nodes_array)>0 else [[0, 0]] #hack to fix case where all length a 1
 
         feed_dict = {
+            self.dropout_rate: FLAGS.dropout_prob if train else 0,
             self.root_array: root_indices,
             self.loss_array: root_indices if self.use_root_loss else internal_nodes_array,
             self.is_leaf_array: helper.lists_pad([

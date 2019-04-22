@@ -227,6 +227,8 @@ class treeLSTM_tracker(treeModel):
             w_array = w_array.write(t, word_emb)
 
             e, c = build_lstm_cell(t, e_array, c_array, w_array)
+            if FLAGS.dropout_prob > 0:
+                e = tf.nn.dropout(e, rate=self.dropout_rate)
             e_array = e_array.write(t, e)
             c_array = c_array.write(t, c)
 
@@ -287,6 +289,8 @@ class treeLSTM_tracker(treeModel):
             word_array = word_array.write(i, word_emb)
 
             rep, c = build_node(i, rep_array, word_array, mem_array, e_array)
+            if FLAGS.dropout_prob > 0:
+                rep = tf.nn.dropout(rep, rate=self.dropout_rate)
             rep_array = rep_array.write(i, rep)
             mem_array = mem_array.write(i, c)
 
@@ -306,7 +310,7 @@ class treeLSTM_tracker(treeModel):
             parallel_iterations=1
         )
 
-    def build_feed_dict(self, roots, sort=True):
+    def build_feed_dict(self, roots, sort=True, train=False):
         if sort:
             roots_size = [tree_util.size_of_tree(root) for root in roots]
             roots = helper.sort_by(roots, roots_size)
@@ -353,6 +357,7 @@ class treeLSTM_tracker(treeModel):
         internal_nodes_array = internal_nodes_array if len(internal_nodes_array) > 0 else [[0, 0]]
         # print(lstm_prev_list)
         feed_dict = {
+            self.dropout_rate: FLAGS.dropout_prob if train else 0,
             self.lstm_prev_array: helper.lists_pad(lstm_prev_list, 0),
             self.leaf_word_array: helper.lists_pad(
                 [[0] + [self.word_embed.get_idx(node.value) for node in node_list if node.is_leaf]

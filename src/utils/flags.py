@@ -43,7 +43,7 @@ flags.DEFINE_boolean("use_selective_training",
 
 
 flags.DEFINE_float("l2_scalar", 0.0, "Scalar for L2 regularization")
-flags.DEFINE_float('dropout_prop', 0.0, "Dropout probability")
+flags.DEFINE_float('dropout_prob', 0.0, "Dropout probability")
 
 
 # ---------------------------- deepRNN ----------------------------

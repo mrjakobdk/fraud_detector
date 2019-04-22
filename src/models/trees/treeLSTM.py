@@ -154,6 +154,8 @@ class treeLSTM(treeModel):
             word_array = word_array.write(i, word_emb)
 
             rep, c = build_node(i, rep_array, word_array, mem_array)
+            if FLAGS.dropout_prob > 0:
+                rep = tf.nn.dropout(rep, rate=self.dropout_rate)
             rep_array = rep_array.write(i, rep)
             mem_array = mem_array.write(i, c)
 

@@ -9,7 +9,7 @@ from utils.summary import summarizer
 from tqdm import tqdm
 
 class Trainer():
-    def __init__(self, model, sess, saver, summary, load=False, gpu=True, batch_size=FLAGS.batch_size,
+    def __init__(self, model, sess, saver, summary, load, gpu, batch_size=FLAGS.batch_size,
                  epochs=FLAGS.epochs):
         helper._print_header("Training " + model.model_name)
         helper._print("Load model:", load)
@@ -22,6 +22,14 @@ class Trainer():
         helper._print("Max epochs:", epochs)
         helper._print("Convergence epochs:", FLAGS.conv_cond)
         helper._print("Max pre-training epochs:", FLAGS.pretrain_max_epoch)
+        helper._print("L2-Regularization Scalar", FLAGS.l2_scalar)
+        helper._print("Dropout probability:", FLAGS.dropout_prob)
+        helper._print("Representation Size:", FLAGS.sentence_embedding_size)
+        helper._print("Word embedding model:", FLAGS.word_embed_model + ' (' + FLAGS.word_embed_mode + ')')
+        helper._print("Use root loss:", FLAGS.use_root_loss)
+        helper._print("Use selective training:", FLAGS.use_selective_training)
+        helper._print("Decay for every step:", FLAGS.lr_decay)
+        helper._print("Learning rate start:", FLAGS.learning_rate)
 
         self.model = model
         self.batch_size = batch_size
@@ -36,21 +44,33 @@ class Trainer():
             run_time = 0
             batches = helper.batches(train_data, self.batch_size, perm=True)
             pbar = tqdm(
-                bar_format="{percentage:.0f}%|{bar}| Elapsed: {elapsed}, Remaining: {remaining} ({n_fmt}/{total_fmt})",
+                bar_format="(Training) {percentage:.0f}%|{bar}| Elapsed: {elapsed}, Remaining: {remaining} ({n_fmt}/{total_fmt})",
                 total=len(batches))
             for step, batch in enumerate(batches):
                 self.summary.batch_inc()
-                feed_dict, _ = self.model.build_feed_dict(batch)
+                feed_dict, _ = self.model.build_feed_dict(batch, train=True)
                 start_run_time = time.time()
-                _, acc, loss = self.sess.run([self.model.train_op, self.model.acc, self.model.loss],
-                                             feed_dict=feed_dict)
+
+                self.sess.run([self.model.train_op], feed_dict=feed_dict)
+
                 end_run_time = time.time()
                 run_time += end_run_time - start_run_time
-                self.summary.add(self.summary.TRAIN, acc, loss)
+
                 pbar.update(1)
             pbar.close()
             print()
 
+            pbar = tqdm(
+                bar_format="(Accuracy) {percentage:.0f}%|{bar}| Elapsed: {elapsed}, Remaining: {remaining} ({n_fmt}/{total_fmt})",
+                total=len(batches))
+            for step, batch in enumerate(batches):
+                acc_feed_dict, _ = self.model.build_feed_dict(batch)
+                acc, loss = self.sess.run([self.model.acc, self.model.loss],
+                                             feed_dict=acc_feed_dict)
+                self.summary.add(self.summary.TRAIN, acc, loss)
+                pbar.update(1)
+            pbar.close()
+            print()
             # loading and saving tmp model - just in case something goes wrong
             if not self.summary.write_and_reset(self.summary.TRAIN, _print=True):
                 helper._print("Nan loss encountered, trying again...")

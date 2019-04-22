@@ -175,6 +175,8 @@ class treeRNN_tracker(treeModel):
             w_array = w_array.write(t, word_emb)
 
             e, c = build_lstm_cell(t, e_array, c_array, w_array)
+            if FLAGS.dropout_prob > 0:
+                e = tf.nn.dropout(e, rate=self.dropout_rate)
             e_array = e_array.write(t, e)
             c_array = c_array.write(t, c)
 
@@ -211,6 +213,8 @@ class treeRNN_tracker(treeModel):
             word_array = word_array.write(i, word_emb)
 
             rep = build_node(i, rep_array, word_array, e_array)
+            if FLAGS.dropout_prob > 0:
+                rep = tf.nn.dropout(rep, rate=self.dropout_rate)
             rep_array = rep_array.write(i, rep)
 
             o = tf.matmul(self.V, rep) + self.b_p
@@ -261,7 +265,7 @@ class treeRNN_tracker(treeModel):
     #     acc = tf.equal(logits_max, labels_max)
     #     self.acc = tf.reduce_mean(tf.cast(acc, tf.float32))
 
-    def build_feed_dict(self, roots, sort=True):
+    def build_feed_dict(self, roots, sort=True, train=False):
         if sort:
             roots_size = [tree_util.size_of_tree(root) for root in roots]
             roots = helper.sort_by(roots, roots_size)
@@ -296,6 +300,7 @@ class treeRNN_tracker(treeModel):
         internal_nodes_array = internal_nodes_array if len(internal_nodes_array) > 0 else [[0, 0]]
 
         feed_dict = {
+            self.dropout_rate: FLAGS.dropout_prob if train else 0,
             self.leaf_word_array: helper.lists_pad(
                 [[0] + [self.word_embed.get_idx(node.value) for node in node_list if node.is_leaf]
                  for node_list in node_list_list]

@@ -47,7 +47,7 @@ class treeRNN_batch(treeModel):
                                  initializer=xavier_initializer)
         self.b_p = tf.get_variable(name='b_p', shape=[FLAGS.label_size, 1], initializer=xavier_initializer)
 
-
+        # Regularization
         self.reg_weights = [self.U_R, self.U_L, self.W,  self.V]
 
 
@@ -100,6 +100,7 @@ class treeRNN_batch(treeModel):
             return self.activation_function(word + left + right + self.b)
 
         def tree_construction_body(rep_array, word_array, o_array, i):
+
             word_index = tf.gather(self.word_index_array, i, axis=1)
             # print_op = tf.print("word_index:", word_index,
             #                     output_stream=sys.stdout)
@@ -108,6 +109,8 @@ class treeRNN_batch(treeModel):
             word_array = word_array.write(i, word_emb)
 
             rep = build_node(i, rep_array, word_array)
+            if FLAGS.dropout_prob > 0:
+                rep = tf.nn.dropout(rep, rate=self.dropout_rate)
             rep_array = rep_array.write(i, rep)
 
             o = tf.matmul(self.V, rep) + self.b_p
