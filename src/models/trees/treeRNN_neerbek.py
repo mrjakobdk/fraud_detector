@@ -51,6 +51,9 @@ class treeRNN_neerbek(treeModel):
                                  initializer=xavier_initializer)
         self.b_p = tf.get_variable(name='b_p', shape=[FLAGS.label_size, 1], initializer=xavier_initializer)
 
+
+        self.reg_weights = [self.W_R, self.W_L, self.U_L, self.U_R, self.V]
+
     def build_model(self):
         rep_array = tf.TensorArray(
             tf.float32,

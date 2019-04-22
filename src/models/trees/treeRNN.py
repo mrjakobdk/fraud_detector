@@ -64,6 +64,8 @@ class treeRNN(treeModel):
                                  initializer=xavier_initializer)
         self.b_p = tf.get_variable(name='b_p', shape=[FLAGS.label_size, 1], initializer=bias_initializer)
 
+        self.reg_weights = [self.W_l, self.W_r, self.U_l, self.U_r, self.V]
+
     def build_model(self):
 
         helper._print_header("Constructing tRNN structure")

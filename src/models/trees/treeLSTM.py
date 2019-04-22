@@ -64,7 +64,12 @@ class treeLSTM(treeModel):
         # classifier weights
         self.V = tf.get_variable(name='V', shape=[FLAGS.label_size, FLAGS.sentence_embedding_size],
                                  initializer=xavier_initializer)
+
         self.b_p = tf.get_variable(name='b_p', shape=[FLAGS.label_size, 1], initializer=bias_initializer)
+
+        self.reg_weights = [self.Wi, self.Wf, self.Wo, self.Wc,
+                            self.Ui_L, self.Ui_R, self.Uf_L, self.Uf_R, self.Uc_L, self.Uc_R, self.Uo_L, self.Uo_R,
+                            self.V]
 
     def build_model(self):
         mem_array = tf.TensorArray(

@@ -124,6 +124,14 @@ class treeLSTM_tracker(treeModel):
                                  initializer=xavier_initializer)
         self.b_p = tf.get_variable(name='b_p', shape=[FLAGS.label_size, 1], initializer=xavier_initializer)
 
+
+        self.reg_weights = [self.Wi, self.Wf, self.Wo, self.Wc,
+                            self.Ei, self.Ef_l, self.Ef_r, self.Eo, self.Ec,
+                            self.Ui_L, self.Ui_R, self.Uf_L, self.Uf_R, self.Uc_L, self.Uc_R, self.Uo_L, self.Uo_R,
+                            self.Wi_tracker, self.Wf_tracker, self.Wo_tracker, self.Wc_tracker,
+                            self.Ui_tracker,  self.Uf_tracker,  self.Uc_tracker, self.Uo_tracker,
+                            self.V]
+
     def build_model(self):
         mem_array = tf.TensorArray(
             tf.float32,

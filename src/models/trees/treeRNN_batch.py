@@ -47,6 +47,10 @@ class treeRNN_batch(treeModel):
                                  initializer=xavier_initializer)
         self.b_p = tf.get_variable(name='b_p', shape=[FLAGS.label_size, 1], initializer=xavier_initializer)
 
+
+        self.reg_weights = [self.U_R, self.U_L, self.W,  self.V]
+
+
     def build_model(self):
         rep_array = tf.TensorArray(
             tf.float32,

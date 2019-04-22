@@ -67,6 +67,8 @@ class deepRNN(treeModel):
                                  initializer=xavier_initializer)
         self.b_p = tf.get_variable(name='b_p', shape=[FLAGS.label_size, 1], initializer=xavier_initializer)
 
+        self.reg_weights = [self.W_L, self.W_R, self.E_2Leaf, self.V] + self.E + self.U_L + self.U_R
+
     def build_model(self):
         rep_arrays = []
         for i in range(self.layers):

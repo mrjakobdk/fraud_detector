@@ -41,6 +41,7 @@ class treeModel:
         #                     output_stream=sys.stdout)
         # with tf.control_dependencies([print_op]):
         self.build_loss()
+        self.build_regularization()
         self.build_accuracy()
         self.build_predict()
         self.build_train_op()
@@ -82,6 +83,11 @@ class treeModel:
         # self.loss += reg_weight * tf.nn.l2_loss(self.U_L)
         # self.loss += reg_weight * tf.nn.l2_loss(self.U_R)
         # self.loss += reg_weight * tf.nn.l2_loss(self.V)
+
+    def build_regularization(self):
+        for weight in self.reg_weights:
+            self.loss += FLAGS.l2_scalar * tf.nn.l2_loss(weight)
+
 
     def build_rep(self):
         self.sentence_representations = tf.gather_nd(tf.transpose(self.rep_array.stack(), perm=[2, 0, 1]),

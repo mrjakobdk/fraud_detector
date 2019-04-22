@@ -5,7 +5,7 @@ flags = tf.app.flags
 # --------------------------- Data ---------------------------
 
 flags.DEFINE_string("dataset", 'small',
-                    "Which dataset to use. Choose between: ppay, edence, fas, fcast, all, small (default: small)")
+                    "Which dataset to use. Choose between: ppay, edence, fas, fcast, all, small")
 
 # --------------------------- Directories ---------------------------
 
@@ -39,7 +39,12 @@ flags.DEFINE_boolean("load_model", False, "Load a old model")
 flags.DEFINE_boolean("use_root_loss", False, "use root or internal root loss")
 flags.DEFINE_boolean("use_leaf_loss", False, "use all or only internal root loss")
 flags.DEFINE_boolean("use_selective_training",
-                     True, "Use selective training (default: True)")
+                     True, "Use selective training")
+
+
+flags.DEFINE_float("l2_scalar", 0.0, "Scalar for L2 regularization")
+flags.DEFINE_float('dropout_prop', 0.0, "Dropout probability")
+
 
 # ---------------------------- deepRNN ----------------------------
 
@@ -48,12 +53,12 @@ flags.DEFINE_integer("deepRNN_depth", 3, "Trees in the deepRNN")
 # ---------------------------- Selective Training ----------------------------
 
 flags.DEFINE_boolean("use_multi_cluster", False, "...")
-flags.DEFINE_integer("num_clusters", 10, "Number of clusters to use (default: 10)")
-flags.DEFINE_integer("pretrain_max_epoch",  200, "Stop pretraining when number of epochs without better training acc reaches this. (default: 50)")
-flags.DEFINE_float("pretrain_max_acc",  0.75, "Stop pretraining when number of epochs without better training acc reaches this. (default: 50)")
-flags.DEFINE_float("selection_cut_off", 0.85, "The expected MFO to cut-off for selective training (default: 0.90)")
-flags.DEFINE_boolean("mfo", True, "Whether to use MFO analysis to rate clusters. If False use prediction accuracy (default: True)")
-flags.DEFINE_string("cluster_model", 'kmeans', "Which clustering model to use. Choose between 'kmeans', 'dbscan', 'agglo' (default: kmeans)")
+flags.DEFINE_integer("num_clusters", 10, "Number of clusters to use")
+flags.DEFINE_integer("pretrain_max_epoch",  200, "Stop pretraining when number of epochs without better training acc reaches this.")
+flags.DEFINE_float("pretrain_max_acc",  0.75, "Stop pretraining when number of epochs without better training acc reaches this.")
+flags.DEFINE_float("selection_cut_off", 0.85, "The expected MFO to cut-off for selective training")
+flags.DEFINE_boolean("mfo", True, "Whether to use MFO analysis to rate clusters. If False use prediction accuracy")
+flags.DEFINE_string("cluster_model", 'kmeans', "Which clustering model to use. Choose between 'kmeans', 'dbscan', 'agglo'")
 flags.DEFINE_string("cluster_initialization", 'random', "How to initialize clusters. (k-means++’, ‘random’ or an ndarray, default: k-means++)")
 
 # --------------------------- Word embeddings ---------------------------
