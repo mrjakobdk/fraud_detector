@@ -23,6 +23,7 @@ class treeRNN_tracker(treeModel):
         self.lstm_index_array = tf.placeholder(tf.int32, (None, None), name='preceding_lstm_index')
 
         # tree structure placeholders
+        self.dropout_rate = tf.placeholder(tf.float32, None, name='dropout_rate')
         self.loss_array = tf.placeholder(tf.int32, (None, None), name='loss_array')
         self.root_array = tf.placeholder(tf.int32, (None, None), name='root_array')
         self.is_leaf_array = tf.placeholder(tf.bool, (None, None), name='is_leaf_array')
