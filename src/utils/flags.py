@@ -59,15 +59,15 @@ flags.DEFINE_float("pretrain_max_acc",  0.75, "Stop pretraining when number of e
 flags.DEFINE_float("selection_cut_off", 0.85, "The expected MFO to cut-off for selective training")
 flags.DEFINE_boolean("mfo", True, "Whether to use MFO analysis to rate clusters. If False use prediction accuracy")
 flags.DEFINE_string("cluster_model", 'kmeans', "Which clustering model to use. Choose between 'kmeans', 'dbscan', 'agglo'")
-flags.DEFINE_string("cluster_initialization", 'random', "How to initialize clusters. (k-means++’, ‘random’ or an ndarray, default: k-means++)")
+flags.DEFINE_string("cluster_initialization", 'random', "How to initialize clusters. (k-means++’, ‘random’ or an ndarray)")
 
 # --------------------------- Word embeddings ---------------------------
 
 flags.DEFINE_integer("word_embedding_size", 300, "Size of the word embedding")
-flags.DEFINE_string("word_embed_mode", 'pretrained', "Flag to switch between word embeddings modes")
-flags.DEFINE_string("word_embed_model", 'glove', "Flag to switch between word embeddings modes")
+flags.DEFINE_string("word_embed_mode", 'pretrained', "Flag to switch between word embeddings modes ('pretrained', 'finetuned', 'trained')")
+flags.DEFINE_string("word_embed_model", 'glove', "Flag to switch between word embeddings modes ('glove', 'word2vec', 'fastText')")
 
-flags.DEFINE_integer("glove_min_count", 100, "How many times does a word need to be present in the corpus")
+flags.DEFINE_integer("word_min_count", 100, "How many times does a word need to be present in the corpus")
 flags.DEFINE_integer("glove_window", 10, "How many times does a word need to be present in the corpus")
 
 flags.DEFINE_integer("word2vec_min_count", 100, "How many times does a word need to be present in the corpus")

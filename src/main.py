@@ -12,6 +12,7 @@ from models.trees.treeRNN_batch import treeRNN_batch
 from models.trees.deepRNN import deepRNN
 from models.trees.treeRNN_neerbek import treeRNN_neerbek
 from models.trees.treeRNN_tracker import treeRNN_tracker
+from models.words_embeddings.fastText import FastText
 from models.words_embeddings.glove import GloVe
 from models.words_embeddings.word2vec import Word2Vec
 from utils import constants, directories #directories is need to construct console file
@@ -44,6 +45,8 @@ def main():
 
     if FLAGS.word_embed_model == constants.WORD2VEC:
         word_embeddings = Word2Vec(mode=FLAGS.word_embed_mode, dimensions=FLAGS.word_embedding_size)
+    elif FLAGS.word_embed_model == constants.FASTTEXT:
+        word_embeddings = FastText(mode=FLAGS.word_embed_mode, dimensions=FLAGS.word_embedding_size)
     else:  # FLAGS.word_embed_model == constants.GLOVE
         word_embeddings = GloVe(mode=FLAGS.word_embed_mode, dimensions=FLAGS.word_embedding_size)
 

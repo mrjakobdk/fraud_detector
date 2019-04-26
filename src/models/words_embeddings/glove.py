@@ -55,10 +55,6 @@ class GloVe(WordModel):
                 if word in vocab.keys():
                     i += 1
                     word_weights = np.asarray(values[1:], dtype=np.float32)  # Remainder of line is weights for word
-                    # todo david - seems to be a mistake in the indexing
-                    # i = vocab[word]
-                    # word2idx[word] = i + 1  # ZERO is our zeroth index so shift by one weights.append(word_weights)
-                    # idx2word[i + 1] = word
                     word2idx[word] = i
                     idx2word[i] = word
                     weights.append(word_weights)
@@ -107,7 +103,7 @@ class GloVe(WordModel):
             print()
         return embed
 
-    def build_vocab(self, corpus, min_count=FLAGS.glove_min_count):
+    def build_vocab(self, corpus, min_count=FLAGS.word_min_count):
         helper._print_subheader('Building vocabulary from corpus')
         vocab = Counter()
         pbar = tqdm(
