@@ -20,7 +20,7 @@ class FastText(WordModel):
         self.download_fastText_vectors()
         sentences = self.get_enron_sentences()
         vocab = self.build_vocab(sentences)
-        return self.generate_indexes(vocab)
+        return self.generate_indexes(vocab, directories.FASTTEXT_EMBEDDING_FILE_PATH)
 
     def build_finetuned_embeddings(self):
         raise NotImplementedError('No finetuned embeddings implemented for fastText')
@@ -39,32 +39,6 @@ class FastText(WordModel):
             with zipfile.ZipFile(directories.FASTTEXT_EMBEDDING_ZIP_PATH, 'r') as zip:
                 zip.extractall(path=directories.FASTTEXT_DIR)
             return
-
-    def load_fastText_vectors(self):
-        fin = io.open(directories.FASTTEXT_EMBEDDING_FILE_PATH, 'r', encoding='utf-8', newline='\n', errors='ignore')
-        n, d = map(int, fin.readline().split())
-        data = {}
-        pbar = tqdm(
-            bar_format='Elapsed: {elapsed} | {n_fmt} done')
-        for line in fin:
-            tokens = line.rstrip().split(' ')
-            data[tokens[0]] = map(float, tokens[1:])
-            pbar.update(1)
-        pbar.close()
-        return data
-
-    def generate_indexes(self, vocab):
-        vectors = self.load_fastText_vectors()
-        print(vectors)
-        helper._print_subheader('Generating indexes for embeddings')
-        weights = [np.zeros(self.dimensions)]
-        ZERO_TOKEN = 0
-        word2idx = {'ZERO': ZERO_TOKEN}
-        idx2word = {ZERO_TOKEN: 'ZERO'}
-        raise NotImplementedError('Testing')
-
-        # return np.array(weights, dtype=np.float32), word2idx, idx2word
-    
     def build_vocab(self, corpus, min_count=FLAGS.word_min_count):
         helper._print_subheader('Building vocabulary from corpus')
         vocab = Counter()

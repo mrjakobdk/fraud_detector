@@ -19,59 +19,22 @@ class GloVe(WordModel):
         self.glove_download_pretrained_model()
         sentences = self.get_enron_sentences()
         vocab = self.build_vocab(sentences)
-        return self.glove_generate_indexes(vocab)
+        return self.generate_indexes(vocab, directories.GLOVE_EMBEDDING_FILE_PATH)
 
     def build_finetuned_embeddings(self):
         helper._print_header('Getting fine-tuned GloVe embeddings')
         self.glove_download_pretrained_model()
         vocab, _, _ = self.train_and_save_finetuned_embeddings()
         self.word_embed_file_path = directories.FINETUNED_GLOVE_EMBEDDING_FILE_PATH
-        return self.glove_generate_indexes(vocab)
+        return self.generate_indexes(vocab, directories.GLOVE_EMBEDDING_FILE_PATH)
 
     def build_trained_embeddings(self):
         helper._print_header('Getting trained GloVe embeddings')
         vocab, _, _ = self.train_and_save_embeddings()
         self.word_embed_file_path = directories.TRAINED_GLOVE_EMBEDDING_FILE_PATH
-        return self.glove_generate_indexes(vocab)
+        return self.generate_indexes(vocab, directories.GLOVE_EMBEDDING_FILE_PATH)
 
     ################## HELPER FUNCTIONS ##################
-
-    def glove_generate_indexes(self, vocab):
-        helper._print_subheader('Generating indexes for embeddings')
-        weights = [np.zeros(self.dimensions)]
-        ZERO_TOKEN = 0
-        word2idx = {'ZERO': ZERO_TOKEN}
-        idx2word = {ZERO_TOKEN: 'ZERO'}#todo david - why dict and not just array?
-
-        i = 0
-        with open(self.word_embed_file_path, 'r', encoding="utf8") as file:
-            lines = file.readlines()
-            pbar = tqdm(
-                bar_format='{percentage:.0f}%|{bar}| Elapsed: {elapsed}, Remaining: {remaining} ({n_fmt}/{total_fmt}) ',
-                total=len(lines))
-            for index, line in enumerate(lines):
-                values = line.split()  # Word and weights separated by space
-                word = values[0]  # Word is first symbol on each line
-                if word in vocab.keys():
-                    i += 1
-                    word_weights = np.asarray(values[1:], dtype=np.float32)  # Remainder of line is weights for word
-                    word2idx[word] = i
-                    idx2word[i] = word
-                    weights.append(word_weights)
-                if (index + 1) % 1000 == 0 and index != 0:
-                    pbar.update(1000)
-            pbar.update(len(lines) % 1000)
-            pbar.close()
-            print()
-            UNKNOWN_TOKEN = len(weights)
-            word2idx['UNK'] = UNKNOWN_TOKEN
-            np.random.seed(240993)
-            weights.append(np.random.randn(self.dimensions))
-
-            # self.get_TSNE_plot(weights, [key for key in word2idx.keys()])
-
-            helper._print_subheader(f'Indexes done! {len(weights) - 2} word embeddings!')
-        return np.array(weights, dtype=np.float32), word2idx, idx2word
 
     def glove_download_pretrained_model(self):
         if not os.path.isdir(directories.GLOVE_DIR):
