@@ -6,6 +6,8 @@ import numpy as np
 
 from gensim.models import KeyedVectors
 from gensim.models.callbacks import CallbackAny2Vec
+from tqdm import tqdm
+
 from models.words_embeddings.wordModel import WordModel
 from utils import helper, constants, directories
 from utils.flags import FLAGS
@@ -121,15 +123,17 @@ class Word2Vec(WordModel):
         word2idx = {'ZERO': ZERO_TOKEN}
         idx2word = {ZERO_TOKEN: 'ZERO'}
         weights = [np.zeros(self.dimensions)]
+        pbar = tqdm(
+            bar_format='Indexing keyed_vector |{bar}| Elapsed: {elapsed} | ({n_fmt}/{total_fmt})', total=len(vocab_keys))
         for index, word in enumerate(vocab_keys):
             if word in vocab.keys():
                 word2idx[word] = index + 1
                 idx2word[index + 1] = word
                 weights.append(keyed_vector[word])
-            if index % FLAGS.word_embed_subset_size == 0 and index != 0:
-                helper._print(f'{index} words indexed')
-                if FLAGS.word_embed_subset:
-                    break
+            pbar.update(1)
+
+        pbar.close()
+        print()
 
         UNKNOWN_TOKEN = len(weights)
         word2idx['UNK'] = UNKNOWN_TOKEN
