@@ -39,25 +39,16 @@ class FastText(WordModel):
             with zipfile.ZipFile(directories.FASTTEXT_EMBEDDING_ZIP_PATH, 'r') as zip:
                 zip.extractall(path=directories.FASTTEXT_DIR)
             return
-    def build_vocab(self, corpus, min_count=FLAGS.word_min_count):
-        helper._print_subheader('Building vocabulary from corpus')
-        vocab = Counter()
-        pbar = tqdm(
-            bar_format='{percentage:.0f}%|{bar}| Elapsed: {elapsed}, Remaining: {remaining} ({n_fmt}/{total_fmt}) ',
-            total=len(corpus))
-        for i, doc in enumerate(corpus):
-            if (i + 1) % 1000 == 0 and i != 0:
-                pbar.update(1000)
-            vocab.update(doc)
-        pbar.update(len(corpus) % 1000)
-        pbar.close()
-        print()
-        i = 0
-        word2index = {}
-        for word, freq in vocab.items():
-            if freq >= min_count:
-                word2index[word] = i
-                i += 1
 
-        helper._print(f'Done building vocabulary. Length: {len(word2index)}')
-        return word2index
+    def load_fastText_vectors(self):
+        fin = io.open(directories.FASTTEXT_EMBEDDING_FILE_PATH, 'r', encoding='utf-8', newline='\n', errors='ignore')
+        n, d = map(int, fin.readline().split())
+        data = {}
+        pbar = tqdm(
+            bar_format='Elapsed: {elapsed} | {n_fmt} done')
+        for line in fin:
+            tokens = line.rstrip().split(' ')
+            data[tokens[0]] = map(float, tokens[1:])
+            pbar.update(1)
+        pbar.close()
+        return data

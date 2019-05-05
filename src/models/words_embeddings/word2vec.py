@@ -18,6 +18,7 @@ class Word2Vec(WordModel):
     def build_pretrained_embeddings(self):
         helper._print_header('Getting pretrained word2vec embeddings')
         path = directories.WORD2VEC_EMBEDDINGS_FILE_PATH
+        sentences = self.get_enron_sentences()
         if not os.path.isdir(directories.WORD2VEC_DIR):
             os.makedirs(directories.WORD2VEC_DIR)
         if not self.dimensions == 300:
@@ -31,13 +32,15 @@ class Word2Vec(WordModel):
             helper._print_subheader('Unpacking ' + path)
             model = KeyedVectors.load_word2vec_format(path, binary=True)
             helper._print_subheader('Done unpacking!')
-            return self.word2vec_index_keyed_vector(model)
+            vocab = self.build_vocab(sentences)
+            return self.word2vec_index_keyed_vector(keyed_vector=model, vocab=vocab)
 
 
     def build_finetuned_embeddings(self):
         helper._print_header('Getting fine-tuned word2vec embeddings')
         path = directories.WORD2VEC_DIR + 'finetuned_word2vec.model'
         pretrained_path = directories.WORD2VEC_EMBEDDINGS_FILE_PATH
+        sentences = self.get_enron_sentences()
         if not os.path.isdir(directories.WORD2VEC_DIR):
             os.makedirs(directories.WORD2VEC_DIR)
         if os.path.isfile(path):
@@ -55,7 +58,6 @@ class Word2Vec(WordModel):
             helper._print_subheader('Unpacking ' + pretrained_path)
             model = KeyedVectors.load_word2vec_format(pretrained_path, binary=True)
             helper._print_subheader('Done unpacking!')
-            sentences = self.get_enron_sentences()
             finetuned_model = gensim.models.Word2Vec(
                 size=FLAGS.word_embedding_size,
                 sg=1,  # Use Skip-Gram (0 for CBOW)
@@ -76,7 +78,8 @@ class Word2Vec(WordModel):
                                   callbacks=[model_logger])
             helper._print_subheader('Saving model...')
             finetuned_model.save(path)
-        return self.word2vec_index_keyed_vector(finetuned_model.wv)
+        vocab = self.build_vocab(sentences)
+        return self.word2vec_index_keyed_vector(keyed_vector=finetuned_model.wv, vocab=vocab)
 
 
     def build_trained_embeddings(self):
@@ -106,12 +109,12 @@ class Word2Vec(WordModel):
             # word2vec_model.train(sentences, total_examples=len(sentences), epochs=FLAGS.word2vec_epochs)
             helper._print(f'Saving model to {path}')
             word2vec_model.save(path)
-
-        return self.word2vec_index_keyed_vector(word2vec_model.wv)
+        vocab = self.build_vocab(sentences)
+        return self.word2vec_index_keyed_vector(keyed_vector=word2vec_model.wv, vocab=vocab)
 
     ################## HELPER FUNCTIONS ##################
 
-    def word2vec_index_keyed_vector(self, keyed_vector):
+    def word2vec_index_keyed_vector(self, keyed_vector, vocab):
         helper._print_subheader('Creating index files!')
         vocab_keys = keyed_vector.vocab.keys()
         ZERO_TOKEN = 0
@@ -119,9 +122,10 @@ class Word2Vec(WordModel):
         idx2word = {ZERO_TOKEN: 'ZERO'}
         weights = [np.zeros(self.dimensions)]
         for index, word in enumerate(vocab_keys):
-            word2idx[word] = index + 1
-            idx2word[index + 1] = word
-            weights.append(keyed_vector[word])
+            if word in vocab.keys():
+                word2idx[word] = index + 1
+                idx2word[index + 1] = word
+                weights.append(keyed_vector[word])
             if index % FLAGS.word_embed_subset_size == 0 and index != 0:
                 helper._print(f'{index} words indexed')
                 if FLAGS.word_embed_subset:

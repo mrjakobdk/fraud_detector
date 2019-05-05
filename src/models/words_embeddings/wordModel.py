@@ -1,3 +1,5 @@
+from collections import Counter
+
 import numpy as np
 
 from gensim.utils import simple_preprocess
@@ -73,13 +75,35 @@ class WordModel:
                 pyplot.annotate(word, xy=(result[i, 0], result[i, 1]))
         pyplot.show()
 
+    def build_vocab(self, corpus, min_count=FLAGS.word_min_count):
+        helper._print_subheader('Building vocabulary from corpus')
+        vocab = Counter()
+        pbar = tqdm(
+            bar_format='{percentage:.0f}%|{bar}| Elapsed: {elapsed}, Remaining: {remaining} ({n_fmt}/{total_fmt}) ',
+            total=len(corpus))
+        for i, doc in enumerate(corpus):
+            if (i + 1) % 1000 == 0 and i != 0:
+                pbar.update(1000)
+            vocab.update(doc)
+        pbar.update(len(corpus) % 1000)
+        pbar.close()
+        print()
+        i = 0
+        word2index = {}
+        for word, freq in vocab.items():
+            if freq >= min_count:
+                word2index[word] = i
+                i += 1
+
+        helper._print(f'Done building vocabulary. Length: {len(word2index)}')
+        return word2index
+
     def generate_indexes(self, vocab, file):
         helper._print_subheader('Generating indexes for embeddings')
         weights = [np.zeros(self.dimensions)]
         ZERO_TOKEN = 0
         word2idx = {'ZERO': ZERO_TOKEN}
         idx2word = ['ZERO']
-
 
         i = 0
         with open(file, 'r', encoding='utf-8', newline='\n', errors='ignore') as file:

@@ -32,7 +32,6 @@ flags.DEFINE_integer("val_freq", 1, "Frequency for validation")
 flags.DEFINE_float("learning_rate", 0.1, "Learning rate for training")
 flags.DEFINE_float("learning_rate_end", 0.001, "End learning rate after the total number of epoches")
 flags.DEFINE_float("sensitive_weight", 1., "Weight on the sensitivity")
-flags.DEFINE_float("l2_strength", 0.0001, "Strangth for l2 reg.")
 
 flags.DEFINE_string("optimizer", 'adagrad', "Network optimizer")
 flags.DEFINE_boolean("load_model", False, "Load a old model")

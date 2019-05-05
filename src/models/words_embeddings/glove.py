@@ -2,20 +2,16 @@ import os
 import zipfile
 import numpy as np
 
-from collections import Counter
 from mittens import Mittens
 from mittens import GloVe as mittens_glove
 from tqdm import tqdm
 from models.words_embeddings.wordModel import WordModel
 from utils import helper, constants, directories
-from utils.flags import FLAGS
-
 
 class GloVe(WordModel):
 
     def build_pretrained_embeddings(self):
         helper._print_header('Getting pretrained GloVe embeddings')
-        self.word_embed_file_path = directories.GLOVE_EMBEDDING_FILE_PATH
         self.glove_download_pretrained_model()
         sentences = self.get_enron_sentences()
         vocab = self.build_vocab(sentences)
@@ -25,14 +21,12 @@ class GloVe(WordModel):
         helper._print_header('Getting fine-tuned GloVe embeddings')
         self.glove_download_pretrained_model()
         vocab, _, _ = self.train_and_save_finetuned_embeddings()
-        self.word_embed_file_path = directories.FINETUNED_GLOVE_EMBEDDING_FILE_PATH
-        return self.generate_indexes(vocab, directories.GLOVE_EMBEDDING_FILE_PATH)
+        return self.generate_indexes(vocab, directories.FINETUNED_GLOVE_EMBEDDING_FILE_PATH)
 
     def build_trained_embeddings(self):
         helper._print_header('Getting trained GloVe embeddings')
         vocab, _, _ = self.train_and_save_embeddings()
-        self.word_embed_file_path = directories.TRAINED_GLOVE_EMBEDDING_FILE_PATH
-        return self.generate_indexes(vocab, directories.GLOVE_EMBEDDING_FILE_PATH)
+        return self.generate_indexes(vocab, directories.TRAINED_GLOVE_EMBEDDING_FILE_PATH)
 
     ################## HELPER FUNCTIONS ##################
 
@@ -65,29 +59,6 @@ class GloVe(WordModel):
             pbar.close()
             print()
         return embed
-
-    def build_vocab(self, corpus, min_count=FLAGS.word_min_count):
-        helper._print_subheader('Building vocabulary from corpus')
-        vocab = Counter()
-        pbar = tqdm(
-            bar_format='{percentage:.0f}%|{bar}| Elapsed: {elapsed}, Remaining: {remaining} ({n_fmt}/{total_fmt}) ',
-            total=len(corpus))
-        for i, doc in enumerate(corpus):
-            if (i + 1) % 1000 == 0 and i != 0:
-                pbar.update(1000)
-            vocab.update(doc)
-        pbar.update(len(corpus) % 1000)
-        pbar.close()
-        print()
-        i = 0
-        word2index = {}
-        for word, freq in vocab.items():
-            if freq >= min_count:
-                word2index[word] = i
-                i += 1
-
-        helper._print(f'Done building vocabulary. Length: {len(word2index)}')
-        return word2index
 
     def build_cooccur(self, vocab, corpus, window=10):
         helper._print_subheader("Building cooccurrence matrix")
