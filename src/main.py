@@ -50,7 +50,7 @@ def main():
     else:  # FLAGS.word_embed_model == constants.GLOVE
         word_embeddings = GloVe(mode=FLAGS.word_embed_mode, dimensions=FLAGS.word_embedding_size)
 
-    for r in range(FLAGS.repreat_num):
+    for r in range(FLAGS.repeat_num):
         version = ""
         if r >= 1:
             version = "_V"+str(r+1)
