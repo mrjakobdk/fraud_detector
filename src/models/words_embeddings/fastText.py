@@ -35,6 +35,9 @@ class FastText(WordModel):
         if os.path.exists(directories.FASTTEXT_EMBEDDING_FILE_PATH):
             return
         else:
+            if not os.path.exists(directories.FASTTEXT_DIR):
+                os.mkdir(directories.FASTTEXT_DIR)
+
             helper.download(constants.FASTTEXT_CRAWL_URL, directories.FASTTEXT_EMBEDDING_ZIP_PATH)
             with zipfile.ZipFile(directories.FASTTEXT_EMBEDDING_ZIP_PATH, 'r') as zip:
                 zip.extractall(path=directories.FASTTEXT_DIR)

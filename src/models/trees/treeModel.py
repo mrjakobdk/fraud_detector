@@ -211,7 +211,7 @@ class treeModel:
     def predict_and_label(self, data, sess):
         helper._print_subheader("Predicting")
         prob, labels = [], []
-        batches = helper.batches(data, batch_size=1000 if FLAGS.use_gpu else 2, use_tail=True, perm=False)
+        batches = helper.batches(data, batch_size=500 if FLAGS.use_gpu else 2, use_tail=True, perm=False)
         for batch in batches:
             feed_dict, _ = self.build_feed_dict(batch)
             p, l = sess.run([self.p, self.labels], feed_dict=feed_dict)

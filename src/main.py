@@ -50,31 +50,38 @@ def main():
     else:  # FLAGS.word_embed_model == constants.GLOVE
         word_embeddings = GloVe(mode=FLAGS.word_embed_mode, dimensions=FLAGS.word_embedding_size)
 
-    model = None
-    if FLAGS.model == constants.DEEP_RNN:
-        model = deepRNN(data, word_embeddings, model_name)
-    elif FLAGS.model == constants.BATCH_TREE_RNN:
-        model = treeRNN_batch(data, word_embeddings, model_name)
-    elif FLAGS.model == constants.NEERBEK_TREE_RNN:
-        model = treeRNN_neerbek(data, word_embeddings, model_name)
-    elif FLAGS.model == constants.TREE_LSTM:
-        model = treeLSTM(data, word_embeddings, model_name)
-    elif FLAGS.model == constants.TRACKER_TREE_RNN:
-        model = treeRNN_tracker(data, word_embeddings, model_name)
-    elif FLAGS.model == constants.TRACKER_TREE_LSTM:
-        model = treeLSTM_tracker(data, word_embeddings, model_name)
-    elif FLAGS.model == constants.LSTM:
-        model = LSTM(data, word_embeddings, model_name)
+    for r in range(FLAGS.repreat_num):
+        version = ""
+        if r > 1:
+            version = "_V"+str(r)
 
-    # TODO: Check if MODEL_DIR is made prematurely
-    load = FLAGS.load_model and os.path.exists(directories.TMP_MODEL_DIR(model_name))
+        model_name_version = model_name + version
 
-    if FLAGS.evaluate:
-        trainer.evaluate(model, gpu=FLAGS.use_gpu)
-    elif FLAGS.use_selective_training:
-        trainer.selective_train(model, load=load, gpu=FLAGS.use_gpu)
-    else:
-        trainer.train(model, load=load, gpu=FLAGS.use_gpu)
+        model = None
+        if FLAGS.model == constants.DEEP_RNN:
+            model = deepRNN(data, word_embeddings, model_name_version)
+        elif FLAGS.model == constants.BATCH_TREE_RNN:
+            model = treeRNN_batch(data, word_embeddings, model_name_version)
+        elif FLAGS.model == constants.NEERBEK_TREE_RNN:
+            model = treeRNN_neerbek(data, word_embeddings, model_name_version)
+        elif FLAGS.model == constants.TREE_LSTM:
+            model = treeLSTM(data, word_embeddings, model_name_version)
+        elif FLAGS.model == constants.TRACKER_TREE_RNN:
+            model = treeRNN_tracker(data, word_embeddings, model_name_version)
+        elif FLAGS.model == constants.TRACKER_TREE_LSTM:
+            model = treeLSTM_tracker(data, word_embeddings, model_name_version)
+        elif FLAGS.model == constants.LSTM:
+            model = LSTM(data, word_embeddings, model_name_version)
+
+        # TODO: Check if MODEL_DIR is made prematurely
+        load = FLAGS.load_model and os.path.exists(directories.TMP_MODEL_DIR(model_name_version))
+
+        if FLAGS.evaluate:
+            trainer.evaluate(model, gpu=FLAGS.use_gpu)
+        elif FLAGS.use_selective_training:
+            trainer.selective_train(model, load=load, gpu=FLAGS.use_gpu)
+        else:
+            trainer.train(model, load=load, gpu=FLAGS.use_gpu)
 
 
 if __name__ == "__main__":

@@ -225,12 +225,12 @@ def get_Exp2():
     treeLSTM_tacker = get_Exp2_info(models=["TreeLSTM with Tracker"] * 6,
                                     lrs=[0.1, 0.1, 0.1, 0.01, 0.01, 0.01],
                                     lr_decays=[0.98, 0.995, 1, 0.98, 0.995, 1],
-                                    model_names=["Tracker_batch64_decay98_rep100_lr1_normal_train_conv100_adagrad",
-                                                 "Tracker_batch64_decay995_rep100_lr1_normal_train_conv100_adagrad",
-                                                 "Tracker_batch64_decay1_rep100_lr1_normal_train_conv100_adagrad",
-                                                 "Tracker_batch64_decay98_rep100_lr01_normal_train_conv100_adagrad",
-                                                 "Tracker_batch64_decay995_rep100_lr01_normal_train_conv100_adagrad",
-                                                 "Tracker_batch64_decay1_rep100_lr01_normal_train_conv100_adagrad"])
+                                    model_names=["Tracker_batch16_decay98_rep100_lr1_normal_train_conv100_adagrad",
+                                                 "Tracker_batch16_decay995_rep100_lr1_normal_train_conv100_adagrad",
+                                                 "Tracker_batch16_decay1_rep100_lr1_normal_train_conv100_adagrad",
+                                                 "Tracker_batch16_decay98_rep100_lr01_normal_train_conv100_adagrad",
+                                                 "Tracker_batch16_decay995_rep100_lr01_normal_train_conv100_adagrad",
+                                                 "Tracker_batch16_decay1_rep100_lr01_normal_train_conv100_adagrad"])
 
     LSTM = get_Exp2_info(models=["LSTM"] * 6,
                          lrs=[0.1, 0.1, 0.1, 0.01, 0.01, 0.01],
@@ -249,7 +249,97 @@ def get_Exp2():
     df = df.append(pd.DataFrame(treeLSTM_tacker))
     df = df.append(pd.DataFrame(LSTM))
 
-    print(df.to_latex(columns=["Model", "Learning rate", "Learning rate decay", "Train Acc", "Val Acc", "Test Acc"], index=False))
+    print(df.to_latex(columns=["Model", "Learning rate", "Learning rate decay", "Train Acc", "Val Acc", "Test Acc"],
+                      index=False))
 
 
-get_Exp2()
+def get_Exp3_info(models, optimizers, lrs, lr_decays, model_names):
+    acc_train = []
+    acc_val = []
+    acc_test = []
+    models_list = []
+    optimizer_list = []
+    lr_list = []
+    lr_decay_list = []
+    for model_name, optimizer, lr, lr_decays, model in zip(model_names, optimizers, lrs, lr_decays, models):
+        if os.path.exists(f"../trained_models/{model_name}"):
+            if os.path.exists(f"../trained_models/{model_name}/performance_train.csv"):
+                train = helper.load_dict(f"../trained_models/{model_name}/performance_train.csv")
+                val = helper.load_dict(f"../trained_models/{model_name}/performance_val.csv")
+                test = helper.load_dict(f"../trained_models/{model_name}/performance_test.csv")
+                acc_train.append(round(train["accuracy"], 4))
+                acc_val.append(round(val["accuracy"], 4))
+                acc_test.append(round(test["accuracy"], 4))
+                optimizer_list.append(optimizer)
+                lr_list.append(lr)
+                lr_decay_list.append(lr_decays)
+                models_list.append(model)
+            else:
+                print(model_name, "does not have performance file")
+        else:
+            print(model_name, "does not exists")
+
+    return {
+        "Model": models_list,
+        "Optimizer": optimizer_list,
+        "Learning rate": lr_list,
+        "Learning rate decay": lr_decay_list,
+        "Train Acc": acc_train,
+        "Val Acc": acc_val,
+        "Test Acc": acc_test,
+    }
+
+
+def get_Exp3():
+    treernn = get_Exp3_info(models=["TreeRNN"] * 3,
+                            optimizers=["AdaGrad", "Adam", "Adam"],
+                            lrs=[0.01, 0.001, 0.0001],
+                            lr_decays=[0.995, 1, 1],
+                            model_names=["TreeRNN_batch4_decay995_rep100_lr01_normal_train_conv100_adagrad",
+                                         "TreeRNN_batch4_decay1_rep100_lr001_normal_train_conv100_adam",
+                                         "TreeRNN_batch4_decay1_rep100_lr0001_normal_train_conv100_adam"])
+
+    mtreernn = get_Exp3_info(models=["MTreeRNN"] * 3,
+                             optimizers=["AdaGrad", "Adam", "Adam"],
+                             lrs=[0.01, 0.001, 0.0001],
+                             lr_decays=[1, 1, 1],
+                             model_names=["MTreeRNN_batch16_decay1_rep100_lr01_normal_train_conv100_adagrad",
+                                          "MTreeRNN_batch16_decay1_rep100_lr001_normal_train_conv100_adam",
+                                          "MTreeRNN_batch16_decay1_rep100_lr0001_normal_train_conv100_adam"])
+
+    deepRNN = get_Exp3_info(models=["DeepRNN"] * 3,
+                            optimizers=["AdaGrad", "Adam", "Adam"],
+                            lrs=[0.1, 0.001, 0.0001],
+                            lr_decays=[0.98, 1, 1],
+                            model_names=["DeepRNN_batch4_decay98_rep100_lr1_normal_train_conv100_adagrad",
+                                         "DeepRNN_batch4_decay1_rep100_lr001_normal_train_conv100_adam",
+                                         "DeepRNN_batch4_decay1_rep100_lr0001_normal_train_conv100_adam"])
+
+    treeLSTM = get_Exp3_info(models=["TreeLSTM"] * 3,
+                             optimizers=["AdaGrad", "Adam", "Adam"],
+                             lrs=[0.01, 0.001, 0.0001],
+                             lr_decays=[1, 1, 1],
+                             model_names=["TreeLSTM_batch4_decay1_rep100_lr01_normal_train_conv100_adagrad",
+                                          "TreeLSTM_batch4_decay1_rep100_lr001_normal_train_conv100_adam",
+                                          "TreeLSTM_batch4_decay1_rep100_lr0001_normal_train_conv100_adam"])
+
+    treeLSTM_tacker = get_Exp3_info(models=["TreeLSTM with Tracker"] * 3,
+                                    optimizers=["AdaGrad", "Adam", "Adam"],
+                                    lrs=[0.1, 0.001, 0.0001],
+                                    lr_decays=[1, 1, 1],
+                                    model_names=["Tracker_batch64_decay995_rep100_lr01_normal_train_conv100_adagrad",
+                                                 "Tracker_batch64_decay1_rep100_lr001_normal_train_conv100_adam",
+                                                 "Tracker_batch64_decay1_rep100_lr0001_normal_train_conv100_adam"])
+
+    df = pd.DataFrame(treernn)
+    df = df.append(pd.DataFrame(mtreernn))
+    df = df.append(pd.DataFrame(deepRNN))
+    df = df.append(pd.DataFrame(treeLSTM))
+    df = df.append(pd.DataFrame(treeLSTM_tacker))
+
+    print(df.to_latex(
+        columns=["Model", "Optimizer", "Learning rate", "Learning rate decay", "Train Acc", "Val Acc"],
+        index=False))
+
+
+get_Exp3()

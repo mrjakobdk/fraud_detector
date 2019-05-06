@@ -13,11 +13,11 @@ flags.DEFINE_string("root", '../', "path to root folder of the project.")
 
 # --------------------------- Training Parameters ---------------------------
 
-flags.DEFINE_string("model_name",       '',         "Name for model")
-flags.DEFINE_string("model",            "treeRNN_neerbek",  "Selecting the model to be used")
-flags.DEFINE_string("act_fun",          "relu",     "Select hidden activation function (default: relu")
-flags.DEFINE_float("acc_min_delta_drop",0.001,      "Mini increase in accuracy to count as increasing")
-flags.DEFINE_float("acc_min_delta_conv",0.001,      "Mini increase in accuracy to count as increasing")
+flags.DEFINE_string("model_name", '', "Name for model")
+flags.DEFINE_string("model", "treeRNN_neerbek", "Selecting the model to be used")
+flags.DEFINE_string("act_fun", "relu", "Select hidden activation function (default: relu")
+flags.DEFINE_float("acc_min_delta_drop", 0.001, "Mini increase in accuracy to count as increasing")
+flags.DEFINE_float("acc_min_delta_conv", 0.001, "Mini increase in accuracy to count as increasing")
 
 flags.DEFINE_integer("sentence_embedding_size", 300, "Size of the sentence embedding")
 flags.DEFINE_integer("label_size", 2, "Number of labels")
@@ -40,10 +40,8 @@ flags.DEFINE_boolean("use_leaf_loss", False, "use all or only internal root loss
 flags.DEFINE_boolean("use_selective_training",
                      True, "Use selective training")
 
-
 flags.DEFINE_float("l2_scalar", 0.0, "Scalar for L2 regularization")
 flags.DEFINE_float('dropout_prob', 0.0, "Dropout probability")
-
 
 # ---------------------------- deepRNN ----------------------------
 
@@ -53,18 +51,24 @@ flags.DEFINE_integer("deepRNN_depth", 3, "Trees in the deepRNN")
 
 flags.DEFINE_boolean("use_multi_cluster", False, "...")
 flags.DEFINE_integer("num_clusters", 10, "Number of clusters to use")
-flags.DEFINE_integer("pretrain_max_epoch",  200, "Stop pretraining when number of epochs without better training acc reaches this.")
-flags.DEFINE_float("pretrain_max_acc",  0.75, "Stop pretraining when number of epochs without better training acc reaches this.")
+flags.DEFINE_integer("pretrain_max_epoch", 200,
+                     "Stop pretraining when number of epochs without better training acc reaches this.")
+flags.DEFINE_float("pretrain_max_acc", 0.75,
+                   "Stop pretraining when number of epochs without better training acc reaches this.")
 flags.DEFINE_float("selection_cut_off", 0.85, "The expected MFO to cut-off for selective training")
 flags.DEFINE_boolean("mfo", True, "Whether to use MFO analysis to rate clusters. If False use prediction accuracy")
-flags.DEFINE_string("cluster_model", 'kmeans', "Which clustering model to use. Choose between 'kmeans', 'dbscan', 'agglo'")
-flags.DEFINE_string("cluster_initialization", 'random', "How to initialize clusters. (k-means++’, ‘random’ or an ndarray)")
+flags.DEFINE_string("cluster_model", 'kmeans',
+                    "Which clustering model to use. Choose between 'kmeans', 'dbscan', 'agglo'")
+flags.DEFINE_string("cluster_initialization", 'random',
+                    "How to initialize clusters. (k-means++’, ‘random’ or an ndarray)")
 
 # --------------------------- Word embeddings ---------------------------
 
 flags.DEFINE_integer("word_embedding_size", 300, "Size of the word embedding")
-flags.DEFINE_string("word_embed_mode", 'pretrained', "Flag to switch between word embeddings modes ('pretrained', 'finetuned', 'trained')")
-flags.DEFINE_string("word_embed_model", 'glove', "Flag to switch between word embeddings modes ('glove', 'word2vec', 'fastText')")
+flags.DEFINE_string("word_embed_mode", 'pretrained',
+                    "Flag to switch between word embeddings modes ('pretrained', 'finetuned', 'trained')")
+flags.DEFINE_string("word_embed_model", 'glove',
+                    "Flag to switch between word embeddings modes ('glove', 'word2vec', 'fastText')")
 
 flags.DEFINE_integer("word_min_count", 100, "How many times does a word need to be present in the corpus")
 flags.DEFINE_integer("glove_window", 10, "How many times does a word need to be present in the corpus")
@@ -81,6 +85,7 @@ flags.DEFINE_boolean('run_tensorboard', False, "Flag")
 flags.DEFINE_boolean('use_gpu', True, "Use the gpu friendly version")
 flags.DEFINE_integer('num_threads', 1, "Number of threads to be use on the CPU")
 flags.DEFINE_boolean('evaluate', False, "Recompute performance")
+flags.DEFINE_integer('repeat_num', 1, "Repeats the same run multiple times")
 
 # --------------------------- Experiments ---------------------------
 

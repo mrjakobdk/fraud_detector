@@ -61,7 +61,7 @@ class Performance:
         predictions = get_prediction(probs)
 
         self.acc = get_accuracy(labels, predictions)
-        if len(data) < 3000:
+        if len(data) < 1500:
             print(model.accuracy(data, sess))
 
         self.TP, self.FP, self.TN, self.FN = get_confusion_matrix(labels, predictions)
