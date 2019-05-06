@@ -52,8 +52,8 @@ def main():
 
     for r in range(FLAGS.repreat_num):
         version = ""
-        if r > 1:
-            version = "_V"+str(r)
+        if r >= 1:
+            version = "_V"+str(r+1)
 
         model_name_version = model_name + version
 
