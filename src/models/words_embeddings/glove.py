@@ -110,9 +110,15 @@ class GloVe(WordModel):
                 os.makedirs(mittens_dir)
             mittens_model = Mittens(
                 n=self.dimensions,
-                max_iter=7500,
-                display_progress=1,
-                log_dir=mittens_dir)
+                xmax=100,
+                max_iter=10000,
+                display_progress=10,
+                learning_rate=0.05,
+                alpha=0.75,
+                tol=1e-4,
+                log_dir=mittens_dir,
+                mittens=0.1
+            )
             helper._print_subheader('Training Mittens model...')
             finetuned_embeddings = mittens_model.fit(
                 cooccur,
@@ -137,8 +143,12 @@ class GloVe(WordModel):
             helper._print_subheader('Building model...')
             glove_model = mittens_glove(
                 n=300,
-                max_iter=50000,
-                display_progress=1,
+                xmax=100,
+                max_iter=20000,
+                learning_rate=0.01,
+                alpha=0.75,
+                tol=1e-4,
+                display_progress=10,
                 log_dir=directories.GLOVE_DIR + 'mittens/')
             helper._print_subheader('Training GloVE model...')
             trained_embeddings = glove_model.fit(cooccur)

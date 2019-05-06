@@ -7,7 +7,6 @@ import numpy as np
 from gensim.models import KeyedVectors
 from gensim.models.callbacks import CallbackAny2Vec
 from tqdm import tqdm
-
 from models.words_embeddings.wordModel import WordModel
 from utils import helper, constants, directories
 from utils.flags import FLAGS

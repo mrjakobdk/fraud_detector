@@ -1,14 +1,10 @@
 import io
 import os
 import zipfile
-from collections import Counter
-
-import numpy as np
 
 from tqdm import tqdm
 from models.words_embeddings.wordModel import WordModel
 from utils import constants, directories, helper
-from utils.flags import FLAGS
 
 
 class FastText(WordModel):
