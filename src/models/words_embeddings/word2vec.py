@@ -120,14 +120,16 @@ class Word2Vec(WordModel):
         vocab_keys = keyed_vector.vocab.keys()
         ZERO_TOKEN = 0
         word2idx = {'ZERO': ZERO_TOKEN}
-        idx2word = {ZERO_TOKEN: 'ZERO'}
+        idx2word = ['ZERO']
         weights = [np.zeros(self.dimensions)]
         pbar = tqdm(
             bar_format='Indexing keyed_vector |{bar}| Elapsed: {elapsed} | ({n_fmt}/{total_fmt})', total=len(vocab_keys))
-        for index, word in enumerate(vocab_keys):
+        i = 0
+        for word in vocab_keys:
             if word in vocab.keys():
-                word2idx[word] = index + 1
-                idx2word[index + 1] = word
+                i += 1
+                word2idx[word] = i
+                idx2word.append(word)
                 weights.append(keyed_vector[word])
             pbar.update(1)
 

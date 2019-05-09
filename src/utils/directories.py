@@ -138,4 +138,12 @@ if not os.path.exists(TRAINED_MODELS_DIR):
 if not os.path.exists(MODEL_DIR(FLAGS.model_name)):
     os.mkdir(MODEL_DIR(FLAGS.model_name))
 
+if not os.path.exists(GLOVE_DIR):
+    os.mkdir(GLOVE_DIR)
+
+if not os.path.exists(WORD2VEC_DIR):
+    os.mkdir(WORD2VEC_DIR)
+
+
+
 
