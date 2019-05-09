@@ -107,7 +107,7 @@ def parse_trees(dataset="small", type='train', remove=False):  # todo maybe chan
     """
     file = directories.TREES_DIRS[dataset] + '%s.txt' % type
     if not os.path.isdir(directories.TREES_DIRS[dataset]):
-        os.makedirs(file)
+        os.makedirs(directories.TREES_DIRS[dataset])
     if not os.path.isfile(file):
         if dataset == 'all':
             helper._print(f'Creating new {file}...')
