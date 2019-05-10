@@ -37,6 +37,7 @@ class GloVe(WordModel):
             helper._print_header(
                 'Downloading GloVe embedding: {0}'.format(directories.GLOVE_EMBEDDING_FILE_NAME))
             url = constants.GLOVE_URL + directories.GLOVE_EMBEDDING_FILE_NAME + '.zip'
+            print(url)
             helper.download(url, directories.GLOVE_EMBEDDING_ZIP_PATH)
             with zipfile.ZipFile(directories.GLOVE_EMBEDDING_ZIP_PATH, 'r') as zip:
                 helper._print_header(f'Extracting glove weights from {directories.GLOVE_EMBEDDING_ZIP_PATH} ')

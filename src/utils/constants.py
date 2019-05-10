@@ -1,13 +1,15 @@
 
 
 # --------------------------- Word embeddings ---------------------------
+from utils.flags import FLAGS
 
 PRETRAINED_MODE = 'pretrained'
 FINETUNED_MODE = 'finetuned'
 TRAINED_MODE = 'trained'
 
 GLOVE = 'glove'
-GLOVE_URL = 'http://nlp.stanford.edu/data/wordvecs/'
+GLOVE_URL = 'http://nlp.stanford.edu/data/'
+
 WORD2VEC = 'word2vec'
 FASTTEXT = 'fasttext'
 FASTTEXT_CRAWL_URL = 'https://dl.fbaipublicfiles.com/fasttext/vectors-english/crawl-300d-2M.vec.zip'

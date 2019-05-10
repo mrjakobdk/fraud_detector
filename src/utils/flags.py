@@ -71,6 +71,7 @@ flags.DEFINE_string("word_embed_model", 'glove',
                     "Flag to switch between word embeddings modes ('glove', 'word2vec', 'fastText')")
 
 flags.DEFINE_integer("word_min_count", 100, "How many times does a word need to be present in the corpus")
+flags.DEFINE_string("glove_pretrained_dataset", '6B', "Which  to use pretrained GloVe embeddings with (6B, 840B)")
 flags.DEFINE_integer("glove_window", 10, "How many times does a word need to be present in the corpus")
 
 flags.DEFINE_integer("word2vec_min_count", 100, "How many times does a word need to be present in the corpus")
