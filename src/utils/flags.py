@@ -38,7 +38,7 @@ flags.DEFINE_boolean("load_model", False, "Load a old model")
 flags.DEFINE_boolean("use_root_loss", False, "use root or internal root loss")
 flags.DEFINE_boolean("use_leaf_loss", False, "use all or only internal root loss")
 flags.DEFINE_boolean("use_selective_training",
-                     True, "Use selective training")
+                     False, "Use selective training")
 
 flags.DEFINE_float("l2_scalar", 0.0, "Scalar for L2 regularization")
 flags.DEFINE_float('dropout_prob', 0.0, "Dropout probability")
