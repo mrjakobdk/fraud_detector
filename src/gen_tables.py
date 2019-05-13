@@ -342,4 +342,160 @@ def get_Exp3():
         index=False))
 
 
-get_Exp3()
+def get_Exp4_info(models, dropouts, l2s, model_names):
+    acc_train = []
+    acc_val = []
+    acc_test = []
+    models_list = []
+    dropout_list = []
+    l2_list = []
+    for model_name, dropout, l2, model in zip(model_names, dropouts, l2s, models):
+        if os.path.exists(f"../trained_models/{model_name}"):
+            if os.path.exists(f"../trained_models/{model_name}/performance_train.csv"):
+                train = helper.load_dict(f"../trained_models/{model_name}/performance_train.csv")
+                val = helper.load_dict(f"../trained_models/{model_name}/performance_val.csv")
+                test = helper.load_dict(f"../trained_models/{model_name}/performance_test.csv")
+                acc_train.append(round(train["accuracy"], 4))
+                acc_val.append(round(val["accuracy"], 4))
+                acc_test.append(round(test["accuracy"], 4))
+                dropout_list.append(dropout)
+                l2_list.append(l2)
+                models_list.append(model)
+            else:
+                print(model_name, "does not have performance file")
+        else:
+            print(model_name, "does not exists")
+
+    return {
+        "Model": models_list,
+        "Dropout Rate": dropout_list,
+        "L2 Scalar": l2_list,
+        "Train Acc": acc_train,
+        "Val Acc": acc_val,
+        "Test Acc": acc_test,
+    }
+
+
+def get_Exp4():
+    treernn = get_Exp4_info(models=["TreeRNN"] * 9,
+                            dropouts=["0%", "0%", "0%", "0%", "10%", "25%", "50%", "5%", "10%"],
+                            l2s=[0, 0.01, 0.001, 0.0001, 0, 0, 0, 0.00005, 0.0001],
+                            model_names=["TreeRNN_batch4_decay995_rep100_lr01_normal_train_conv100_adagrad",
+                                         "TreeRNN_Regularization_L201",
+                                         "TreeRNN_Regularization_L2001",
+                                         "TreeRNN_Regularization_L20001",
+                                         "TreeRNN_Regularization_Dropout10",
+                                         "TreeRNN_Regularization_Dropout25",
+                                         "TreeRNN_Regularization_Dropout50",
+                                         "TreeRNN_Regularization_L200005_Dropout5",
+                                         "TreeRNN_Regularization_L20001_Dropout10"])
+
+    deeprnn = get_Exp4_info(models=["DeepRNN"] * 9,
+                            dropouts=["0%", "0%", "0%", "0%", "10%", "25%", "50%", "5%", "10%"],
+                            l2s=[0, 0.01, 0.001, 0.0001, 0, 0, 0, 0.00005, 0.0001],
+                            model_names=["DeepRNN_batch4_decay1_rep100_lr0001_normal_train_conv100_adam",
+                                         "DeepRNN_Regularization_L201",
+                                         "DeepRNN_Regularization_L2001",
+                                         "DeepRNN_Regularization_L20001",
+                                         "DeepRNN_Regularization_Dropout10",
+                                         "DeepRNN_Regularization_Dropout25",
+                                         "DeepRNN_Regularization_Dropout50",
+                                         "DeepRNN_Regularization_L200005_Dropout5",
+                                         "DeepRNN_Regularization_L20001_Dropout10"])
+
+    treelstm = get_Exp4_info(models=["TreeLSTM"] * 9,
+                             dropouts=["0%", "0%", "0%", "0%", "10%", "25%", "50%", "5%", "10%"],
+                             l2s=[0, 0.01, 0.001, 0.0001, 0, 0, 0, 0.00005, 0.0001],
+                             model_names=["TreeLSTM_batch4_decay1_rep100_lr01_normal_train_conv100_adagrad",
+                                          "TreeLSTM_Regularization_L201",
+                                          "TreeLSTM_Regularization_L2001",
+                                          "TreeLSTM_Regularization_L20001",
+                                          "TreeLSTM_Regularization_Dropout10",
+                                          "TreeLSTM_Regularization_Dropout25",
+                                          "TreeLSTM_Regularization_Dropout50",
+                                          "TreeLSTM_Regularization_L200005_Dropout5",
+                                          "TreeLSTM_Regularization_L20001_Dropout10"])
+
+    df = pd.DataFrame(treernn)
+    df = df.append(pd.DataFrame(deeprnn))
+    df = df.append(pd.DataFrame(treelstm))
+
+    print(df.to_latex(
+        columns=["Model", "Dropout Rate", "L2 Scalar", "Train Acc", "Val Acc"],
+        index=False))
+
+
+def get_Exp5_info(models, loss_types, dropouts, l2s, model_names):
+    acc_train = []
+    acc_val = []
+    acc_test = []
+    models_list = []
+    loss_type_list = []
+    dropout_list = []
+    l2_list = []
+    for model_name, loss_type, dropout, l2, model in zip(model_names, loss_types, dropouts, l2s, models):
+        if os.path.exists(f"../trained_models/{model_name}"):
+            if os.path.exists(f"../trained_models/{model_name}/performance_train.csv"):
+                train = helper.load_dict(f"../trained_models/{model_name}/performance_train.csv")
+                val = helper.load_dict(f"../trained_models/{model_name}/performance_val.csv")
+                test = helper.load_dict(f"../trained_models/{model_name}/performance_test.csv")
+                acc_train.append(round(train["accuracy"], 4))
+                acc_val.append(round(val["accuracy"], 4))
+                acc_test.append(round(test["accuracy"], 4))
+                loss_type_list.append(loss_type)
+                dropout_list.append(dropout)
+                l2_list.append(l2)
+                models_list.append(model)
+            else:
+                print(model_name, "does not have performance file")
+        else:
+            print(model_name, "does not exists")
+
+    return {
+        "Model": models_list,
+        "Loss type": loss_type_list,
+        "Dropout Rate": dropout_list,
+        "L2 Scalar": l2_list,
+        "Train Acc": acc_train,
+        "Val Acc": acc_val,
+        "Test Acc": acc_test,
+    }
+
+
+def get_Exp5():
+    treernn = get_Exp5_info(models=["TreeRNN"] * 3,
+                            loss_types=["Internal nodes", "Root node", "Root node"],
+                            dropouts=["0%", "0%", "0%"],
+                            l2s=[0.001, 0.001, 0],
+                            model_names=["TreeRNN_Regularization_L2001",
+                                         "TreeRNN_RootLoss",
+                                         "TreeRNN_RootLoss_reg0"])
+
+
+    deeprnn = get_Exp5_info(models=["DeepRNN"] * 3,
+                            loss_types=["Internal nodes", "Root node", "Root node"],
+                            dropouts=["10%", "10%", "0%"],
+                            l2s=[0, 0, 0],
+                            model_names=["DeepRNN_Regularization_Dropout10",
+                                         "DeepRNN_RootLoss",
+                                         "DeepRNN_RootLoss_drop0"])
+
+
+    treelstm = get_Exp5_info(models=["TreeLSTM"] * 3,
+                            loss_types=["Internal nodes", "Root node", "Root node"],
+                            dropouts=["10%", "10%", "0%"],
+                            l2s=[0, 0, 0],
+                            model_names=["TreeLSTM_Regularization_Dropout10",
+                                         "TreeLSTM_RootLoss",
+                                         "TreeLSTM_RootLoss_drop0"])
+
+    df = pd.DataFrame(treernn)
+    df = df.append(pd.DataFrame(deeprnn))
+    df = df.append(pd.DataFrame(treelstm))
+
+    print(df.to_latex(
+        columns=["Model", "Loss type", "Dropout Rate", "L2 Scalar", "Train Acc", "Val Acc"],
+        index=False))
+
+
+get_Exp4()

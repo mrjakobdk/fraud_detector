@@ -25,8 +25,10 @@ class WordModel:
 
     def build_pretrained_embeddings(self):
         raise NotImplementedError("Each Model must re-implement this method.")
+
     def build_finetuned_embeddings(self):
         raise NotImplementedError("Each Model must re-implement this method.")
+
     def build_trained_embeddings(self):
         raise NotImplementedError("Each Model must re-implement this method.")
 
@@ -65,7 +67,7 @@ class WordModel:
         result = tsne.fit_transform(embeddings)
         # create a scatter plot of the projection
         if not words is None:
-            result = np.array([[x,y,i] for i, (x,y) in enumerate(result) if vocab[i] in words], dtype=np.float64)
+            result = np.array([[x, y, i] for i, (x, y) in enumerate(result) if vocab[i] in words], dtype=np.float64)
             pyplot.scatter(result[:, 0], result[:, 1])
             for r in result:
                 pyplot.annotate(vocab[int(r[2])], xy=(r[0], r[1]))
@@ -116,15 +118,16 @@ class WordModel:
             for index, line in enumerate(lines):
                 values = line.split()  # Word and weights separated by space
                 word = values[0]  # Word is first symbol on each line
-                if word in vocab.keys():
+                if word in vocab.keys() and helper.is_float(values[1]):
                     i += 1
                     word_weights = np.asarray(values[1:], dtype=np.float32)  # Remainder of line is weights for word
                     word2idx[word] = i
                     idx2word.append(word)
                     weights.append(word_weights)
-                if (index + 1) % 1000 == 0 and index != 0:
-                    pbar.update(1000)
-            pbar.update(len(lines) % 1000)
+                # if (index + 1) % 1000 == 0 and index != 0:
+                #    pbar.update(1000)
+                pbar.update(1)
+            # pbar.update(len(lines) % 1000)
             pbar.close()
             print()
             UNKNOWN_TOKEN = len(weights)
