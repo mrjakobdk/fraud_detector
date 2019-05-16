@@ -225,6 +225,7 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
         while not summary.converging() and not summary.at_max_epoch() and not summary.interrupt():
             summary.epoch_inc()
             helper._print_subheader(f'Epoch {summary.get_epoch()}')
+            helper._print_subheader(f'{model.model_name}')
 
             run_time = trainer.train(train_data)
             run_times.append(run_time)

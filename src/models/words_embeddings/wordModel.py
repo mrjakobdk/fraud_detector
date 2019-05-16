@@ -124,12 +124,8 @@ class WordModel:
                     word2idx[word] = i
                     idx2word.append(word)
                     weights.append(word_weights)
-                # if (index + 1) % 1000 == 0 and index != 0:
-                #    pbar.update(1000)
                 pbar.update(1)
-            # pbar.update(len(lines) % 1000)
             pbar.close()
-            print()
             UNKNOWN_TOKEN = len(weights)
             word2idx['UNK'] = UNKNOWN_TOKEN
             idx2word.append('UNK')
