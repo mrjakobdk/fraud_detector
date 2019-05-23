@@ -1,5 +1,5 @@
 import os
-
+import numpy as np
 import pandas as pd
 
 from utils import helper
@@ -471,7 +471,6 @@ def get_Exp5():
                                          "TreeRNN_RootLoss",
                                          "TreeRNN_RootLoss_reg0"])
 
-
     deeprnn = get_Exp5_info(models=["DeepRNN"] * 3,
                             loss_types=["Internal nodes", "Root node", "Root node"],
                             dropouts=["10%", "10%", "0%"],
@@ -480,14 +479,13 @@ def get_Exp5():
                                          "DeepRNN_RootLoss",
                                          "DeepRNN_RootLoss_drop0"])
 
-
     treelstm = get_Exp5_info(models=["TreeLSTM"] * 3,
-                            loss_types=["Internal nodes", "Root node", "Root node"],
-                            dropouts=["10%", "10%", "0%"],
-                            l2s=[0, 0, 0],
-                            model_names=["TreeLSTM_Regularization_Dropout10",
-                                         "TreeLSTM_RootLoss",
-                                         "TreeLSTM_RootLoss_drop0"])
+                             loss_types=["Internal nodes", "Root node", "Root node"],
+                             dropouts=["10%", "10%", "0%"],
+                             l2s=[0, 0, 0],
+                             model_names=["TreeLSTM_Regularization_Dropout10",
+                                          "TreeLSTM_RootLoss",
+                                          "TreeLSTM_RootLoss_drop0"])
 
     df = pd.DataFrame(treernn)
     df = df.append(pd.DataFrame(deeprnn))
@@ -498,4 +496,250 @@ def get_Exp5():
         index=False))
 
 
-get_Exp4()
+def get_Exp6_info(models, word_methods, min_counts, model_names, model_names2):
+    acc_train = []
+    acc_val = []
+    acc_val2 = []
+    val_acc_avg_list = []
+    acc_test = []
+    models_list = []
+    word_method_list = []
+    min_count_list = []
+    for model_name, model_name2, word_method, min_count, model in zip(model_names, model_names2, word_methods,
+                                                                      min_counts, models):
+        if os.path.exists(f"../trained_models/{model_name}"):
+            if os.path.exists(f"../trained_models/{model_name}/performance_train.csv"):
+                train = helper.load_dict(f"../trained_models/{model_name}/performance_train.csv")
+                val = helper.load_dict(f"../trained_models/{model_name}/performance_val.csv")
+                test = helper.load_dict(f"../trained_models/{model_name}/performance_test.csv")
+
+                val_acc_1 = val["accuracy"]
+                val_acc_2 = 0
+                if os.path.exists(f"../trained_models/{model_name2}"):
+                    if os.path.exists(f"../trained_models/{model_name2}/performance_train.csv"):
+                        val2 = helper.load_dict(f"../trained_models/{model_name2}/performance_val.csv")
+                        val_acc_2 = val2["accuracy"]
+                    else:
+                        print(model_name2, "does not have performance file")
+                else:
+                    print(model_name2, "does not exists")
+                acc_val2.append(round(val_acc_2, 4))
+                val_acc_avg_list.append(round((val_acc_1 + val_acc_2) / 2, 4))
+                acc_train.append(round(train["accuracy"], 4))
+                acc_val.append(round(val_acc_1, 4))
+                acc_test.append(round(test["accuracy"], 4))
+                word_method_list.append(word_method)
+                min_count_list.append(min_count)
+                models_list.append(model)
+            else:
+                print(model_name, "does not have performance file")
+        else:
+            print(model_name, "does not exists")
+
+    return {
+        "Model": models_list,
+        "Word Embedding Method": word_method_list,
+        "Min count": min_count_list,
+        "Train Acc": acc_train,
+        "Val Acc Run 1": acc_val,
+        "Val Acc Run 2": acc_val2,
+        "Val Acc Avg": val_acc_avg_list,
+        "Test Acc": acc_test,
+    }
+
+
+def get_Exp6():
+    treernn = get_Exp6_info(models=["TreeRNN"] * 7,
+                            word_methods=["GloVe Pretrained", "GloVe Pretrained", "GloVe Pretrained 840B",
+                                          "Word2Vec Pretrained", "fastText Pretrained", "GloVe Trained",
+                                          "GloVe Finetuned"],
+                            min_counts=[100, 50, 50,
+                                        50, 50, 100,
+                                        50],
+                            model_names=["?",
+                                         "TreeRNN_WordEmbed_GloVe_Pretrained_MinCount50",
+                                         "TreeRNN_WordEmbed_GloVe_Pretrained_840B",
+                                         "TreeRNN_WordEmbed_Word2Vec_Pretrained",
+                                         "TreeRNN_WordEmbed_fastText_Pretrained",
+                                         "TreeRNN_WordEmbed_GloVe_Trained",
+                                         "TreeRNN_WordEmbed_GloVe_Finetuned"],
+                            model_names2=["?_V2",
+                                          "TreeRNN_WordEmbed_GloVe_Pretrained_MinCount50_V2",
+                                          "TreeRNN_WordEmbed_GloVe_Pretrained_840B_V2",
+                                          "TreeRNN_WordEmbed_Word2Vec_Pretrained_V2",
+                                          "TreeRNN_WordEmbed_fastText_Pretrained_V2",
+                                          "TreeRNN_WordEmbed_GloVe_Trained_V2",
+                                          "TreeRNN_WordEmbed_GloVe_Finetuned_V2"])
+
+    deeprnn = get_Exp6_info(models=["DeepRNN"] * 7,
+                            word_methods=["GloVe Pretrained", "GloVe Pretrained", "GloVe Pretrained 840B",
+                                          "Word2Vec Pretrained", "fastText Pretrained", "GloVe Trained",
+                                          "GloVe Finetuned"],
+                            min_counts=[100, 50, 50,
+                                        50, 50, 100,
+                                        50],
+                            model_names=["?",
+                                         "DeepRNN_WordEmbed_GloVe_Pretrained_MinCount50",
+                                         "DeepRNN_WordEmbed_GloVe_Pretrained_840B_V1",
+                                         "DeepRNN_WordEmbed_Word2Vec_Pretrained",
+                                         "DeepRNN_WordEmbed_fastText_Pretrained",
+                                         "DeepRNN_WordEmbed_GloVe_Trained",
+                                         "DeepRNN_WordEmbed_GloVe_Finetuned"],
+                            model_names2=["?_V2",
+                                          "DeepRNN_WordEmbed_GloVe_Pretrained_MinCount50_V2",
+                                          "DeepRNN_WordEmbed_GloVe_Pretrained_840B_V2",
+                                          "DeepRNN_WordEmbed_Word2Vec_Pretrained_V2",
+                                          "DeepRNN_WordEmbed_fastText_Pretrained_V2",
+                                          "DeepRNN_WordEmbed_GloVe_Trained_V2",
+                                          "DeepRNN_WordEmbed_GloVe_Finetuned_V2"])
+
+    treelstm = get_Exp6_info(models=["TreeLSTM"] * 7,
+                             word_methods=["GloVe Pretrained", "GloVe Pretrained", "GloVe Pretrained 840B",
+                                           "Word2Vec Pretrained", "fastText Pretrained", "GloVe Trained",
+                                           "GloVe Finetuned"],
+                             min_counts=[100, 50, 50,
+                                         50, 50, 100,
+                                         50],
+                             model_names=["?",
+                                          "TreeLSTM_WordEmbed_GloVe_Pretrained_MinCount50_V1",
+                                          "TreeLSTM_WordEmbed_GloVe_Pretrained_840B",
+                                          "TreeLSTM_WordEmbed_Word2Vec_Pretrained",
+                                          "TreeLSTM_WordEmbed_fastText_Pretrained",
+                                          "TreeLSTM_WordEmbed_GloVe_Trained",
+                                          "TreeLSTM_WordEmbed_GloVe_Finetuned"],
+                             model_names2=["?_V2",
+                                           "TreeLSTM_WordEmbed_GloVe_Pretrained_MinCount50_V2",
+                                           "TreeLSTM_WordEmbed_GloVe_Pretrained_840B_V2",
+                                           "TreeLSTM_WordEmbed_Word2Vec_Pretrained_V2",
+                                           "TreeLSTM_WordEmbed_fastText_Pretrained_V2",
+                                           "TreeLSTM_WordEmbed_GloVe_Trained_V2",
+                                           "TreeLSTM_WordEmbed_GloVe_Finetuned_V2"])
+
+    df = pd.DataFrame(treernn)
+    df = df.append(pd.DataFrame(deeprnn))
+    df = df.append(pd.DataFrame(treelstm))
+
+    print(df.to_latex(
+        columns=["Model", "Word Embedding Method", "Min count", "Val Acc Run 1", "Val Acc Run 2", "Val Acc Avg"],
+        index=False))
+
+
+# get_Exp6()
+
+def get_exp_speed_info(model, model_names):
+    best_time_list = []
+    best_epoch_list = []
+    total_time_list = []
+    total_epoch_list = []
+    for model_name in model_names:
+        if os.path.exists(f"../trained_models/{model_name}"):
+            if os.path.exists(f"../trained_models/{model_name}/performance_train.csv"):
+                speed = helper.load_dict(f"../trained_models/{model_name}/speed.csv")
+                best_time_list.append(speed["best_time"] / 60 / 60)
+                best_epoch_list.append(speed["best_epoch"])
+                total_time_list.append(speed["total_time"] / 60 / 60)
+                total_epoch_list.append(speed["epoch"])
+            else:
+                print(model_name, "does not have performance file")
+        else:
+            print(model_name, "does not exists")
+
+    return {
+        "Model": [model],
+        "Avg best epochs": [np.average(best_epoch_list)],
+        "Max best epochs": [np.max(best_epoch_list)],
+        "Min best epochs": [np.min(best_epoch_list)],
+        "Avg total epochs": [np.average(total_epoch_list)],
+        "Max total epochs": [np.max(total_epoch_list)],
+        "Min total epochs": [np.min(total_epoch_list)],
+        "Avg best time": [np.average(best_time_list)],
+        "Max best time": [np.max(best_time_list)],
+        "Min best time": [np.min(best_time_list)],
+        "Avg total time": [np.average(total_time_list)],
+        "Max total time": [np.max(total_time_list)],
+        "Min total time": [np.min(total_time_list)]
+    }
+
+
+def get_exp_speed():
+    treernn = get_exp_speed_info(model="TreeRNN",
+                                 model_names=["TreeRNN_batch4_decay98_rep100_lr1_normal_train_conv100_adagrad",
+                                              "TreeRNN_batch16_decay98_rep100_lr1_normal_train_conv100_adagrad",
+                                              "TreeRNN_batch64_decay98_rep100_lr1_normal_train_conv100_adagrad",
+
+                                              "TreeRNN_batch4_decay98_rep100_lr1_normal_train_conv100_adagrad",
+                                              "TreeRNN_batch4_decay995_rep100_lr1_normal_train_conv100_adagrad",
+                                              "TreeRNN_batch4_decay1_rep100_lr1_normal_train_conv100_adagrad",
+                                              "TreeRNN_batch4_decay98_rep100_lr01_normal_train_conv100_adagrad",
+                                              "TreeRNN_batch4_decay995_rep100_lr01_normal_train_conv100_adagrad",
+                                              "TreeRNN_batch4_decay1_rep100_lr01_normal_train_conv100_adagrad",
+
+                                              "TreeRNN_batch4_decay995_rep100_lr01_normal_train_conv100_adagrad",
+                                              "TreeRNN_batch4_decay1_rep100_lr001_normal_train_conv100_adam",
+                                              "TreeRNN_batch4_decay1_rep100_lr0001_normal_train_conv100_adam"
+                                              ])
+
+    mtreernn = get_exp_speed_info(model="MTreeRNN",
+                                  model_names=["MTreeRNN_batch16_decay98_rep100_lr1_normal_train_conv100_adagrad",
+                                               "MTreeRNN_batch16_decay995_rep100_lr1_normal_train_conv100_adagrad",
+                                               "MTreeRNN_batch16_decay1_rep100_lr1_normal_train_conv100_adagrad",
+                                               "MTreeRNN_batch16_decay98_rep100_lr01_normal_train_conv100_adagrad",
+                                               "MTreeRNN_batch16_decay995_rep100_lr01_normal_train_conv100_adagrad",
+                                               "MTreeRNN_batch16_decay1_rep100_lr01_normal_train_conv100_adagrad"])
+
+    deepRNN = get_exp_speed_info(model="DeepRNN",
+                                 model_names=["DeepRNN_batch4_decay98_rep100_lr1_normal_train_conv100_adagrad",
+                                              "DeepRNN_batch4_decay995_rep100_lr1_normal_train_conv100_adagrad",
+                                              "DeepRNN_batch4_decay1_rep100_lr1_normal_train_conv100_adagrad",
+                                              "DeepRNN_batch4_decay98_rep100_lr01_normal_train_conv100_adagrad",
+                                              "DeepRNN_batch4_decay995_rep100_lr01_normal_train_conv100_adagrad",
+                                              "DeepRNN_batch4_decay1_rep100_lr01_normal_train_conv100_adagrad"])
+
+    treeLSTM = get_exp_speed_info(model="TreeLSTM",
+                                  model_names=["TreeLSTM_batch4_decay98_rep100_lr1_normal_train_conv100_adagrad",
+                                               "TreeLSTM_batch4_decay995_rep100_lr1_normal_train_conv100_adagrad",
+                                               "TreeLSTM_batch4_decay1_rep100_lr1_normal_train_conv100_adagrad",
+                                               "TreeLSTM_batch4_decay98_rep100_lr01_normal_train_conv100_adagrad",
+                                               "TreeLSTM_batch4_decay995_rep100_lr01_normal_train_conv100_adagrad",
+                                               "TreeLSTM_batch4_decay1_rep100_lr01_normal_train_conv100_adagrad"])
+
+    treeLSTM_tacker = get_exp_speed_info(model="TreeLSTM with Tracker",
+                                         model_names=["Tracker_batch16_decay98_rep100_lr1_normal_train_conv100_adagrad",
+                                                      "Tracker_batch16_decay995_rep100_lr1_normal_train_conv100_adagrad",
+                                                      "Tracker_batch16_decay1_rep100_lr1_normal_train_conv100_adagrad",
+                                                      "Tracker_batch16_decay98_rep100_lr01_normal_train_conv100_adagrad",
+                                                      "Tracker_batch16_decay995_rep100_lr01_normal_train_conv100_adagrad",
+                                                      "Tracker_batch16_decay1_rep100_lr01_normal_train_conv100_adagrad"])
+
+    LSTM = get_exp_speed_info(model="LSTM",
+                              model_names=["LSTM_batch4_decay98_rep100_lr1_normal_train_conv100_adagrad",
+                                           "LSTM_batch4_decay995_rep100_lr1_normal_train_conv100_adagrad",
+                                           "LSTM_batch4_decay1_rep100_lr1_normal_train_conv100_adagrad",
+                                           "LSTM_batch4_decay98_rep100_lr01_normal_train_conv100_adagrad",
+                                           "LSTM_batch4_decay995_rep100_lr01_normal_train_conv100_adagrad",
+                                           "LSTM_batch4_decay1_rep100_lr01_normal_train_conv100_adagrad"])
+
+    df = pd.DataFrame(treernn)
+    df = df.append(pd.DataFrame(mtreernn))
+    df = df.append(pd.DataFrame(deepRNN))
+    df = df.append(pd.DataFrame(treeLSTM))
+    df = df.append(pd.DataFrame(treeLSTM_tacker))
+    df = df.append(pd.DataFrame(LSTM))
+
+    print(df.to_latex(columns=["Model",
+                               "Avg best epochs",
+                               "Max best epochs",
+                               "Min best epochs",
+                               "Avg total epochs",
+                               "Max total epochs",
+                               "Min total epochs",
+                               "Avg best time",
+                               "Max best time",
+                               "Min best time",
+                               "Avg total time",
+                               "Max total time",
+                               "Min total time"],
+                      index=False))
+
+
+get_exp_speed()
