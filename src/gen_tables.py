@@ -79,14 +79,17 @@ def get_acc_table_deep_layers():
 
 def get_Exp1_info(models, batch_sizes, model_names):
     acc_val = []
+    acc_train = []
     acc_test = []
     models_list = []
     batch_size_list = []
     for model_name, batch_size, model in zip(model_names, batch_sizes, models):
         if os.path.exists(f"../trained_models/{model_name}"):
             val = helper.load_dict(f"../trained_models/{model_name}/performance_val.csv")
+            train = helper.load_dict(f"../trained_models/{model_name}/performance_train.csv")
             test = helper.load_dict(f"../trained_models/{model_name}/performance_test.csv")
             acc_val.append(round(val["accuracy"], 4))
+            acc_val.append(round(train["accuracy"], 4))
             acc_test.append(round(test["accuracy"], 4))
             batch_size_list.append(batch_size)
             models_list.append(model)
@@ -96,6 +99,7 @@ def get_Exp1_info(models, batch_sizes, model_names):
     return {
         "Model": models_list,
         "Batch size": batch_size_list,
+        "acc train": acc_train,
         "acc val": acc_val,
     }
 
@@ -144,7 +148,7 @@ def get_Exp1():
     df = df.append(pd.DataFrame(treeLSTM_tacker))
     df = df.append(pd.DataFrame(LSTM))
 
-    print(df.to_latex(columns=["Model", "Batch size", "acc val"], index=False))
+    print(df.to_latex(columns=["Model", "Batch size", "acc train", 'acc val'], index=False))
 
 
 def get_Exp2_info(models, lrs, lr_decays, model_names):
@@ -830,4 +834,4 @@ def get_exp_speed():
                       index=False))
 
 
-get_exp_speed()
+get_Exp1()
