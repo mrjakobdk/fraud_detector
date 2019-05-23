@@ -664,19 +664,41 @@ def get_exp_speed_info(model, model_names):
 def get_exp_speed():
     treernn = get_exp_speed_info(model="TreeRNN",
                                  model_names=["TreeRNN_batch4_decay98_rep100_lr1_normal_train_conv100_adagrad",
-                                              "TreeRNN_batch16_decay98_rep100_lr1_normal_train_conv100_adagrad",
-                                              "TreeRNN_batch64_decay98_rep100_lr1_normal_train_conv100_adagrad",
-
-                                              "TreeRNN_batch4_decay98_rep100_lr1_normal_train_conv100_adagrad",
                                               "TreeRNN_batch4_decay995_rep100_lr1_normal_train_conv100_adagrad",
                                               "TreeRNN_batch4_decay1_rep100_lr1_normal_train_conv100_adagrad",
                                               "TreeRNN_batch4_decay98_rep100_lr01_normal_train_conv100_adagrad",
                                               "TreeRNN_batch4_decay995_rep100_lr01_normal_train_conv100_adagrad",
                                               "TreeRNN_batch4_decay1_rep100_lr01_normal_train_conv100_adagrad",
 
-                                              "TreeRNN_batch4_decay995_rep100_lr01_normal_train_conv100_adagrad",
                                               "TreeRNN_batch4_decay1_rep100_lr001_normal_train_conv100_adam",
-                                              "TreeRNN_batch4_decay1_rep100_lr0001_normal_train_conv100_adam"
+                                              "TreeRNN_batch4_decay1_rep100_lr0001_normal_train_conv100_adam",
+
+                                              "TreeRNN_Regularization_L201",
+                                              "TreeRNN_Regularization_L2001",
+                                              "TreeRNN_Regularization_L20001",
+                                              "TreeRNN_Regularization_Dropout10",
+                                              "TreeRNN_Regularization_Dropout25",
+                                              "TreeRNN_Regularization_Dropout50",
+                                              "TreeRNN_Regularization_L200005_Dropout5",
+                                              "TreeRNN_Regularization_L20001_Dropout10",
+
+                                              "TreeRNN_Regularization_L2001",
+                                              "TreeRNN_RootLoss",
+                                              "TreeRNN_RootLoss_reg0",
+
+                                              "TreeRNN_WordEmbed_GloVe_Pretrained_MinCount50",
+                                              "TreeRNN_WordEmbed_GloVe_Pretrained_840B",
+                                              "TreeRNN_WordEmbed_Word2Vec_Pretrained",
+                                              "TreeRNN_WordEmbed_fastText_Pretrained",
+                                              "TreeRNN_WordEmbed_GloVe_Trained",
+                                              "TreeRNN_WordEmbed_GloVe_Finetuned",
+
+                                              "TreeRNN_WordEmbed_GloVe_Pretrained_MinCount50_V2",
+                                              "TreeRNN_WordEmbed_GloVe_Pretrained_840B_V2",
+                                              "TreeRNN_WordEmbed_Word2Vec_Pretrained_V2",
+                                              "TreeRNN_WordEmbed_fastText_Pretrained_V2",
+                                              "TreeRNN_WordEmbed_GloVe_Trained_V2",
+                                              "TreeRNN_WordEmbed_GloVe_Finetuned_V2"
                                               ])
 
     mtreernn = get_exp_speed_info(model="MTreeRNN",
@@ -685,7 +707,11 @@ def get_exp_speed():
                                                "MTreeRNN_batch16_decay1_rep100_lr1_normal_train_conv100_adagrad",
                                                "MTreeRNN_batch16_decay98_rep100_lr01_normal_train_conv100_adagrad",
                                                "MTreeRNN_batch16_decay995_rep100_lr01_normal_train_conv100_adagrad",
-                                               "MTreeRNN_batch16_decay1_rep100_lr01_normal_train_conv100_adagrad"])
+                                               "MTreeRNN_batch16_decay1_rep100_lr01_normal_train_conv100_adagrad",
+
+                                               "MTreeRNN_batch16_decay1_rep100_lr001_normal_train_conv100_adam",
+                                               "MTreeRNN_batch16_decay1_rep100_lr0001_normal_train_conv100_adam"
+                                               ])
 
     deepRNN = get_exp_speed_info(model="DeepRNN",
                                  model_names=["DeepRNN_batch4_decay98_rep100_lr1_normal_train_conv100_adagrad",
@@ -693,7 +719,38 @@ def get_exp_speed():
                                               "DeepRNN_batch4_decay1_rep100_lr1_normal_train_conv100_adagrad",
                                               "DeepRNN_batch4_decay98_rep100_lr01_normal_train_conv100_adagrad",
                                               "DeepRNN_batch4_decay995_rep100_lr01_normal_train_conv100_adagrad",
-                                              "DeepRNN_batch4_decay1_rep100_lr01_normal_train_conv100_adagrad"])
+                                              "DeepRNN_batch4_decay1_rep100_lr01_normal_train_conv100_adagrad",
+
+                                              "DeepRNN_batch4_decay1_rep100_lr001_normal_train_conv100_adam",
+                                              "DeepRNN_batch4_decay1_rep100_lr0001_normal_train_conv100_adam",
+
+                                              "DeepRNN_Regularization_L201",
+                                              "DeepRNN_Regularization_L2001",
+                                              "DeepRNN_Regularization_L20001",
+                                              "DeepRNN_Regularization_Dropout10",
+                                              "DeepRNN_Regularization_Dropout25",
+                                              "DeepRNN_Regularization_Dropout50",
+                                              "DeepRNN_Regularization_L200005_Dropout5",
+                                              "DeepRNN_Regularization_L20001_Dropout10",
+
+                                              "DeepRNN_WordEmbed_GloVe_Pretrained_MinCount50",
+                                              "DeepRNN_WordEmbed_GloVe_Pretrained_840B_V1",
+                                              "DeepRNN_WordEmbed_Word2Vec_Pretrained",
+                                              "DeepRNN_WordEmbed_fastText_Pretrained",
+                                              "DeepRNN_WordEmbed_GloVe_Trained",
+                                              "DeepRNN_WordEmbed_GloVe_Finetuned",
+
+                                              "DeepRNN_WordEmbed_GloVe_Pretrained_MinCount50_V2",
+                                              "DeepRNN_WordEmbed_GloVe_Pretrained_840B_V2",
+                                              "DeepRNN_WordEmbed_Word2Vec_Pretrained_V2",
+                                              "DeepRNN_WordEmbed_fastText_Pretrained_V2",
+                                              "DeepRNN_WordEmbed_GloVe_Trained_V2",
+                                              "DeepRNN_WordEmbed_GloVe_Finetuned_V2",
+
+                                              "DeepRNN_Regularization_Dropout10",
+                                              "DeepRNN_RootLoss",
+                                              "DeepRNN_RootLoss_drop0"
+                                              ])
 
     treeLSTM = get_exp_speed_info(model="TreeLSTM",
                                   model_names=["TreeLSTM_batch4_decay98_rep100_lr1_normal_train_conv100_adagrad",
