@@ -701,7 +701,34 @@ def get_exp_speed():
                                                "TreeLSTM_batch4_decay1_rep100_lr1_normal_train_conv100_adagrad",
                                                "TreeLSTM_batch4_decay98_rep100_lr01_normal_train_conv100_adagrad",
                                                "TreeLSTM_batch4_decay995_rep100_lr01_normal_train_conv100_adagrad",
-                                               "TreeLSTM_batch4_decay1_rep100_lr01_normal_train_conv100_adagrad"])
+                                               "TreeLSTM_batch4_decay1_rep100_lr01_normal_train_conv100_adagrad",
+
+                                               "TreeLSTM_batch4_decay1_rep100_lr001_normal_train_conv100_adam",
+                                               "TreeLSTM_batch4_decay1_rep100_lr0001_normal_train_conv100_adam",
+
+                                               "TreeLSTM_Regularization_L201",
+                                               "TreeLSTM_Regularization_L2001",
+                                               "TreeLSTM_Regularization_L20001",
+                                               "TreeLSTM_Regularization_Dropout10",
+                                               "TreeLSTM_Regularization_Dropout25",
+                                               "TreeLSTM_Regularization_Dropout50",
+                                               "TreeLSTM_Regularization_L200005_Dropout5",
+                                               "TreeLSTM_Regularization_L20001_Dropout10",
+
+                                               "TreeLSTM_WordEmbed_GloVe_Pretrained_MinCount50_V1",
+                                               "TreeLSTM_WordEmbed_GloVe_Pretrained_840B",
+                                               "TreeLSTM_WordEmbed_Word2Vec_Pretrained",
+                                               "TreeLSTM_WordEmbed_fastText_Pretrained",
+                                               "TreeLSTM_WordEmbed_GloVe_Trained",
+                                               "TreeLSTM_WordEmbed_GloVe_Finetuned",
+
+                                               "TreeLSTM_WordEmbed_GloVe_Pretrained_MinCount50_V2",
+                                               "TreeLSTM_WordEmbed_GloVe_Pretrained_840B_V2",
+                                               "TreeLSTM_WordEmbed_Word2Vec_Pretrained_V2",
+                                               "TreeLSTM_WordEmbed_fastText_Pretrained_V2",
+                                               "TreeLSTM_WordEmbed_GloVe_Trained_V2",
+                                               "TreeLSTM_WordEmbed_GloVe_Finetuned_V2"
+                                               ])
 
     treeLSTM_tacker = get_exp_speed_info(model="TreeLSTM with Tracker",
                                          model_names=["Tracker_batch16_decay98_rep100_lr1_normal_train_conv100_adagrad",
@@ -709,7 +736,11 @@ def get_exp_speed():
                                                       "Tracker_batch16_decay1_rep100_lr1_normal_train_conv100_adagrad",
                                                       "Tracker_batch16_decay98_rep100_lr01_normal_train_conv100_adagrad",
                                                       "Tracker_batch16_decay995_rep100_lr01_normal_train_conv100_adagrad",
-                                                      "Tracker_batch16_decay1_rep100_lr01_normal_train_conv100_adagrad"])
+                                                      "Tracker_batch16_decay1_rep100_lr01_normal_train_conv100_adagrad",
+
+                                                      "Tracker_batch64_decay1_rep100_lr001_normal_train_conv100_adam",
+                                                      "Tracker_batch64_decay1_rep100_lr0001_normal_train_conv100_adam"
+                                                      ])
 
     LSTM = get_exp_speed_info(model="LSTM",
                               model_names=["LSTM_batch4_decay98_rep100_lr1_normal_train_conv100_adagrad",
