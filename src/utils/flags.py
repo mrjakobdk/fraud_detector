@@ -91,6 +91,7 @@ flags.DEFINE_integer('repeat_num', 1, "Repeats the same run multiple times")
 # --------------------------- Experiments ---------------------------
 
 flags.DEFINE_boolean('run_speed_test', False, "Running speed tests")
+flags.DEFINE_string('speed_test_name', "run", "...")
 flags.DEFINE_boolean('run_batch_exp', False, "...")
 flags.DEFINE_boolean('run_lr_exp', False, "...")
 flags.DEFINE_boolean('run_decay_exp', False, "...")

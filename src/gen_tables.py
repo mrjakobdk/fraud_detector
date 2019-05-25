@@ -89,7 +89,7 @@ def get_Exp1_info(models, batch_sizes, model_names):
             train = helper.load_dict(f"../trained_models/{model_name}/performance_train.csv")
             test = helper.load_dict(f"../trained_models/{model_name}/performance_test.csv")
             acc_val.append(round(val["accuracy"], 4))
-            acc_val.append(round(train["accuracy"], 4))
+            acc_train.append(round(train["accuracy"], 4))
             acc_test.append(round(test["accuracy"], 4))
             batch_size_list.append(batch_size)
             models_list.append(model)

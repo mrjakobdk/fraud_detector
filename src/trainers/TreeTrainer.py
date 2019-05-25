@@ -192,7 +192,7 @@ def selective_train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, ep
 
 def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS.epochs, run_times=[],
           epoch_times=[], conv_cond=FLAGS.conv_cond,
-          num_threads=FLAGS.num_threads):
+          num_threads=FLAGS.num_threads, compute_performance=True):
     if gpu:
         config = tf.ConfigProto(intra_op_parallelism_threads=num_threads)
     else:
@@ -206,7 +206,7 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
         saver = tf.train.Saver()
         summary = summarizer(model.model_name, sess)
         summary.construct_dir()
-        trainer = Trainer(model, sess, saver, summary, load=load, gpu=gpu, batch_size=batch_size)
+        trainer = Trainer(model, sess, saver, summary, load=load, gpu=gpu, batch_size=batch_size, epochs=epochs)
 
         if load:
             model.load_tmp(sess, saver)
@@ -243,8 +243,9 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
             summary.save_speed()
 
         model.load_best(sess, saver, summary.VAL)
-        summary.save_performance(model)
-        summary.print_performance()
+        if compute_performance:
+            summary.save_performance(model)
+            summary.print_performance()
 
 
 def evaluate(model, gpu=True):

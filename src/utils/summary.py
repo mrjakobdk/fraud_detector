@@ -367,7 +367,7 @@ class summarizer():
         self.time_start = time_end
 
     def at_max_epoch(self):
-        return self.parameters["max_epochs"] != 0 and self.speed["epoch"] > self.parameters["max_epochs"]
+        return self.parameters["max_epochs"] != 0 and self.speed["epoch"] >= self.parameters["max_epochs"]
 
     def get_time(self):
         return self.delta_time
