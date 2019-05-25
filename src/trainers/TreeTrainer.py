@@ -40,8 +40,8 @@ class Trainer():
     def train(self, train_data):
         helper._print("Learning rate:", self.sess.run(self.model.lr))
         done = False
+        run_time = 0
         while not done:
-            run_time = 0
             batches = helper.batches(train_data, self.batch_size, perm=True)
             pbar = tqdm(
                 bar_format="(Training) {percentage:.0f}%|{bar}| Elapsed: {elapsed}, Remaining: {remaining} ({n_fmt}/{total_fmt})",
@@ -66,7 +66,7 @@ class Trainer():
             for step, batch in enumerate(batches):
                 acc_feed_dict, _ = self.model.build_feed_dict(batch)
                 acc, loss = self.sess.run([self.model.acc, self.model.loss],
-                                             feed_dict=acc_feed_dict)
+                                          feed_dict=acc_feed_dict)
                 self.summary.add(self.summary.TRAIN, acc, loss)
                 pbar.update(1)
             pbar.close()
@@ -80,6 +80,7 @@ class Trainer():
                 self.model.save_tmp(self.sess, self.saver)
 
             helper._print("Training time:", str(int(run_time / 60)) + "m " + str(int(run_time % 60)) + "s")
+        return run_time
 
 
 def selective_train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS.epochs, run_times=[],
