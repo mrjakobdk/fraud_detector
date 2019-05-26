@@ -80,6 +80,7 @@ def main():
         if FLAGS.classifier_dropout:
             classifier.add(tf.keras.layers.Dropout(0.2))
     classifier.add(tf.keras.layers.Dense(2, activation='softmax'))
+    classifier.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
     classifier.summary()
 
