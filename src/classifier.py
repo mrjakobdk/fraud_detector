@@ -17,7 +17,7 @@ from models.trees.treeRNN_tracker import treeRNN_tracker
 from models.words_embeddings.fastText import FastText
 from models.words_embeddings.glove import GloVe
 from models.words_embeddings.word2vec import Word2Vec
-from utils import constants, directories, helper  # directories is need to construct console file
+from utils import constants, directories, helper, tree_util  # directories is need to construct console file
 from utils.flags import FLAGS
 
 
@@ -28,6 +28,15 @@ def get_labels(trees):
 def main():
     _data_util = data_util.DataUtil()
     data = _data_util.get_data()
+
+    roots_size = [tree_util.size_of_tree(root) for root in data.train_trees]
+    data.train_trees = helper.sort_by(data.train_trees, roots_size)
+
+    roots_size = [tree_util.size_of_tree(root) for root in data.val_trees]
+    data.val_trees = helper.sort_by(data.val_trees, roots_size)
+
+    roots_size = [tree_util.size_of_tree(root) for root in data.test_trees]
+    data.test_trees = helper.sort_by(data.test_trees, roots_size)
 
     if FLAGS.use_gpu:
         config = None
@@ -81,7 +90,7 @@ def main():
         if FLAGS.classifier_dropout:
             classifier.add(tf.keras.layers.Dropout(0.2))
     classifier.add(tf.keras.layers.Dense(2, activation='softmax'))
-    classifier.compile(optimizer=tf.keras.optimizers.Adagrad(0.001), loss='categorical_crossentropy',
+    classifier.compile(optimizer=tf.keras.optimizers.Adagrad(0.01), loss='categorical_crossentropy',
                        metrics=['accuracy'])
 
     classifier.summary()
