@@ -22,7 +22,7 @@ def make_experiment_folder():
 def run_speed_test(placement):
     make_experiment_folder()
     epochs = 4
-    batch_sizes = [4,16,32,64]
+    batch_sizes = [4,16,32,64,128]
     config_CPU = False
     config_GPU = True
 
