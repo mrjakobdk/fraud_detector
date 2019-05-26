@@ -101,7 +101,7 @@ class summarizer():
         self.model_name = model_name
         self.sess = sess
         self.time_start = time()
-        speed = {
+        self.speed = {
             "batch": 0,
             "best_batch": 0,
             "best_epoch": 0,
