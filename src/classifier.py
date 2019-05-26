@@ -1,6 +1,8 @@
 import os
 
 import tensorflow as tf
+from tensorflow.python.keras.callbacks import EarlyStopping
+
 import utils.data_util as data_util
 import numpy as np
 import trainers.TreeTrainer as trainer
@@ -80,6 +82,14 @@ def main():
     classifier.add(tf.keras.layers.Dense(2, activation='softmax'))
 
     classifier.summary()
+
+    stop_early = EarlyStopping(monitor='val_acc')
+    helper._print_header('Training classifier')
+    classifier.fit(X_train, Y_train, batch_size=FLAGS.classifier_batch_size, validation_data=(X_val, Y_val), epochs=1000, callbacks=[stop_early])
+    helper._print_subheader('Evaluation (validation)')
+    classifier.evaluate(X_val, Y_val)
+    helper._print_subheader('Evaluation (test)')
+    classifier.evaluate(X_test, Y_test)
 
     #g_classifier = tf.Graph()
     #with g_classifier.as_default():
