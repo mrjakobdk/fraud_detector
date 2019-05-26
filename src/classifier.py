@@ -83,7 +83,7 @@ def main():
 
     classifier.summary()
 
-    stop_early = EarlyStopping(monitor='val_acc')
+    stop_early = EarlyStopping(monitor='val_acc', patience=100, min_delta=0.01)
     helper._print_header('Training classifier')
     classifier.fit(X_train, Y_train, batch_size=FLAGS.classifier_batch_size, validation_data=(X_val, Y_val), epochs=1000, callbacks=[stop_early])
     helper._print_subheader('Evaluation (validation)')
