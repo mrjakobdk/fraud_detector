@@ -26,7 +26,6 @@ def get_labels(trees):
 
 
 def main():
-
     _data_util = data_util.DataUtil()
     data = _data_util.get_data()
 
@@ -65,34 +64,41 @@ def main():
         with tf.Session(config=None) as sess:
             saver = tf.train.Saver()
             model.load_best(sess, saver, "validation")
-            X_train = model.get_representation(data.train_trees, sess)
-            Y_train = get_labels(data.train_trees)
-            X_val = model.get_representation(data.val_trees, sess)
-            Y_val = get_labels(data.train_trees)
-            X_test = model.get_representation(data.test_trees, sess)
-            Y_test = get_labels(data.train_trees)
-
+            X_train = np.array(model.get_representation(data.train_trees, sess))
+            Y_train = np.array(get_labels(data.train_trees))
+            X_val = np.array(model.get_representation(data.val_trees, sess))
+            Y_val = np.array(get_labels(data.val_trees))
+            X_test = np.array(model.get_representation(data.test_trees, sess))
+            Y_test = np.array(get_labels(data.test_trees))
 
     classifier = tf.keras.models.Sequential()
-    classifier.add(tf.keras.layers.Dense(FLAGS.classifier_layer_size, activation=tf.nn.relu, input_shape=(FLAGS.sentence_embedding_size,)))
+    classifier.add(tf.keras.layers.Dense(FLAGS.classifier_layer_size, activation=tf.nn.relu,
+                                         input_shape=(FLAGS.sentence_embedding_size,)))
     for i in range(FLAGS.classifier_num_layers - 1):
-        classifier.add(tf.keras.layers.Dense(FLAGS.classifier_layer_size, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.0001) if FLAGS.classifier_l2 else None))
+        classifier.add(tf.keras.layers.Dense(FLAGS.classifier_layer_size, activation='relu',
+                                             kernel_regularizer=tf.keras.regularizers.l2(
+                                                 0.0001) if FLAGS.classifier_l2 else None))
         if FLAGS.classifier_dropout:
             classifier.add(tf.keras.layers.Dropout(0.2))
     classifier.add(tf.keras.layers.Dense(2, activation='softmax'))
-    classifier.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    classifier.compile(optimizer=tf.keras.optimizers.Adagrad(0.001), loss='categorical_crossentropy',
+                       metrics=['accuracy'])
 
     classifier.summary()
 
-    stop_early = EarlyStopping(monitor='val_acc', patience=100, min_delta=0.01)
+    epochs = 10000
+
+    stop_early = EarlyStopping(monitor='val_acc', patience=epochs, min_delta=0.01)
     helper._print_header('Training classifier')
-    classifier.fit(X_train, Y_train, batch_size=FLAGS.classifier_batch_size, validation_data=(X_val, Y_val), epochs=1000, callbacks=[stop_early])
+    classifier.fit(X_train, Y_train, batch_size=FLAGS.classifier_batch_size, validation_data=(X_val, Y_val),
+                   epochs=epochs, callbacks=[stop_early], verbose=2)
     helper._print_subheader('Evaluation (validation)')
     classifier.evaluate(X_val, Y_val)
     helper._print_subheader('Evaluation (test)')
     classifier.evaluate(X_test, Y_test)
 
-    #g_classifier = tf.Graph()
-    #with g_classifier.as_default():
+    # g_classifier = tf.Graph()
+    # with g_classifier.as_default():
+
 
 main()
