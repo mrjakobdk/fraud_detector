@@ -87,15 +87,23 @@ def plot(placement, x_label='batch size', y_label='minutes'):
     batch_sizes = tmp["batch_sizes"].tolist()
 
     plt.clf()
+    print("Epoch times")
     for avg_epoch_times, label in zip(epoch_times_list, labels):
+        print(label)
+        print(batch_sizes)
+        print(avg_epoch_times)
         plt.plot(batch_sizes, np.array(avg_epoch_times) / 60, label=label)
     plt.legend()
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.show()
-
+    print()
+    print("Running times")
     plt.clf()
     for avg_run_times, label in zip(run_times_list, labels):
+        print(label)
+        print(batch_sizes)
+        print(avg_run_times)
         plt.plot(batch_sizes, np.array(avg_run_times) / 60, label=label)
     plt.legend()
     plt.xlabel(x_label)
