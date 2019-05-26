@@ -66,13 +66,9 @@ def main():
             X_train = model.get_representation(data.train_trees, sess)
             Y_train = get_labels(data.train_trees)
             X_val = model.get_representation(data.val_trees, sess)
+            Y_val = get_labels(data.train_trees)
             X_test = model.get_representation(data.test_trees, sess)
-
-            print("Rep and label")
-            print(np.shape(X_train))
-            print(np.shape(Y_train))
-            print(X_train[0])
-            print(Y_train[0])
+            Y_test = get_labels(data.train_trees)
 
 
     #g_classifier = tf.Graph()

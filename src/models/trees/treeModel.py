@@ -1,5 +1,7 @@
 import sys
 import tensorflow as tf
+from tqdm import tqdm
+
 import utils.helper as helper
 from utils.flags import FLAGS
 import os
@@ -210,11 +212,16 @@ class treeModel:
 
     def get_representation(self, data, sess):
         rep = []
-        batches = helper.batches(data, batch_size=500 if FLAGS.use_gpu else 2, use_tail=True, perm=False)
+        batches = helper.batches(data, batch_size=500, use_tail=True, perm=False)
+        pbar = tqdm(
+            bar_format="(Representation) {percentage:.0f}%|{bar}| Elapsed: {elapsed}, Remaining: {remaining} ({n_fmt}/{total_fmt})",
+            total=len(batches))
         for batch in batches:
             feed_dict, _ = self.build_feed_dict(batch)
-            r = sess.run([self.sentence_representations], feed_dict=feed_dict)
+            r = sess.run(self.sentence_representations, feed_dict=feed_dict)
             rep.extend(r)
+            pbar.update(1)
+        pbar.close()
         return rep
 
     def predict_and_label(self, data, sess):
