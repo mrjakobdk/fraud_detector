@@ -101,6 +101,21 @@ class summarizer():
         self.model_name = model_name
         self.sess = sess
         self.time_start = time()
+        speed = {
+            "batch": 0,
+            "best_batch": 0,
+            "best_epoch": 0,
+            "epoch": 0,
+            "best_time": 0,
+            "total_time": 0,
+            "dropping_count": 0,
+            "converging_count": 0,
+            "dropping_acc": 0,
+            "converging_acc": 0,
+            "pre_epoch": 0,
+            "pre_batch": 0,
+            "main_count": 0,
+        }
 
     def construct_writers(self):
         self.writer[self.TRAIN] = tf.summary.FileWriter(directories.LOGS_TRAIN_DIR(self.model_name))
