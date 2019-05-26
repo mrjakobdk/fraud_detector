@@ -98,6 +98,15 @@ flags.DEFINE_boolean('run_decay_exp', False, "...")
 flags.DEFINE_boolean('run_word_exp', False, "...")
 flags.DEFINE_boolean('run_model_exp', False, "...")
 
+# --------------------------- Classifier ---------------------------
+
+flags.DEFINE_integer('classifier_num_layers', 1, "Number of hidden layers in the classifier.")
+flags.DEFINE_integer('classifier_layer_size', 300, "Size of the hidden layers in the classifier.")
+flags.DEFINE_integer('classifier_batch_size', 64, "Size of the hidden layers in the classifier.")
+flags.DEFINE_boolean('classifier_dropout', True, "Dropout for classifier.")
+flags.DEFINE_boolean('classifier_l2', False, "L2 regularization for classifier")
+
+
 # --------------------------- Init FLAGS variable ---------------------------
 
 FLAGS = flags.FLAGS

@@ -71,6 +71,16 @@ def main():
             Y_test = get_labels(data.train_trees)
 
 
+    classifier = tf.keras.models.Sequential()
+    classifier.add(tf.keras.layers.Dense(FLAGS.classifier_layer_size, activation=tf.nn.relu, input_shape=(FLAGS.sentence_embedding_size,)))
+    for i in range(FLAGS.classifier_num_layers - 1):
+        classifier.add(tf.keras.layers.Dense(FLAGS.classifier_layer_size, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.0001) if FLAGS.classifier_l2 else None))
+        if FLAGS.classifier_dropout:
+            classifier.add(tf.keras.layers.Dropout(0.2))
+    classifier.add(tf.keras.layers.Dense(2, activation='softmax'))
+
+    classifier.summary()
+
     #g_classifier = tf.Graph()
     #with g_classifier.as_default():
 
