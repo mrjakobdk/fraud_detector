@@ -69,8 +69,8 @@ def run_speed_test(placement):
                 trainer.train(model(data, word_embed, FLAGS.model_name), load=False, gpu=config,
                               batch_size=batch_size, epochs=epochs,
                               run_times=run_times, epoch_times=epoch_times, compute_performance=False)
-            avg_run_times.append(np.average(run_times[1:]))
-            avg_epoch_times.append(np.average(epoch_times[1:]))
+            avg_run_times.append(np.average(run_times))
+            avg_epoch_times.append(np.average(epoch_times))
         run_times_list.append(avg_run_times)
         epoch_times_list.append(avg_epoch_times)
 

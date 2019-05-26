@@ -208,6 +208,15 @@ class treeModel:
         feed_dict, _ = self.build_feed_dict(data)
         return sess.run(self.p, feed_dict=feed_dict)
 
+    def get_representation(self, data, sess):
+        rep = []
+        batches = helper.batches(data, batch_size=500 if FLAGS.use_gpu else 2, use_tail=True, perm=False)
+        for batch in batches:
+            feed_dict, _ = self.build_feed_dict(batch)
+            r = sess.run([self.sentence_representations], feed_dict=feed_dict)
+            rep.extend(r)
+        return rep
+
     def predict_and_label(self, data, sess):
         helper._print_subheader("Predicting")
         prob, labels = [], []
