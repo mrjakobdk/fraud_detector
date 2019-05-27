@@ -212,7 +212,7 @@ class treeModel:
 
     def get_representation(self, data, sess):
         rep = []
-        batches = helper.batches(data, batch_size=500, use_tail=True, perm=False)
+        batches = helper.batches(data, batch_size=2, use_tail=True, perm=False)
         pbar = tqdm(
             bar_format="(Representation) {percentage:.0f}%|{bar}| Elapsed: {elapsed}, Remaining: {remaining} ({n_fmt}/{total_fmt})",
             total=len(batches))

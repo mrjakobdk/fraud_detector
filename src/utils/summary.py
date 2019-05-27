@@ -21,86 +21,39 @@ class summarizer():
     VAL = "validation"
     TEST = "test"
     all_data_sets = [TRAIN, VAL, TEST]
-    writer = {TRAIN: None, VAL: None, TEST: None}
-    rounds = {TRAIN: 0, VAL: 0, TEST: 0}
-    acc = {TRAIN: 0, VAL: 0, TEST: 0}
-    loss = {TRAIN: 0, VAL: 0, TEST: 0}
-    history = {TRAIN: [], VAL: [], TEST: []}
-    best_acc = {TRAIN: 0, VAL: 0, TEST: 0}
-    pre_best_acc = {TRAIN: 0, VAL: 0, TEST: 0}
-    best_loss = {TRAIN: math.inf, VAL: math.inf, TEST: math.inf}
-    _new_best_acc = {TRAIN: False, VAL: False, TEST: False}
-    _new_best_loss = {TRAIN: False, VAL: False, TEST: False}
-    delta_time = 0
 
-    #########
-    parameters = {
-        "lr": 0,
-        "lr_end": 0,
-        "gpu": False,
-        "lr_decay": 0,
-        "conv_cond": 0,
-        "model": "",
-        "number_variables": 0,
-        "max_epochs": 0,
-    }
-    # summary at the time of best performance
-    speed = {
-        "batch": 0,
-        "best_batch": 0,
-        "best_epoch": 0,
-        "epoch": 0,
-        "best_time": 0,
-        "total_time": 0,
-        "dropping_count": 0,
-        "converging_count": 0,
-        "dropping_acc": 0,
-        "converging_acc": 0,
-        "pre_epoch": 0,
-        "pre_batch": 0,
-        "main_count": 0,
-    }
-
-    performance_train = {
-        "accuracy": 0,
-        "auc": 0,
-        "tp": 0,
-        "fp": 0,
-        "tn": 0,
-        "fn": 0,
-        "precision": 0,
-        "recall": 0,
-        "f1": 0,
-    }
-
-    performance_val = {
-        "accuracy": 0,
-        "auc": 0,
-        "tp": 0,
-        "fp": 0,
-        "tn": 0,
-        "fn": 0,
-        "precision": 0,
-        "recall": 0,
-        "f1": 0,
-    }
-
-    performance_test = {
-        "accuracy": 0,
-        "auc": 0,
-        "tp": 0,
-        "fp": 0,
-        "tn": 0,
-        "fn": 0,
-        "precision": 0,
-        "recall": 0,
-        "f1": 0,
-    }
 
     def __init__(self, model_name, sess):
         self.model_name = model_name
         self.sess = sess
         self.time_start = time()
+        TRAIN = self.TRAIN
+        VAL = self.VAL
+        TEST = self.TEST
+        self.writer = {TRAIN: None, VAL: None, TEST: None}
+        self.rounds = {TRAIN: 0, VAL: 0, TEST: 0}
+        self.acc = {TRAIN: 0, VAL: 0, TEST: 0}
+        self.loss = {TRAIN: 0, VAL: 0, TEST: 0}
+        self.history = {TRAIN: [], VAL: [], TEST: []}
+        self.best_acc = {TRAIN: 0, VAL: 0, TEST: 0}
+        self.pre_best_acc = {TRAIN: 0, VAL: 0, TEST: 0}
+        self.best_loss = {TRAIN: math.inf, VAL: math.inf, TEST: math.inf}
+        self._new_best_acc = {TRAIN: False, VAL: False, TEST: False}
+        self._new_best_loss = {TRAIN: False, VAL: False, TEST: False}
+        self.delta_time = 0
+
+        #########
+        self.parameters = {
+            "lr": 0,
+            "lr_end": 0,
+            "gpu": False,
+            "lr_decay": 0,
+            "conv_cond": 0,
+            "model": "",
+            "number_variables": 0,
+            "max_epochs": 0,
+        }
+        # summary at the time of best performance
         self.speed = {
             "batch": 0,
             "best_batch": 0,
@@ -115,6 +68,42 @@ class summarizer():
             "pre_epoch": 0,
             "pre_batch": 0,
             "main_count": 0,
+        }
+
+        self.performance_train = {
+            "accuracy": 0,
+            "auc": 0,
+            "tp": 0,
+            "fp": 0,
+            "tn": 0,
+            "fn": 0,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+        }
+
+        self.performance_val = {
+            "accuracy": 0,
+            "auc": 0,
+            "tp": 0,
+            "fp": 0,
+            "tn": 0,
+            "fn": 0,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+        }
+
+        self.performance_test = {
+            "accuracy": 0,
+            "auc": 0,
+            "tp": 0,
+            "fp": 0,
+            "tn": 0,
+            "fn": 0,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
         }
 
     def construct_writers(self):

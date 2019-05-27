@@ -70,7 +70,7 @@ def main():
         elif FLAGS.model == constants.LSTM:
             model = LSTM(data, word_embeddings, FLAGS.model_name)
 
-        with tf.Session(config=None) as sess:
+        with tf.Session(config=tf.ConfigProto(device_count={'GPU': 0})) as sess:
             saver = tf.train.Saver()
             model.load_best(sess, saver, "validation")
             X_train = np.array(model.get_representation(data.train_trees, sess))
@@ -86,9 +86,9 @@ def main():
     for i in range(FLAGS.classifier_num_layers - 1):
         classifier.add(tf.keras.layers.Dense(FLAGS.classifier_layer_size, activation='relu',
                                              kernel_regularizer=tf.keras.regularizers.l2(
-                                                 0.0001) if FLAGS.classifier_l2 else None))
+                                                 1) if FLAGS.classifier_l2 else None))
         if FLAGS.classifier_dropout:
-            classifier.add(tf.keras.layers.Dropout(0.2))
+            classifier.add(tf.keras.layers.Dropout(0.5))
     classifier.add(tf.keras.layers.Dense(2, activation='softmax'))
     classifier.compile(optimizer=tf.keras.optimizers.Adagrad(0.01), loss='categorical_crossentropy',
                        metrics=['accuracy'])
