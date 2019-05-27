@@ -105,6 +105,7 @@ flags.DEFINE_integer('classifier_layer_size', 300, "Size of the hidden layers in
 flags.DEFINE_integer('classifier_batch_size', 64, "Size of the hidden layers in the classifier.")
 flags.DEFINE_boolean('classifier_dropout', True, "Dropout for classifier.")
 flags.DEFINE_boolean('classifier_l2', False, "L2 regularization for classifier")
+flags.DEFINE_boolean('classifier_cross_validation', False, "Use cross validation to find parameters")
 
 
 # --------------------------- Init FLAGS variable ---------------------------

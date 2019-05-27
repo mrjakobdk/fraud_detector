@@ -5,6 +5,7 @@ from utils.flags import FLAGS
 # --------------------------- Directories ---------------------------
 DATA_DIR = FLAGS.root + 'data/'
 TRAINED_MODELS_DIR = FLAGS.root + 'trained_models/'
+CLASSIFIER_DATA_DIR = DATA_DIR + 'classifier_data/'
 
 
 def MODEL_DIR(model_name): return TRAINED_MODELS_DIR + model_name
@@ -108,6 +109,9 @@ def LOSS_HISTORY_PLOT(model_name): return TRAINED_MODELS_DIR + model_name + '/pl
 
 
 def CONSOLE_FILE(model_name): return TRAINED_MODELS_DIR + model_name + '/console.txt'
+
+
+def CLASSIFIER_DATA(model_name): return CLASSIFIER_DATA_DIR + model_name + '/'
 
 
 PPAY_TREES_ZIP_PATH = PPAY_TREES_DIR + 'PPAY.zip'
