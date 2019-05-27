@@ -86,7 +86,7 @@ def main():
     for i in range(FLAGS.classifier_num_layers - 1):
         classifier.add(tf.keras.layers.Dense(FLAGS.classifier_layer_size, activation='relu',
                                              kernel_regularizer=tf.keras.regularizers.l2(
-                                                 1) if FLAGS.classifier_l2 else None))
+                                                 0.3) if FLAGS.classifier_l2 else None))
         if FLAGS.classifier_dropout:
             classifier.add(tf.keras.layers.Dropout(0.5))
     classifier.add(tf.keras.layers.Dense(2, activation='softmax'))
@@ -97,7 +97,7 @@ def main():
 
     epochs = 10000
 
-    stop_early = EarlyStopping(monitor='val_acc', patience=epochs, min_delta=0.01)
+    stop_early = EarlyStopping(monitor='val_acc', patience=100, min_delta=0.01)
     helper._print_header('Training classifier')
     classifier.fit(X_train, Y_train, batch_size=FLAGS.classifier_batch_size, validation_data=(X_val, Y_val),
                    epochs=epochs, callbacks=[stop_early], verbose=2)
@@ -111,3 +111,5 @@ def main():
 
 
 main()
+
+#https://www.dlology.com/blog/how-to-do-hyperparameter-search-with-baysian-optimization-for-keras-model/
