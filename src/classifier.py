@@ -6,8 +6,10 @@ import utils.data_util as data_util
 import numpy as np
 import talos as ta
 
+from tensorflow.python.keras import backend
 from tensorflow.python.keras.callbacks import Callback
-from tensorflow.python.keras.metrics import Accuracy
+from tensorflow.python.keras.metrics import Accuracy, Recall, FalseNegatives, FalsePositives, TrueNegatives, \
+    TruePositives
 from tensorflow.python.keras import Sequential
 from tensorflow.python.keras.activations import relu
 from tensorflow.python.keras.callbacks import EarlyStopping
@@ -157,9 +159,9 @@ def cross_validation():
     x_val, y_val = data['val']
 
     helper._print_header('Searching the parameter space')
-    params = {
-        'lr': [0.01, 0.001, 0.0001],
-        'optimizer': [Adam],
+    params1 = {
+        'lr': [0.1, 0.01],
+        'optimizer': [Adagrad],
         'activation': [relu],
         'dropout': [0, 0.2, 0.5],
         'regularization': [0, 0.01, 0.001],
@@ -168,18 +170,41 @@ def cross_validation():
         'layer_size': [100, 300],
         'batch_size': [4, 64],
     }
+    params2 = {
+        'lr': [0.1, 0.01],
+        'optimizer': [Adagrad],
+        'activation': [relu],
+        'dropout': [0.2, 0.5],
+        'regularization': [0.01, 0.001],
+        'weights': [[2, 1], [1, 2], [1, 1], [3, 1]],
+        'loss_functions': [weighted_categorical_crossentropy],
+        'layers': [1, 3],
+        'layer_size': [100, 300],
+        'batch_size': [64],
+    }
     t = ta.Scan(
         model=mlp_model,
         x=x_train,
         y=y_train,
         x_val=x_val,
         y_val=y_val,
-        params=params,
+        params=params2,
         dataset_name=FLAGS.model_name,
-        experiment_no='patience_10_Adam',
+        experiment_no='patience_10_weighted_loss',
         clear_tf_session=False,
         print_params=False
     )
+
+def weighted_categorical_crossentropy(weights):
+    # Inspired by wassname on Github.
+    weights = backend.variable(weights)
+    def loss(y_true, y_pred):
+        y_pred /= backend.sum(y_pred, axis=1, keepdims=True)
+        y_pred = backend.clip(y_pred, backend.epsilon(), 1 - backend.epsilon())
+        loss = y_true * backend.log(y_pred) * weights
+        loss = -backend.sum(loss, -1)
+        return loss
+    return loss
 
 
 def mlp_model(x_train, y_train, x_val, y_val, params):
@@ -191,9 +216,14 @@ def mlp_model(x_train, y_train, x_val, y_val, params):
     model.add(Dense(2, activation='softmax'))
     model.compile(
         optimizer=params['optimizer'](params['lr']),
-        loss=params['loss_functions'],
+        loss=params['loss_functions'](params['weights']),
         metrics=[
-            'accuracy'
+            'accuracy',
+            Recall(),
+            FalseNegatives(),
+            FalsePositives(),
+            TrueNegatives(),
+            TruePositives()
         ]
     )
     history = model.fit(
