@@ -1,7 +1,6 @@
 import os
 
 import tensorflow as tf
-from keras.backend import clear_session
 
 import utils.data_util as data_util
 import numpy as np
@@ -13,7 +12,6 @@ from tensorflow.python.keras import Sequential
 from tensorflow.python.keras.activations import relu
 from tensorflow.python.keras.callbacks import EarlyStopping
 from tensorflow.python.keras.layers import Dense, Dropout
-from tensorflow.python.keras.losses import categorical_crossentropy
 from tensorflow.python.keras.optimizers import Adam, Adagrad
 from tensorflow.python.keras.regularizers import l2
 from models.sequential.LSTM import LSTM
@@ -160,26 +158,15 @@ def cross_validation():
 
     helper._print_header('Searching the parameter space')
     params = {
-        'lr': [0.1, 0.01],
-        'optimizer': [Adagrad],
+        'lr': [0.01, 0.001, 0.0001],
+        'optimizer': [Adam],
         'activation': [relu],
         'dropout': [0, 0.2, 0.5],
-        'regularization': [None, l2, l2(0.001)],
-        'loss_functions': [categorical_crossentropy],
+        'regularization': [0, 0.01, 0.001],
+        'loss_functions': ['categorical_crossentropy'],
         'layers': [1, 3],
         'layer_size': [100, 300],
-        'batch_size': [4, 64, 128],
-    }
-    paramsTest = {
-        'lr': [0.1, 0.01],
-        'optimizer': [Adagrad],
-        'activation': [relu],
-        'dropout': [0, 0.2],
-        'regularization': [None],
-        'loss_functions': [categorical_crossentropy],
-        'layers': [1, 3],
-        'layer_size': [300],
-        'batch_size': [64, 128],
+        'batch_size': [4, 64],
     }
     t = ta.Scan(
         model=mlp_model,
@@ -187,10 +174,11 @@ def cross_validation():
         y=y_train,
         x_val=x_val,
         y_val=y_val,
-        params=paramsTest,
-        experiment_no='Test1',
+        params=params,
+        dataset_name=FLAGS.model_name,
+        experiment_no='patience_10_Adam',
         clear_tf_session=False,
-        print_params=True
+        print_params=False
     )
 
 
@@ -198,14 +186,14 @@ def mlp_model(x_train, y_train, x_val, y_val, params):
     model = Sequential()
     model.add(Dense(params['layer_size'], activation=params['activation'], input_dim=x_train.shape[1]))
     for i in range(params['layers'] - 1):
-        model.add(Dense(params['layer_size'], activation=params['activation'], kernel_regularizer=params['regularization']))
+        model.add(Dense(params['layer_size'], activation=params['activation'], kernel_regularizer=l2(params['regularization'])))
         model.add(Dropout(params['dropout']))
     model.add(Dense(2, activation='softmax'))
     model.compile(
         optimizer=params['optimizer'](params['lr']),
         loss=params['loss_functions'],
         metrics=[
-            Accuracy()
+            'accuracy'
         ]
     )
     history = model.fit(
@@ -215,9 +203,9 @@ def mlp_model(x_train, y_train, x_val, y_val, params):
         validation_data=(x_val, y_val),
         epochs=100,
         callbacks=[
-            EarlyStopping(monitor='val_accuracy', patience=25, min_delta=0.01)
+            EarlyStopping(monitor='val_acc', patience=10, min_delta=0.01)
         ],
-        verbose=2
+        verbose=0
     )
     return history, model
 
