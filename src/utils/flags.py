@@ -108,6 +108,12 @@ flags.DEFINE_boolean('classifier_l2', False, "L2 regularization for classifier")
 flags.DEFINE_boolean('classifier_cross_validation', False, "Use cross validation to find parameters")
 
 
+#---------------------------- Plot --------------------------------------
+flags.DEFINE_string('plot_name', 'test', '...')
+flags.DEFINE_string('plot_colors', '', '...')
+flags.DEFINE_float('plot_ylim_min', 0.6, '...')
+flags.DEFINE_float('plot_ylim_max', 1, '...')
+
 # --------------------------- Init FLAGS variable ---------------------------
 
 FLAGS = flags.FLAGS
