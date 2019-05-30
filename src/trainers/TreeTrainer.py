@@ -51,7 +51,8 @@ class Trainer():
                 feed_dict, _ = self.model.build_feed_dict(batch, train=True)
                 start_run_time = time.time()
 
-                self.sess.run([self.model.train_op], feed_dict=feed_dict)
+                _, acc, loss = self.sess.run([self.model.train_op, self.model.acc, self.model.loss], feed_dict=feed_dict)
+                self.summary.add(self.summary.TRAIN, acc, loss)
 
                 end_run_time = time.time()
                 run_time += end_run_time - start_run_time
@@ -60,17 +61,17 @@ class Trainer():
             pbar.close()
             print()
 
-            pbar = tqdm(
-                bar_format="(Accuracy) {percentage:.0f}%|{bar}| Elapsed: {elapsed}, Remaining: {remaining} ({n_fmt}/{total_fmt})",
-                total=len(batches))
-            for step, batch in enumerate(batches):
-                acc_feed_dict, _ = self.model.build_feed_dict(batch)
-                acc, loss = self.sess.run([self.model.acc, self.model.loss],
-                                          feed_dict=acc_feed_dict)
-                self.summary.add(self.summary.TRAIN, acc, loss)
-                pbar.update(1)
-            pbar.close()
-            print()
+            # pbar = tqdm(
+            #     bar_format="(Accuracy) {percentage:.0f}%|{bar}| Elapsed: {elapsed}, Remaining: {remaining} ({n_fmt}/{total_fmt})",
+            #     total=len(batches))
+            # for step, batch in enumerate(batches):
+            #     acc_feed_dict, _ = self.model.build_feed_dict(batch)
+            #     acc, loss = self.sess.run([self.model.acc, self.model.loss],
+            #                               feed_dict=acc_feed_dict)
+            #     self.summary.add(self.summary.TRAIN, acc, loss)
+            #     pbar.update(1)
+            # pbar.close()
+            # print()
             # loading and saving tmp model - just in case something goes wrong
             if not self.summary.write_and_reset(self.summary.TRAIN, _print=True):
                 helper._print("Nan loss encountered, trying again...")
@@ -195,11 +196,10 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
           epoch_times=[], conv_cond=FLAGS.conv_cond,
           num_threads=FLAGS.num_threads, compute_performance=True):
     if gpu:
-        config = tf.ConfigProto(intra_op_parallelism_threads=num_threads)
+        config = None
     else:
         config = tf.ConfigProto(
-            device_count={'GPU': 0},
-            intra_op_parallelism_threads=num_threads
+            device_count={'GPU': 0}
         )
 
     with tf.Session(config=config) as sess:
