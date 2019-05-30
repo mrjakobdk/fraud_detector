@@ -223,9 +223,7 @@ def train(model, load=False, gpu=True, batch_size=FLAGS.batch_size, epochs=FLAGS
 
         # Training
         train_data, val_data, test_data = model.data.train_trees, model.data.val_trees, model.data.test_trees
-        print(not summary.converging())
-        print(not summary.at_max_epoch())
-        print(not summary.interrupt())
+
         while not summary.converging() and not summary.at_max_epoch() and not summary.interrupt():
             summary.epoch_inc()
             helper._print_subheader(f'Epoch {summary.get_epoch()}')
