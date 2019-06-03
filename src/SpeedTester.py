@@ -29,27 +29,27 @@ def run_speed_test(placement):
     to_be_tested = [
         (treeRNN_neerbek, config_GPU),
         (treeRNN_batch, config_GPU),
-        (treeLSTM, config_GPU),
-        (deepRNN, config_GPU),
-        (treeLSTM_tracker, config_GPU),
+        #(treeLSTM, config_GPU),
+        #(deepRNN, config_GPU),
+        #(treeLSTM_tracker, config_GPU),
         (treeRNN_neerbek, config_CPU),
         (treeRNN_batch, config_CPU),
-        (treeLSTM, config_CPU),
-        (deepRNN, config_CPU),
-        (treeLSTM_tracker, config_CPU)
+        #(treeLSTM, config_CPU),
+        #(deepRNN, config_CPU),
+        #(treeLSTM_tracker, config_CPU)
     ]
 
     labels = [
         "TreeRNN - GPU",
         "MTreeRNN - GPU",
-        "TreeLSTM - GPU",
-        "DeepRNN - GPU",
-        "TreeLSTM w. Tracker - GPU",
+        #"TreeLSTM - GPU",
+        #"DeepRNN - GPU",
+        #"TreeLSTM w. Tracker - GPU",
         "TreeRNN - CPU",
         "MTreeRNN - CPU",
-        "TreeLSTM - CPU",
-        "DeepRNN - CPU",
-        "TreeLSTM w. Tracker - CPU",
+        #"TreeLSTM - CPU",
+        #"DeepRNN - CPU",
+        #"TreeLSTM w. Tracker - CPU",
     ]
 
     _data_util = data_util.DataUtil()
