@@ -1,0 +1,7 @@
+{
+    "colors": "blue lightblue red lightred",
+    "ylim_min": "0.4",
+    "ylim_max": "0.65",
+    "y_label": "loss",
+    "x_label": "epochs"
+}
