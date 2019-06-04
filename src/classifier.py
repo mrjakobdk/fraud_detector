@@ -9,7 +9,7 @@ import talos as ta
 from tensorflow.python.keras import backend
 from tensorflow.python.keras.callbacks import Callback
 from tensorflow.python.keras.metrics import Accuracy, Recall, FalseNegatives, FalsePositives, TrueNegatives, \
-    TruePositives
+    TruePositives, Precision
 from tensorflow.python.keras import Sequential
 from tensorflow.python.keras.activations import relu
 from tensorflow.python.keras.callbacks import EarlyStopping
@@ -121,20 +121,21 @@ class SaveBestModelCallback(Callback):
 def train_classifier():
     data = get_data()
 
-    classifier = tf.keras.models.Sequential()
-    classifier.add(tf.keras.layers.Dense(FLAGS.classifier_layer_size, activation=tf.nn.relu,
-                                         input_shape=(FLAGS.sentence_embedding_size,)))
-    for i in range(FLAGS.classifier_num_layers - 1):
-        classifier.add(tf.keras.layers.Dense(FLAGS.classifier_layer_size, activation='relu',
-                                             kernel_regularizer=tf.keras.regularizers.l2(
-                                                 0.3) if FLAGS.classifier_l2 else None))
-        if FLAGS.classifier_dropout:
-            classifier.add(tf.keras.layers.Dropout(0.5))
-    classifier.add(tf.keras.layers.Dense(2, activation='softmax'))
+    classifier = Sequential()
+    classifier.add(Dense(100, activation=tf.nn.relu, input_shape=(FLAGS.sentence_embedding_size,)))
+    for i in range(1 - 1):
+        classifier.add(Dense(100, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.3)))
+        classifier.add(Dropout(0.5))
+    classifier.add(Dense(2, activation='softmax'))
     classifier.compile(
-        optimizer=tf.keras.optimizers.Adagrad(0.01),
+        optimizer=Adagrad(0.01),
         loss='categorical_crossentropy',
-        metrics=[Accuracy()]
+        metrics=[
+            'accuracy',
+            Recall(),
+            Precision(),
+            f1
+        ]
     )
 
     classifier.summary()
@@ -157,42 +158,73 @@ def cross_validation():
     data = get_data()
     x_train, y_train = data['train']
     x_val, y_val = data['val']
+    x_test, y_test = data['test']
 
     helper._print_header('Searching the parameter space')
-    params1 = {
+    params = {
         'lr': [0.1, 0.01],
         'optimizer': [Adagrad],
         'activation': [relu],
         'dropout': [0, 0.2, 0.5],
         'regularization': [0, 0.01, 0.001],
+        # 'weights1': [1, 2],
+        # 'weights2': [1],
         'loss_functions': ['categorical_crossentropy'],
         'layers': [1, 3],
         'layer_size': [100, 300],
-        'batch_size': [4, 64],
+        'batch_size': [4],
     }
-    params2 = {
-        'lr': [0.1, 0.01],
+    paramsTest = {
+        'lr': [0.1],
         'optimizer': [Adagrad],
         'activation': [relu],
-        'dropout': [0.2, 0.5],
-        'regularization': [0.01, 0.001],
-        'weights': [[2, 1], [1, 2], [1, 1], [3, 1]],
-        'loss_functions': [weighted_categorical_crossentropy],
-        'layers': [1, 3],
-        'layer_size': [100, 300],
-        'batch_size': [64],
+        'dropout': [0.2],
+        'regularization': [0.01],
+        # 'weights1': [2],
+        # 'weights2': [1],
+        'loss_functions': ['categorical_cross_entropy'],
+        'layers': [3],
+        'layer_size': [100],
+        'batch_size': [64, 4],
     }
-    t = ta.Scan(
+    ta.Scan(
         model=mlp_model,
         x=x_train,
         y=y_train,
         x_val=x_val,
         y_val=y_val,
-        params=params2,
+        params=params,
         dataset_name=FLAGS.model_name,
-        experiment_no='patience_10_weighted_loss',
+        experiment_no='Adagrad_V1',
         clear_tf_session=False,
-        print_params=False
+        print_params=False,
+
+    )
+    ta.Scan(
+        model=mlp_model,
+        x=x_train,
+        y=y_train,
+        x_val=x_val,
+        y_val=y_val,
+        params=params,
+        dataset_name=FLAGS.model_name,
+        experiment_no='Adagrad_V2',
+        clear_tf_session=False,
+        print_params=False,
+
+    )
+    ta.Scan(
+        model=mlp_model,
+        x=x_train,
+        y=y_train,
+        x_val=x_val,
+        y_val=y_val,
+        params=params,
+        dataset_name=FLAGS.model_name,
+        experiment_no='Adagrad_V3',
+        clear_tf_session=False,
+        print_params=False,
+
     )
 
 def weighted_categorical_crossentropy(weights):
@@ -206,24 +238,53 @@ def weighted_categorical_crossentropy(weights):
         return loss
     return loss
 
+def f1(y_true, y_pred):
+    def recall(y_true, y_pred):
+        """Recall metric.
+
+        Only computes a batch-wise average of recall.
+
+        Computes the recall, a metric for multi-label classification of
+        how many relevant items are selected.
+        """
+        true_positives = backend.sum(backend.round(backend.clip(y_true * y_pred, 0, 1)))
+        possible_positives = backend.sum(backend.round(backend.clip(y_true, 0, 1)))
+        recall = true_positives / (possible_positives + backend.epsilon())
+        return recall
+
+    def precision(y_true, y_pred):
+        """Precision metric.
+
+        Only computes a batch-wise average of precision.
+
+        Computes the precision, a metric for multi-label classification of
+        how many selected items are relevant.
+        """
+        true_positives = backend.sum(backend.round(backend.clip(y_true * y_pred, 0, 1)))
+        predicted_positives = backend.sum(backend.round(backend.clip(y_pred, 0, 1)))
+        precision = true_positives / (predicted_positives + backend.epsilon())
+        return precision
+    precision = precision(y_true, y_pred)
+    recall = recall(y_true, y_pred)
+    return 2*((precision*recall)/(precision+recall+backend.epsilon()))
 
 def mlp_model(x_train, y_train, x_val, y_val, params):
     model = Sequential()
-    model.add(Dense(params['layer_size'], activation=params['activation'], input_dim=x_train.shape[1]))
+    model.add(Dense(params['layer_size'], activation=params['activation'], input_dim=x_train.shape[1], kernel_regularizer=l2(params['regularization'])))
+    model.add(Dropout(params['dropout']))
     for i in range(params['layers'] - 1):
         model.add(Dense(params['layer_size'], activation=params['activation'], kernel_regularizer=l2(params['regularization'])))
         model.add(Dropout(params['dropout']))
     model.add(Dense(2, activation='softmax'))
     model.compile(
         optimizer=params['optimizer'](params['lr']),
-        loss=params['loss_functions'](params['weights']),
+        loss=params['loss_functions'],
+        # loss=params['loss_functions']([params['weights1'], params['weights2']]),
         metrics=[
             'accuracy',
             Recall(),
-            FalseNegatives(),
-            FalsePositives(),
-            TrueNegatives(),
-            TruePositives()
+            Precision(),
+            f1
         ]
     )
     history = model.fit(
@@ -233,7 +294,7 @@ def mlp_model(x_train, y_train, x_val, y_val, params):
         validation_data=(x_val, y_val),
         epochs=100,
         callbacks=[
-            EarlyStopping(monitor='val_acc', patience=10, min_delta=0.01)
+            EarlyStopping(monitor='val_acc', patience=5, min_delta=0.01)
         ],
         verbose=0
     )
